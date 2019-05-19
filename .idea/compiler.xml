@@ -9,7 +9,6 @@
         <module name="using_reactive_apis" />
         <module name="promises_in_java" />
         <module name="full_stack_reactive_programming" />
-        <module name="design_patterns_in_the_light_of_lambdas" />
         <module name="design_patterns_in_lambdas" />
       </profile>
     </annotationProcessing>
