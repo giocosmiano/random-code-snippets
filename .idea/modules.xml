@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/full_stack_reactive_programming.test.iml" filepath="$PROJECT_DIR$/.idea/modules/full_stack_reactive_programming.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/random_code_snippets.full_stack_reactive_programming.main.iml" filepath="$PROJECT_DIR$/.idea/modules/random_code_snippets.full_stack_reactive_programming.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/random_code_snippets.full_stack_reactive_programming.test.iml" filepath="$PROJECT_DIR$/.idea/modules/random_code_snippets.full_stack_reactive_programming.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/scala_laziness/scala_laziness.iml" filepath="$PROJECT_DIR$/scala_laziness/scala_laziness.iml" />
       <module fileurl="file://$PROJECT_DIR$/using_reactive_apis/using_reactive_apis.iml" filepath="$PROJECT_DIR$/using_reactive_apis/using_reactive_apis.iml" />
     </modules>
   </component>
