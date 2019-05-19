@@ -37,18 +37,26 @@ shadowJar {
     }
     manifest {
         attributes 'Main-Class': 'io.vertx.core.Launcher'
-        attributes 'Main-Verticle': 'feedData.FeedDataServer'
+        attributes 'Main-Verticle': 'demoClientServer.DemoServer'
+
+// use whichever you're going to run
+//        attributes 'Main-Verticle': 'demoClientServer.DemoServer'
+//        attributes 'Main-Verticle': 'feedDataClientServer.FeedDataServer'
     }
 }
 
 task(runServer, type: JavaExec) {
     main = '-jar'
-    args 'build/libs/feed_data-fat.jar'
+    args 'build/libs/full_stack_reactive_programming-1.0-SNAPSHOT.jar'
 }
 
 task(runClient, type: JavaExec) {
-    main = 'feedData.FeedDataClient'
-    classpath 'build/libs/feed_data-fat.jar'
+    main = 'demoClientServer.DemoClient'
+    classpath 'build/libs/full_stack_reactive_programming-1.0-SNAPSHOT.jar'
+
+// use whichever you're going to run
+//    main = 'demoClientServer.DemoClient'
+//    main = 'feedDataClientServer.FeedDataClient'
 }
 
 defaultTasks 'clean', 'shadowJar'
