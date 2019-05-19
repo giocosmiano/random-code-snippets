@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
+}
+
+group 'full_stack_reactive_programming'
+version '1.0-SNAPSHOT'
+
+jar.baseName = 'full_stack_reactive_programming'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile     group: 'io.reactivex.rxjava2',  name: 'rxjava',         version: '2.2.8'
+    compile     group: 'io.vertx',              name: 'vertx-core',     version: '3.7.0'
+    compile     group: 'io.vertx',              name: 'vertx-web',      version: '3.7.0'
+    compile     group: 'io.vertx',              name: 'vertx-rx-java2', version: '3.7.0'
+
+    compile     group: 'org.mongodb',           name: 'mongodb-driver-reactivestreams', version: '1.7.1'
+    compile     group: 'org.mongodb',           name: 'mongo-java-driver', version: '3.6.3'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+compileJava {
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+}
+
+shadowJar {
+    classifier = 'fat'
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
+    manifest {
+        attributes 'Main-Class': 'io.vertx.core.Launcher'
+        attributes 'Main-Verticle': 'feedData.FeedDataServer'
+    }
+}
+
+task(runServer, type: JavaExec) {
+    main = '-jar'
+    args 'build/libs/feed_data-fat.jar'
+}
+
+task(runClient, type: JavaExec) {
+    main = 'feedData.FeedDataClient'
+    classpath 'build/libs/feed_data-fat.jar'
+}
+
+defaultTasks 'clean', 'shadowJar'

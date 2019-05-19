@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id="full_stack_reactive_programming" external.linked.project.path="$MODULE_DIR$/../../full_stack_reactive_programming" external.root.project.path="$MODULE_DIR$/../../full_stack_reactive_programming" external.system.id="GRADLE" external.system.module.group="full_stack_reactive_programming" external.system.module.version="1.0-SNAPSHOT" type="JAVA_MODULE" version="4">
+  <component name="ExternalSystem" linkedProjectPath="$MODULE_DIR$/../../full_stack_reactive_programming" rootProjectPath="$MODULE_DIR$/../../full_stack_reactive_programming" />
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../full_stack_reactive_programming">
+      <excludeFolder url="file://$MODULE_DIR$/../../full_stack_reactive_programming/.gradle" />
+      <excludeFolder url="file://$MODULE_DIR$/../../full_stack_reactive_programming/build" />
+      <excludeFolder url="file://$MODULE_DIR$/../../full_stack_reactive_programming/out" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
