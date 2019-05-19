@@ -6,15 +6,17 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="using_reactive_apis" />
+        <module name="creating_internal_dsls_in_kotlin" />
         <module name="coroutines_in_kotlin" />
-        <module name="promises_in_java" />
         <module name="full_stack_reactive_programming" />
+        <module name="using_reactive_apis" />
+        <module name="promises_in_java" />
         <module name="design_patterns_in_lambdas" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="coroutines_in_kotlin" target="1.8" />
+      <module name="creating_internal_dsls_in_kotlin" target="1.8" />
       <module name="design_patterns_in_lambdas" target="1.8" />
       <module name="full_stack_reactive_programming" target="1.8" />
       <module name="full_stack_reactive_programming.main" target="1.8" />

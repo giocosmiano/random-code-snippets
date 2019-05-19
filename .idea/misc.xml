@@ -8,6 +8,7 @@
         <option value="$PROJECT_DIR$/design_patterns_in_lambdas/pom.xml" />
         <option value="$PROJECT_DIR$/promises_in_java/pom.xml" />
         <option value="$PROJECT_DIR$/coroutines_in_kotlin/pom.xml" />
+        <option value="$PROJECT_DIR$/creating_internal_dsls_in_kotlin/pom.xml" />
       </list>
     </option>
   </component>
