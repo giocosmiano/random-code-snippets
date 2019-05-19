@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/full_stack_reactive_programming.iml" filepath="$PROJECT_DIR$/.idea/modules/full_stack_reactive_programming.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/full_stack_reactive_programming.main.iml" filepath="$PROJECT_DIR$/.idea/modules/full_stack_reactive_programming.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/full_stack_reactive_programming.test.iml" filepath="$PROJECT_DIR$/.idea/modules/full_stack_reactive_programming.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/promises_in_java/promises_in_java.iml" filepath="$PROJECT_DIR$/promises_in_java/promises_in_java.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/random_code_snippets.full_stack_reactive_programming.main.iml" filepath="$PROJECT_DIR$/.idea/modules/random_code_snippets.full_stack_reactive_programming.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/random_code_snippets.full_stack_reactive_programming.test.iml" filepath="$PROJECT_DIR$/.idea/modules/random_code_snippets.full_stack_reactive_programming.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/scala_laziness/scala_laziness.iml" filepath="$PROJECT_DIR$/scala_laziness/scala_laziness.iml" />
