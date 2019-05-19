@@ -1,4 +1,4 @@
-class Sample {
+class HowCoroutinesWork {
   fun first(): Int {
     return 2
   }         
@@ -9,8 +9,8 @@ class Sample {
 }
 
 /*
-kotlinc-jvm Sample.kt
-javap -c Sample      
+kotlinc-jvm HowCoroutinesWork.kt
+javap -c HowCoroutinesWork
 
 See the difference between first and second in the bytecode
 The second method takes a continuation as parameter
