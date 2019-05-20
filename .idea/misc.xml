@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/promises_in_java/pom.xml" />
         <option value="$PROJECT_DIR$/coroutines_in_kotlin/pom.xml" />
         <option value="$PROJECT_DIR$/creating_internal_dsls_in_kotlin/pom.xml" />
+        <option value="$PROJECT_DIR$/jvm_cool_features/pom.xml" />
       </list>
     </option>
   </component>

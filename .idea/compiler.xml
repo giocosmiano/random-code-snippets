@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="creating_internal_dsls_in_kotlin" />
         <module name="coroutines_in_kotlin" />
+        <module name="jvm_cool_features" />
         <module name="full_stack_reactive_programming" />
         <module name="using_reactive_apis" />
         <module name="promises_in_java" />
@@ -21,6 +22,7 @@
       <module name="full_stack_reactive_programming" target="1.8" />
       <module name="full_stack_reactive_programming.main" target="1.8" />
       <module name="full_stack_reactive_programming.test" target="1.8" />
+      <module name="jvm_cool_features" target="1.8" />
       <module name="promises_in_java" target="1.8" />
       <module name="random_code_snippets.full_stack_reactive_programming.main" target="1.8" />
       <module name="random_code_snippets.full_stack_reactive_programming.test" target="1.8" />

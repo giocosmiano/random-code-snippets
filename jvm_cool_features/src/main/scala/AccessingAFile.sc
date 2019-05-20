@@ -1,0 +1,1 @@
+println(scala.io.Source.fromFile("AccessingAFile.sc").mkString)

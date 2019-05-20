@@ -1,0 +1,1 @@
+println(new File('AccessingAFile.groovy').text)

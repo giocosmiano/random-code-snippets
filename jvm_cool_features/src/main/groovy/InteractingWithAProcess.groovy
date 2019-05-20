@@ -1,0 +1,1 @@
+println("git help".execute().text)
