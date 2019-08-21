@@ -1,14 +1,14 @@
-var isPrime = function(number) {
-  for(var i = 2; i < number; i++) {
+let isPrime = function(number) {
+  for(let i = 2; i < number; i++) {
     if(number % i === 0) return false;
   }                                  
   
   return true;
-} 
+};
 
-var primes = Rx.Observable.create(function(observer) {
-  var count = 1;
-  while(count < 100000) {
+let primes = rxjs.Observable.create(function(observer) {
+  let count = 1;
+  while(count < 10000) {
     if(isPrime(count))
       observer.next(count);
     count++;
@@ -17,13 +17,13 @@ var primes = Rx.Observable.create(function(observer) {
   observer.complete();
 });
 
-var subscribe = function() {
-  var subscriber = {
+let onSubscribe = function() {
+  let subscriber = {
     next: function(prime) { 
       console.log(prime); 
-      if(prime > 50000) subscriber.unsubscribe();
+      if(prime > 5000) subscriber.unsubscribe();
     }
   };
   
   primes.subscribe(subscriber);
-}
+};
