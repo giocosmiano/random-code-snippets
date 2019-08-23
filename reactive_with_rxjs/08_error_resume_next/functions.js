@@ -26,8 +26,13 @@ let onSubscribe = function() {
     console.log('here');
     display.innerHTML = ex.message;
   };
-              
+
+  // see Piping --> https://rxjs-dev.firebaseapp.com/guide/operators
   getKeyboardObservable(input)
-    .onErrorResumeNext(getKeyboardObservable(input))
-    .subscribe(displayKey, handleError);
+      .pipe(rxjs.operators.onErrorResumeNext(getKeyboardObservable(input)))
+      .subscribe(displayKey, handleError);
+
+  // getKeyboardObservable(input)
+  //     .onErrorResumeNext(getKeyboardObservable(input))
+  //     .subscribe(displayKey, handleError);
 };
