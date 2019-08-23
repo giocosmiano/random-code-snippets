@@ -1,32 +1,32 @@
-var getKeyboardObservable = function(source) {
-  var getKey = function(event) {
-    var key = event.key;
+let getKeyboardObservable = function(source) {
+  let getKey = function(event) {
+    let key = event.key;
     if(key === 'f' || key === 'F')
       throw new Error("error, don't do that!");
       
     return key;
   };
   
-  return Rx.Observable.fromEvent(source, 'keyup')
-           .map(getKey);
-}
+  return rxjs.fromEvent(source, 'keyup')
+           .pipe(rxjs.operators.map(getKey));
+};
 
-var subscribe = function() {
-  var input = document.getElementById('input');
-  var display = document.getElementById('display');
+let onSubscribe = function() {
+  let input = document.getElementById('input');
+  let display = document.getElementById('display');
   
   input.placeholder = "type something here";
-                                                   
-  var displayKey = function(key) {
+
+  let displayKey = function(key) {
     display.innerHTML += ("" + key);
-  }                                                             
-  
-  var handleError = function(ex) {
+  };
+
+  let handleError = function(ex) {
     console.log('here');
     display.innerHTML = ex.message;
-  }
+  };
               
   getKeyboardObservable(input)
     .onErrorResumeNext(getKeyboardObservable(input))
     .subscribe(displayKey, handleError);
-}
+};
