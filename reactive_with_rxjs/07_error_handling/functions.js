@@ -6,7 +6,8 @@ let getKeyboardObservable = function(source) {
       
     return key;
   };
-  
+
+  // see Piping --> https://rxjs-dev.firebaseapp.com/guide/operators
   return rxjs.fromEvent(source, 'keyup')
            .pipe(rxjs.operators.map(getKey));
 };

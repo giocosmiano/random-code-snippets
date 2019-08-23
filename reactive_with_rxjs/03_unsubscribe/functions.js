@@ -21,9 +21,9 @@ let onSubscribe = function() {
   let subscriber = {
     next: function(prime) { 
       console.log(prime); 
-      if(prime > 5000) subscriber.unsubscribe();
+      if(prime > 5000) this.unsubscribe(); // subscriber.unsubscribe()
     }
   };
-  
+
   primes.subscribe(subscriber);
 };
