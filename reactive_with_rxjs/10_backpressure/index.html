@@ -1,13 +1,13 @@
 <html>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.0-beta.12/Rx.js
-	"></script>            
-	<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script> 
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.5.2/rxjs.umd.js"></script>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
 	<script src="functions.js"></script>
 	
 	<body>   
 		<input id="input"></input>
 		<div id="display"></div>
-		<button onclick="subscribe(); this.disabled = true;">Subscribe</button>
+		<button onclick="onSubscribe(); this.disabled = true;">Subscribe</button>
     <div>After subscribing, type fast, then slow, vary speed, wait and observe</div>
 
 		<input type="checkbox" id="debounce">debounce</input>
