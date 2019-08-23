@@ -18,7 +18,7 @@ let primes = rxjs.Observable.create(function(observer) {
   };
   
   nextPrime();
-}).share();
+}).pipe(rxjs.operators.share());
 
 let onSubscribe = function(display) {
   primes.subscribe(function(prime) { 
