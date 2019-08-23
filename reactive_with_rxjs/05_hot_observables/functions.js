@@ -1,27 +1,27 @@
-var isPrime = function(number) {
-  for(var i = 2; i < number; i++) {
+let isPrime = function(number) {
+  for(let i = 2; i < number; i++) {
     if(number % i === 0) return false;
   }                                  
   
   return true;
-} 
+};
 
-var primes = Rx.Observable.create(function(observer) {
-  var number = 1;
-  var nextPrime = function() {
+let primes = rxjs.Observable.create(function(observer) {
+  let number = 1;
+  let nextPrime = function() {
     number++;
     while(!isPrime(number)) number++;
     
     observer.next(number);
     
     setTimeout(nextPrime, 100);
-  }
+  };
   
   nextPrime();
 }).share();
 
-var subscribe = function(display) {
+let onSubscribe = function(display) {
   primes.subscribe(function(prime) { 
     display.innerHTML = "" + prime;
   });
-}
+};
