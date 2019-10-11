@@ -6,16 +6,20 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="codility" />
         <module name="creating_internal_dsls_in_kotlin" />
         <module name="coroutines_in_kotlin" />
-        <module name="jvm_cool_features" />
         <module name="full_stack_reactive_programming" />
+        <module name="jvm_cool_features" />
         <module name="using_reactive_apis" />
         <module name="promises_in_java" />
         <module name="design_patterns_in_lambdas" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="_programmingJava.random-code-snippets.full_stack_reactive_programming.main" target="1.8" />
+      <module name="_programmingJava.random-code-snippets.full_stack_reactive_programming.test" target="1.8" />
+      <module name="codility" target="1.8" />
       <module name="coroutines_in_kotlin" target="1.8" />
       <module name="creating_internal_dsls_in_kotlin" target="1.8" />
       <module name="design_patterns_in_lambdas" target="1.8" />

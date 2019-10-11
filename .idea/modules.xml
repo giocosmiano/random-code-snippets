@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/_programmingJava.random-code-snippets.full_stack_reactive_programming.main.iml" filepath="$PROJECT_DIR$/.idea/modules/_programmingJava.random-code-snippets.full_stack_reactive_programming.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/_programmingJava.random-code-snippets.full_stack_reactive_programming.test.iml" filepath="$PROJECT_DIR$/.idea/modules/_programmingJava.random-code-snippets.full_stack_reactive_programming.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/codility/codility.iml" filepath="$PROJECT_DIR$/codility/codility.iml" />
       <module fileurl="file://$PROJECT_DIR$/coroutines_in_kotlin/coroutines_in_kotlin.iml" filepath="$PROJECT_DIR$/coroutines_in_kotlin/coroutines_in_kotlin.iml" />
       <module fileurl="file://$PROJECT_DIR$/creating_internal_dsls_in_kotlin/creating_internal_dsls_in_kotlin.iml" filepath="$PROJECT_DIR$/creating_internal_dsls_in_kotlin/creating_internal_dsls_in_kotlin.iml" />
       <module fileurl="file://$PROJECT_DIR$/design_patterns_in_lambdas/design_patterns_in_lambdas.iml" filepath="$PROJECT_DIR$/design_patterns_in_lambdas/design_patterns_in_lambdas.iml" />
