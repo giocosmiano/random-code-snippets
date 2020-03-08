@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/_programmingJava.random-code-snippets.full_stack_reactive_programming.main.iml" filepath="$PROJECT_DIR$/.idea/modules/_programmingJava.random-code-snippets.full_stack_reactive_programming.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/_programmingJava.random-code-snippets.full_stack_reactive_programming.test.iml" filepath="$PROJECT_DIR$/.idea/modules/_programmingJava.random-code-snippets.full_stack_reactive_programming.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/codility/codility.iml" filepath="$PROJECT_DIR$/codility/codility.iml" />
       <module fileurl="file://$PROJECT_DIR$/coroutines_in_kotlin/coroutines_in_kotlin.iml" filepath="$PROJECT_DIR$/coroutines_in_kotlin/coroutines_in_kotlin.iml" />
       <module fileurl="file://$PROJECT_DIR$/creating_internal_dsls_in_kotlin/creating_internal_dsls_in_kotlin.iml" filepath="$PROJECT_DIR$/creating_internal_dsls_in_kotlin/creating_internal_dsls_in_kotlin.iml" />
@@ -14,8 +12,6 @@
       <module fileurl="file://$PROJECT_DIR$/jvm_cool_features/jvm_cool_features.iml" filepath="$PROJECT_DIR$/jvm_cool_features/jvm_cool_features.iml" />
       <module fileurl="file://$PROJECT_DIR$/promises_in_java/promises_in_java.iml" filepath="$PROJECT_DIR$/promises_in_java/promises_in_java.iml" />
       <module fileurl="file://$PROJECT_DIR$/promises_in_js/promises_in_js.iml" filepath="$PROJECT_DIR$/promises_in_js/promises_in_js.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/random-code-snippets.full_stack_reactive_programming.main.iml" filepath="$PROJECT_DIR$/.idea/modules/random-code-snippets.full_stack_reactive_programming.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/random-code-snippets.full_stack_reactive_programming.test.iml" filepath="$PROJECT_DIR$/.idea/modules/random-code-snippets.full_stack_reactive_programming.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/reactive_with_rxjs/reactive_with_rxjs.iml" filepath="$PROJECT_DIR$/reactive_with_rxjs/reactive_with_rxjs.iml" />
       <module fileurl="file://$PROJECT_DIR$/scala_laziness/scala_laziness.iml" filepath="$PROJECT_DIR$/scala_laziness/scala_laziness.iml" />
       <module fileurl="file://$PROJECT_DIR$/using_reactive_apis/using_reactive_apis.iml" filepath="$PROJECT_DIR$/using_reactive_apis/using_reactive_apis.iml" />
