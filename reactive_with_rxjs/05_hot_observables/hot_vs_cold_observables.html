@@ -23,7 +23,7 @@
 			let number = 1;
 			let nextPrime = () => {
 				number++;
-				while (!isPrime(number)) number++;
+				while (! isPrime(number)) number++;
 				observer.next(number);
 				setTimeout(nextPrime, 100);
 			};
@@ -32,6 +32,28 @@
 		})
 		, hotObservables = coldObservables.pipe(rxjs.operators.share())
 		, mapOfSubscribers = new Map();
+
+		const onStopAll = btnElemId => {
+			const btnElem = $(`#${btnElemId}`)
+					, isHotObservable = btnElem.attr('data-is-hot-observable') === 'true'
+			;
+
+			let hotCold;
+			if (isHotObservable) hotCold = 'Hot';
+			else hotCold = 'Cold';
+
+			const btnHotColdElem = $(`#btn${hotCold}StopAll`)
+					, btnElem1 = $(`#btn${hotCold}Elem1`)
+					, btnElem2 = $(`#btn${hotCold}Elem2`)
+					, btnElem3 = $(`#btn${hotCold}Elem3`)
+			;
+
+			mapOfSubscribers.get(btnElem1.attr('id')).unsubscribe();
+			mapOfSubscribers.get(btnElem2.attr('id')).unsubscribe();
+			mapOfSubscribers.get(btnElem3.attr('id')).unsubscribe();
+
+			btnHotColdElem.attr('disabled', 'disabled');
+		};
 
 		const onSubscribe = (btnElemId, spanElemId) => {
 			const btnElem = $(`#${btnElemId}`)
@@ -45,10 +67,14 @@
 			if (isHotObservable) hotCold = 'Hot';
 			else hotCold = 'Cold';
 
-			const spanVal1 = $(`#span${hotCold}Elem1`)
+			const btnHotColdElem = $(`#btn${hotCold}StopAll`)
+					, btnElem1 = $(`#btn${hotCold}Elem1`)
+					, btnElem2 = $(`#btn${hotCold}Elem2`)
+					, btnElem3 = $(`#btn${hotCold}Elem3`)
+					, spanVal1 = $(`#span${hotCold}Elem1`)
 					, spanVal2 = $(`#span${hotCold}Elem2`)
 					, spanVal3 = $(`#span${hotCold}Elem3`)
-					, logDisplay = () => console.log(`${hotCold} Subscriber1: ${spanVal1.text()}	Subscriber2: ${spanVal2.text()}	Subscriber3: ${spanVal3.text()}`)
+					, logDisplay = () => console.log(`${hotCold} Observables - ${(btnElemNbr === '1') ? 'Subscriber 1: ' + spanVal1.text() : ''} ${(btnElemNbr === '2') ? '\t\tSubscriber 2: ' + spanVal2.text() : ''} ${(btnElemNbr === '3') ? '\t\t\t\tSubscriber 3: ' + spanVal3.text() : ''}`)
 			;
 
 			if (isSubscriberOn) {
@@ -70,21 +96,31 @@
 				btnElem.html(`Stop Subscriber ${btnElemNbr}`);
 				btnElem.attr('data-is-subscriber-on', 'true');
 			}
+
+			if (btnElem1.attr('data-is-subscriber-on') === 'true' &&
+					btnElem2.attr('data-is-subscriber-on') === 'true' &&
+					btnElem3.attr('data-is-subscriber-on') === 'true') {
+				btnHotColdElem.removeAttr('disabled');
+			} else {
+				btnHotColdElem.attr('disabled', 'disabled');
+			}
 		};
 	</script>
 
 	<body style="margin: 10px; padding: 10px;">
 		<div class="alert alert-warning" role="alert">
 			<span style="font-weight: bold;">RxJS Cold Observables</span>
-			<button id="btnColdElem1" type="button" class="btn btn-primary" data-elem-nbr="1" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem1.id)">Start Subscriber 1</button><span id="spanColdElem1" style="margin: 10px; padding: 10px;">---</span>
-			<button id="btnColdElem2" type="button" class="btn btn-primary" data-elem-nbr="2" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem2.id)">Start Subscriber 2</button><span id="spanColdElem2" style="margin: 10px; padding: 10px;">---</span>
-			<button id="btnColdElem3" type="button" class="btn btn-primary" data-elem-nbr="3" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem3.id)">Start Subscriber 3</button><span id="spanColdElem3" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnColdElem1" type="button" class="btn btn-primary btn-sm" data-elem-nbr="1" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem1.id)">Start Subscriber 1</button><span id="spanColdElem1" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnColdElem2" type="button" class="btn btn-primary btn-sm" data-elem-nbr="2" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem2.id)">Start Subscriber 2</button><span id="spanColdElem2" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnColdElem3" type="button" class="btn btn-primary btn-sm" data-elem-nbr="3" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem3.id)">Start Subscriber 3</button><span id="spanColdElem3" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnColdStopAll" type="button" class="btn btn-primary btn-sm" data-is-hot-observable="false" onclick="onStopAll(this.id)" disabled="disabled">Stop All Subscribers</button><span id="spanColdStopAll" style="margin: 10px; padding: 10px;">---</span>
 		</div>
 		<div class="alert alert-danger" role="alert">
 			<span style="font-weight: bold;">RxJS Hot Observables</span>
-			<button id="btnHotElem1" type="button" class="btn btn-primary" data-elem-nbr="1" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem1.id)">Start Subscriber 1</button><span id="spanHotElem1" style="margin: 10px; padding: 10px;">---</span>
-			<button id="btnHotElem2" type="button" class="btn btn-primary" data-elem-nbr="2" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem2.id)">Start Subscriber 2</button><span id="spanHotElem2" style="margin: 10px; padding: 10px;">---</span>
-			<button id="btnHotElem3" type="button" class="btn btn-primary" data-elem-nbr="3" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem3.id)">Start Subscriber 3</button><span id="spanHotElem3" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnHotElem1" type="button" class="btn btn-primary btn-sm" data-elem-nbr="1" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem1.id)">Start Subscriber 1</button><span id="spanHotElem1" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnHotElem2" type="button" class="btn btn-primary btn-sm" data-elem-nbr="2" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem2.id)">Start Subscriber 2</button><span id="spanHotElem2" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnHotElem3" type="button" class="btn btn-primary btn-sm" data-elem-nbr="3" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem3.id)">Start Subscriber 3</button><span id="spanHotElem3" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnHotStopAll" type="button" class="btn btn-primary btn-sm" data-is-hot-observable="true" onclick="onStopAll(this.id)" disabled="disabled">Stop All Subscribers</button><span id="spanHotStopAll" style="margin: 10px; padding: 10px;">---</span>
 		</div>
 	</body>
 </html>

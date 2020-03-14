@@ -1,12 +1,12 @@
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.disposables.Disposable;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-public class HotVsColdObservables {
+public class HotVsColdReactorFlux {
 
   private final AtomicInteger subscriber1 = new AtomicInteger();
   private final AtomicInteger subscriber2 = new AtomicInteger();
@@ -27,14 +27,14 @@ public class HotVsColdObservables {
   };
 
   public static void main(String[] args) {
-    HotVsColdObservables observables = new HotVsColdObservables();
+    HotVsColdReactorFlux observables = new HotVsColdReactorFlux();
     observables.runObservable(false);
   }
 
   public void doOnNext(boolean isHotObservable, final Integer subscriberNbr, final Integer data) {
     System.out.println(
-//            String.format("%s Observables from %s - \t%s\t%s\t%s\t - from doOnNext()"
-            String.format("%s Observables from %s - \t%s\t%s\t%s\t"
+//            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - from doOnNext()"
+            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t"
                     , isHotObservable ? "Hot" : "Cold"
                     , Thread.currentThread().getName()
                     , subscriberNbr == 1 ? String.format("Subscriber 1: %s", data) : ""
@@ -59,7 +59,7 @@ public class HotVsColdObservables {
 
   public void printSubscribeMessageX(boolean isHotObservable, final Integer subscriberNbr) {
     System.out.println(
-            String.format("%s Observables from %s - \t%s\t%s\t%s\t - from printSubscribeMessage()"
+            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - from printSubscribeMessage()"
                     , isHotObservable ? "Hot" : "Cold"
                     , Thread.currentThread().getName()
                     , subscriberNbr == 1 ? String.format("Subscriber 1: %s", subscriber1.get()) : ""
@@ -72,9 +72,9 @@ public class HotVsColdObservables {
     try { Thread.sleep(millis); } catch (Exception e) {}
   }
 
-  public void nextPrime(final Integer number, final ObservableEmitter<Integer> observer) {
+  public void nextPrime(final Integer number, final FluxSink<Integer> observer) {
     final Integer prime = getNextPrime.apply(number);
-    observer.onNext(prime);
+    observer.next(prime);
     CompletableFuture.supplyAsync(() -> {
       setTimeout(100);
       nextPrime(prime, observer);
@@ -84,12 +84,12 @@ public class HotVsColdObservables {
 
   public void runObservable(boolean isHotObservable) {
     System.out.println(
-            String.format("Starting %s Observables from %s"
+            String.format("Starting %s Reactor Flux from %s"
                     , isHotObservable ? "Hot" : "Cold"
                     , Thread.currentThread().getName()
             ));
 
-    Observable<Integer> observable = Observable.create(observer -> nextPrime(1, observer));
+    Flux<Integer> observable = Flux.create(observer -> nextPrime(1, observer));
 
     if (isHotObservable) observable = observable.share();
 
@@ -117,7 +117,7 @@ public class HotVsColdObservables {
 
     setTimeout(5000);
     System.out.println(
-            String.format("DONE with %s Observables from %s"
+            String.format("DONE with %s Reactor Flux from %s"
                     , isHotObservable ? "Hot" : "Cold"
                     , Thread.currentThread().getName()
             ));
