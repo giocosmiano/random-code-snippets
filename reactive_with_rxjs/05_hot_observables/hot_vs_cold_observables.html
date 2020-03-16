@@ -49,6 +49,7 @@
 								else
 									return prime;
 							})
+							// comment to simulate an error that will halt the entire stream of data
 							, rxjs.operators.catchError(error => rxjs.of(error))
 					);
 		}))
