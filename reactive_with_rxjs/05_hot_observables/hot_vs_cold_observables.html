@@ -24,12 +24,33 @@
 			let nextPrime = () => {
 				number++;
 				while (! isPrime(number)) number++;
+
+				if (number >= 400) {
+					observer.complete();
+				}
+
+				// un-comment to simulate an error that will halt the entire stream of data
+				// else if (number >= 100 && number <= 150) {
+				// 	observer.error(number);
+				// }
+
 				observer.next(number);
 				setTimeout(nextPrime, 100);
 			};
 
 			nextPrime();
-		})
+		}).pipe(rxjs.operators.switchMap(data => {
+			const disposableStream$ = rxjs.of(data);
+			return disposableStream$
+					.pipe(rxjs.operators.map(data => {
+								if (data >= 100 && data <= 200)
+									throw new Error(`Simulating an error on ${data} to continue the stream of data`);
+								else
+									return data;
+							}),
+							rxjs.operators.catchError(error => rxjs.of(error))
+					);
+		}))
 		, hotObservables = coldObservables.pipe(rxjs.operators.share())
 		, mapOfSubscribers = new Map();
 
@@ -74,24 +95,43 @@
 					, spanVal1 = $(`#span${hotCold}Elem1`)
 					, spanVal2 = $(`#span${hotCold}Elem2`)
 					, spanVal3 = $(`#span${hotCold}Elem3`)
-					, logDisplay = () => console.log(`${hotCold} Observables - ${(btnElemNbr === '1') ? 'Subscriber 1: ' + spanVal1.text() : ''} ${(btnElemNbr === '2') ? '\t\tSubscriber 2: ' + spanVal2.text() : ''} ${(btnElemNbr === '3') ? '\t\t\t\tSubscriber 3: ' + spanVal3.text() : ''}`)
+			;
+
+			const logOnData = () => console.log(`${hotCold} Observables - ${(btnElemNbr === '1') ? 'Subscriber 1: ' + spanVal1.text() : ''} ${(btnElemNbr === '2') ? '\t\tSubscriber 2: ' + spanVal2.text() : ''} ${(btnElemNbr === '3') ? '\t\t\t\tSubscriber 3: ' + spanVal3.text() : ''}`)
+				, logOnError = data => console.log(`${hotCold} Observables - ${(btnElemNbr === '1') ? 'Subscriber 1: ' + data : ''} ${(btnElemNbr === '2') ? '\t\tSubscriber 2: ' + data : ''} ${(btnElemNbr === '3') ? '\t\t\t\tSubscriber 3: ' + data : ''} - onError()`)
+				, logOnComplete = () => console.log(`${hotCold} Observables - ${(btnElemNbr === '1') ? 'Subscriber 1: ' : ''} ${(btnElemNbr === '2') ? '\t\tSubscriber 2: ' : ''} ${(btnElemNbr === '3') ? '\t\t\t\tSubscriber 3: ' : ''} - onComplete()`)
+			;
+
+			const unSubscribe = () => {
+					mapOfSubscribers.get(btnElemId).unsubscribe();
+					btnElem.html(`Start Subscriber ${btnElemNbr}`);
+					btnElem.attr('data-is-subscriber-on', 'false');
+				}
+				, dataHandler =
+					prime => {
+						spanElem.text(prime);
+						logOnData();
+					}
+				, errorHandler = prime => {
+						unSubscribe();
+						logOnError(prime);
+					}
+				, completeHandler = () => {
+						unSubscribe();
+						logOnComplete();
+					}
 			;
 
 			if (isSubscriberOn) {
-				mapOfSubscribers.get(btnElemId).unsubscribe();
-				btnElem.html(`Start Subscriber ${btnElemNbr}`);
-				btnElem.attr('data-is-subscriber-on', 'false');
-				logDisplay();
+				unSubscribe();
+				logOnData();
 
 			} else {
 				let observable;
 				if (isHotObservable) observable = hotObservables;
 				else observable = coldObservables;
 
-				const subscriber = observable.subscribe(prime => {
-					spanElem.text(prime);
-					logDisplay();
-				});
+				const subscriber = observable.subscribe(dataHandler, errorHandler, completeHandler);
 				mapOfSubscribers.set(btnElemId, subscriber);
 				btnElem.html(`Stop Subscriber ${btnElemNbr}`);
 				btnElem.attr('data-is-subscriber-on', 'true');
