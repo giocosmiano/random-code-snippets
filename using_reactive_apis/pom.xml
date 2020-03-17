@@ -14,8 +14,9 @@
         <rxJavaVersion>2.2.8</rxJavaVersion>
         <rxScalaVersion>0.27.0</rxScalaVersion>
         <scalaVersion>2.11.12</scalaVersion>
+        <groovyVersion>2.5.8</groovyVersion>
         <springBootVersion>2.1.5.RELEASE</springBootVersion>
-        <springReactorVersion>3.2.5.RELEASE</springReactorVersion>
+        <springReactorVersion>3.2.15.RELEASE</springReactorVersion>
     </properties>
 
     <dependencies>
@@ -36,6 +37,14 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scalaVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <!-- any version of Groovy \>= 1.8.2 should work here -->
+            <version>${groovyVersion}</version>
+            <type>pom</type>
         </dependency>
 
         <dependency>
@@ -67,6 +76,17 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.codehaus.gmaven</groupId>
+                    <artifactId>groovy-maven-plugin</artifactId>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy-all</artifactId>
+                            <version>${groovyVersion}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
