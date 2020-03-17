@@ -1,11 +1,9 @@
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.disposables.Disposable
-import io.reactivex.functions.Consumer
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.function.Function
 
 class HotVsColdObservablesGroovy {
     private AtomicInteger subscriber1 = new AtomicInteger()
