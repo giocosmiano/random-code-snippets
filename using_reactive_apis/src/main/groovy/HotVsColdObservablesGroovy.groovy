@@ -142,17 +142,17 @@ class HotVsColdObservablesGroovy {
 
         if (isHotObservable) observable = observable.share()
 
-        Function<Integer, Consumer<Integer>> onNext =
-                { subscriberNbr -> { data -> doOnNext(isHotObservable, subscriberNbr, data) } }
+        def onNext =
+                { Integer subscriberNbr, Integer data -> doOnNext(isHotObservable, subscriberNbr, data) }
 
-        Function<Integer, Consumer<Throwable>> onError =
-                { subscriberNbr -> { error -> doOnError(isHotObservable, subscriberNbr, error) } }
+        def onError =
+                { Integer subscriberNbr, Throwable error -> doOnError(isHotObservable, subscriberNbr, error) }
 
-        Consumer<Integer> onComplete =
-                { subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr) }
+        def onComplete =
+                { Integer subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr) }
 
-        Function<Integer, Consumer<Disposable>> onSubscribe =
-                { subscriberNbr -> { disposable ->
+        def onSubscribe =
+                { Integer subscriberNbr, Disposable disposable ->
                     if (subscriberNbr == 1) {
                         disposable1 = disposable
 
@@ -162,32 +162,32 @@ class HotVsColdObservablesGroovy {
                     } else if (subscriberNbr == 3) {
                         disposable3 = disposable
                     }
-                } }
+                }
 
         observable
-                .doOnSubscribe({disposable -> onSubscribe.apply(1).accept(disposable) } )
+                .doOnSubscribe({disposable -> onSubscribe(1, disposable) } )
                 .subscribe(
-                        {data -> onNext.apply(1).accept(data) }
-                        ,{error -> onError.apply(1).accept(error) }
-                        ,{ -> onComplete.accept(1) }
+                        {data -> onNext(1, data) }
+                        ,{error -> onError(1, error) }
+                        ,{ -> onComplete(1) }
                 )
 
         sleep(2000)
         observable
-                .doOnSubscribe({disposable -> onSubscribe.apply(2).accept(disposable) } )
+                .doOnSubscribe({disposable -> onSubscribe(2, disposable) } )
                 .subscribe(
-                        {data -> onNext.apply(2).accept(data) }
-                        ,{error -> onError.apply(2).accept(error) }
-                        ,{ -> onComplete.accept(2) }
+                        {data -> onNext(2, data) }
+                        ,{error -> onError(2, error) }
+                        ,{ -> onComplete(2) }
                 )
 
         sleep(2000)
         observable
-                .doOnSubscribe({disposable -> onSubscribe.apply(3).accept(disposable) } )
+                .doOnSubscribe({disposable -> onSubscribe(3, disposable) } )
                 .subscribe(
-                        {data -> onNext.apply(3).accept(data) }
-                        ,{error -> onError.apply(3).accept(error) }
-                        ,{ -> onComplete.accept(3) }
+                        {data -> onNext(3, data) }
+                        ,{error -> onError(3, error) }
+                        ,{ -> onComplete(3) }
                 )
 
         sleep(10000)
