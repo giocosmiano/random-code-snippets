@@ -51,10 +51,14 @@ public class HotVsColdReactorFlux {
                     , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", data) : ""
             ));
 
-    switch (subscriberNbr) {
-      case 1: subscriber1.set(data);
-      case 2: subscriber2.set(data);
-      case 3: subscriber3.set(data);
+    if (subscriberNbr == 1) {
+      subscriber1.set(data);
+
+    } else if (subscriberNbr == 2) {
+      subscriber2.set(data);
+
+    } else if (subscriberNbr == 3) {
+      subscriber3.set(data);
     }
   }
 
@@ -79,12 +83,15 @@ public class HotVsColdReactorFlux {
                     , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", subscriber3.get()) : ""
             ));
 
-    // NOTE: dispose() seems to un-subscribe all subscribers to a Flux rather than just the individual subscription, same with RxJava
-//    switch (subscriberNbr) {
-//      case 1: disposable1.dispose();
-//      case 2: disposable2.dispose();
-//      case 3: disposable3.dispose();
-//    }
+    if (subscriberNbr == 1) {
+      disposable1.dispose();
+
+    } else if (subscriberNbr == 2) {
+      disposable2.dispose();
+
+    } else if (subscriberNbr == 3) {
+      disposable3.dispose();
+    }
   }
 
   public void setTimeout(final Integer millis) {
