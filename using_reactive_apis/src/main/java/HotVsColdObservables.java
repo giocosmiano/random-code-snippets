@@ -79,7 +79,7 @@ public class HotVsColdObservables {
                     , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", subscriber3.get()) : ""
             ));
 
-    // NOTE: dispose() seems to un-subscribe all subscribers to an Observable rather than just the individual subscription
+    // NOTE: dispose() seems to un-subscribe all subscribers to an Observable rather than just the individual subscription, same with Reactor Flux/Mono
 //    switch (subscriberNbr) {
 //      case 1: disposable1.dispose();
 //      case 2: disposable2.dispose();
@@ -134,7 +134,7 @@ public class HotVsColdObservables {
                         return data;
                       })
                       .onErrorReturn(error -> {
-                        System.out.println(error.getMessage());
+                        System.out.println(String.format("Caught an error=%s", error.getMessage()));
                         return 0;
                       });
             })

@@ -4,13 +4,23 @@ import reactor.core.publisher.FluxSink;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
+// Difference between RxJava vs Reactor
+// https://www.nurkiewicz.com/2019/02/rxjava-vs-reactor.html
+// https://stackoverflow.com/questions/56461260/java-spring-webflux-vs-rxjava
+// https://medium.com/wolox/reactor-java-meets-reactive-programming-16105c026fc3
+// https://www.javacodegeeks.com/2018/08/frameworks-toolkits-make-java-reactive-rxjava-spring-reactor-akka-vert-x-overview.html
 public class HotVsColdReactorFlux {
 
   private final AtomicInteger subscriber1 = new AtomicInteger();
   private final AtomicInteger subscriber2 = new AtomicInteger();
   private final AtomicInteger subscriber3 = new AtomicInteger();
+
+  private Disposable disposable1 = null;
+  private Disposable disposable2 = null;
+  private Disposable disposable3 = null;
 
   private final Function<Integer, Boolean> isPrime = number -> {
     for (int i = 2; i < number; i++) {
@@ -33,39 +43,48 @@ public class HotVsColdReactorFlux {
 
   public void doOnNext(boolean isHotObservable, final Integer subscriberNbr, final Integer data) {
     System.out.println(
-//            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - from doOnNext()"
-            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t"
+            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - from doOnNext()"
                     , isHotObservable ? "Hot" : "Cold"
                     , Thread.currentThread().getName()
                     , subscriberNbr == 1 ? String.format("Subscriber 1: %s", data) : ""
                     , subscriberNbr == 2 ? String.format("\tSubscriber 2: %s", data) : ""
                     , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", data) : ""
             ));
-  }
 
-  public Integer doubleTheValue(final Integer subscriberNbr, final Integer data) {
-    final Integer doubleIt = data * 2;
     switch (subscriberNbr) {
-      case 1: subscriber1.set(doubleIt);
-      case 2: subscriber2.set(doubleIt);
-      case 3: subscriber3.set(doubleIt);
+      case 1: subscriber1.set(data);
+      case 2: subscriber2.set(data);
+      case 3: subscriber3.set(data);
     }
-    return doubleIt;
   }
 
-  public void printSubscribeMessage(boolean isHotObservable, final Integer subscriberNbr) {
-    // do nothing
-  }
-
-  public void printSubscribeMessageX(boolean isHotObservable, final Integer subscriberNbr) {
+  public void doOnError(boolean isHotObservable, final Integer subscriberNbr, final Throwable error) {
     System.out.println(
-            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - from printSubscribeMessage()"
+            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - doOnError()"
+                    , isHotObservable ? "Hot" : "Cold"
+                    , Thread.currentThread().getName()
+                    , subscriberNbr == 1 ? String.format("Subscriber 1: %s", error.getMessage()) : ""
+                    , subscriberNbr == 2 ? String.format("\tSubscriber 2: %s", error.getMessage()) : ""
+                    , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", error.getMessage()) : ""
+            ));
+  }
+
+  public void doOnComplete(boolean isHotObservable, final Integer subscriberNbr) {
+    System.out.println(
+            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - from doOnComplete()"
                     , isHotObservable ? "Hot" : "Cold"
                     , Thread.currentThread().getName()
                     , subscriberNbr == 1 ? String.format("Subscriber 1: %s", subscriber1.get()) : ""
                     , subscriberNbr == 2 ? String.format("\tSubscriber 2: %s", subscriber2.get()) : ""
                     , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", subscriber3.get()) : ""
             ));
+
+    // NOTE: dispose() seems to un-subscribe all subscribers to a Flux rather than just the individual subscription, same with RxJava
+//    switch (subscriberNbr) {
+//      case 1: disposable1.dispose();
+//      case 2: disposable2.dispose();
+//      case 3: disposable3.dispose();
+//    }
   }
 
   public void setTimeout(final Integer millis) {
@@ -74,7 +93,19 @@ public class HotVsColdReactorFlux {
 
   public void nextPrime(final Integer number, final FluxSink<Integer> observer) {
     final Integer prime = getNextPrime.apply(number);
+
+    if (prime >= 500) {
+      observer.complete();
+
+      // https://github.com/ReactiveX/RxJava/wiki/Error-Handling
+      // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
+      // un-comment to simulate an `onError` that will halt the entire stream of data
+//    } else if (prime >= 200) {
+//      observer.error(new RuntimeException("Simulating an error that will halt the entire stream of data. Data=" + prime));
+    }
+
     observer.next(prime);
+
     CompletableFuture.supplyAsync(() -> {
       setTimeout(100);
       nextPrime(prime, observer);
@@ -89,33 +120,58 @@ public class HotVsColdReactorFlux {
                     , Thread.currentThread().getName()
             ));
 
-    Flux<Integer> observable = Flux.create(observer -> nextPrime(1, observer));
+    Flux<Integer> observable = Flux.<Integer>create(observer -> nextPrime(1, observer))
+            .switchMap(prime -> {
+              Flux<Integer> disposableStream$ = Flux.just(prime);
+              return disposableStream$
+                      .map(data -> {
+                        if (data >= 100 && data <= 200) {
+                          throw new RuntimeException(String.format("Simulating an error skipping prime=%s, in-between 100 and 200, while continue streaming the rest", prime));
+                        }
+                        return data;
+                      })
+                      .onErrorContinue((error, data) -> System.out.println(String.format("Data=%s triggered an error=%s", data, error.getMessage())));
+            })
+            ;
 
     if (isHotObservable) observable = observable.share();
 
-    Disposable disposable1 =
-            observable.doOnNext(data -> doOnNext(isHotObservable,1, data))
-                    .map(data -> doubleTheValue(1, data))
-                    .subscribe(data -> printSubscribeMessage(isHotObservable,1));
+    Function<Integer, Consumer<Integer>> onNext =
+            subscriberNbr -> data -> doOnNext(isHotObservable, subscriberNbr, data);
+
+    Function<Integer, Consumer<Throwable>> onError =
+            subscriberNbr -> error -> doOnError(isHotObservable, subscriberNbr, error);
+
+    Consumer<Integer> onComplete =
+            subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr);
+
+    disposable1 =
+            observable
+                    .subscribe(
+                            data -> onNext.apply(1).accept(data)
+                            , error -> onError.apply(1).accept(error)
+                            , () -> onComplete.accept(1)
+                    );
+
     setTimeout(2000);
+    disposable2 =
+            observable
+                    .subscribe(
+                            data -> onNext.apply(2).accept(data)
+                            , error -> onError.apply(2).accept(error)
+                            , () -> onComplete.accept(2)
+                    );
 
-    Disposable disposable2 =
-            observable.doOnNext(data -> doOnNext(isHotObservable,2, data))
-                    .map(data -> doubleTheValue(2, data))
-                    .subscribe(data -> printSubscribeMessage(isHotObservable,2));
-    setTimeout(3000);
+    setTimeout(2000);
+    disposable3 =
+            observable
+                    .subscribe(
+                            data -> onNext.apply(3).accept(data)
+                            , error -> onError.apply(3).accept(error)
+                            , () -> onComplete.accept(3)
+                    );
 
-    Disposable disposable3 =
-            observable.doOnNext(data -> doOnNext(isHotObservable,3, data))
-                    .map(data -> doubleTheValue(3, data))
-                    .subscribe(data -> printSubscribeMessage(isHotObservable,3));
-    setTimeout(4000);
-
-    disposable1.dispose();
-    disposable2.dispose();
-    disposable3.dispose();
-
-    setTimeout(5000);
+    setTimeout(10000);
     System.out.println(
             String.format("DONE with %s Reactor Flux from %s"
                     , isHotObservable ? "Hot" : "Cold"
