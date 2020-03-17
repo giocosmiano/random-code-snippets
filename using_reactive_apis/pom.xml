@@ -74,6 +74,7 @@
     </dependencies>
 
     <build>
+<!--
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -99,10 +100,32 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+-->
         <plugins>
+            <!-- Java/Scala -->
+            <!-- https://davidb.github.io/scala-maven-plugin/usage.html -->
+            <!-- http://alchim.sourceforge.net/scala/maven-scala-plugin/2.0-SNAPSHOT/usage_compile.html -->
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
+                <version>4.3.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scalaVersion>${scalaVersion}</scalaVersion>
+                </configuration>
+            </plugin>
+<!--
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>4.3.1</version>
                 <executions>
                     <execution>
                         <id>scala-compile-first</id>
@@ -121,6 +144,9 @@
                     </execution>
                 </executions>
             </plugin>
+-->
+            <!-- Java/Groovy joint compilation -->
+            <!-- https://github.com/groovy/GMavenPlus/wiki/Examples -->
             <plugin>
                 <groupId>org.codehaus.gmavenplus</groupId>
                 <artifactId>gmavenplus-plugin</artifactId>
@@ -143,6 +169,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.0.2</version>
                 <executions>
                     <execution>
                         <phase>compile</phase>
