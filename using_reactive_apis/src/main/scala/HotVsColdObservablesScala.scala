@@ -37,20 +37,20 @@ object HotVsColdObservablesScala extends App {
   }
 
   def doOnNext(isHotObservable: Boolean, subscriberNbr: Int, data: Int): Unit = {
-    println(
-      s"${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName} - \t"
-        + s"${if (subscriberNbr == 1) "Subscriber 1: " + data else ""}"
-        + s"${if (subscriberNbr == 2) "\tSubscriber 2: " + data else ""}"
-        + s"${if (subscriberNbr == 3) "\t\tSubscriber 3: " + data else ""}"
-        + "\t - from doOnNext()"
-    )
-
     subscriberNbr match {
       case 1 => subscriber1.set(data)
       case 2 => subscriber2.set(data)
       case 3 => subscriber3.set(data)
       case _ => Unit
     }
+
+    println(
+      s"${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName} - \t"
+        + s"${if (subscriberNbr == 1) "Subscriber 1: " + subscriber1.get else ""}"
+        + s"${if (subscriberNbr == 2) "\tSubscriber 2: " + subscriber2.get else ""}"
+        + s"${if (subscriberNbr == 3) "\t\tSubscriber 3: " + subscriber3.get else ""}"
+        + "\t - from doOnNext()"
+    )
   }
 
   def doOnError(isHotObservable: Boolean, subscriberNbr: Int, error: Throwable): Unit = {
@@ -64,6 +64,8 @@ object HotVsColdObservablesScala extends App {
   }
 
   def doOnComplete(isHotObservable: Boolean, subscriberNbr: Int, subscription: Subscription): Unit = {
+    subscription.unsubscribe()
+
     println(
       s"${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName} - \t"
         + s"${if (subscriberNbr == 1) "Subscriber 1: " + subscriber1.get else ""}"
@@ -71,13 +73,12 @@ object HotVsColdObservablesScala extends App {
         + s"${if (subscriberNbr == 3) "\t\tSubscriber 3: " + subscriber3.get else ""}"
         + "\t - from doOnComplete()"
     )
-
-    subscription.unsubscribe()
   }
 
   def nextPrime(number: Int, observer: Observer[Int]): Unit = {
     val prime = getNextPrime(number)
 
+    // Emit a completion when threshold is reached
     if (prime >= 500) {
       observer.onCompleted()
 
@@ -86,18 +87,25 @@ object HotVsColdObservablesScala extends App {
       // un-comment to simulate an `onError` that will halt the entire stream of data
 //    } else if (prime >= 200) {
 //      observer.onError(new RuntimeException("Simulating an error that will halt the entire stream of data. Data=" + prime))
-    }
 
-    observer.onNext(prime)
-    Future {
-      Thread.sleep(100)
-      nextPrime(prime, observer)
+      // emit the next data
+    } else {
+      observer.onNext(prime)
+      Future {
+        Thread.sleep(100)
+        nextPrime(prime, observer)
+      }
     }
   }
 
   def runObservable(isHotObservable: Boolean): Unit = {
     println(s"Starting ${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName}")
 
+    // Simulating a non-blocking IO such as a ReST call then a Reactive Mongo chaining them up together e.g.
+    // http://localhost:8080/getEmployeeDetails/123
+    // CompletableFuture.supplyAsync(() -> getEmployee(empId))
+    //         .thenApply(emp -> getEmployeeDept(empId))
+    //         .thenApply(emp -> getEmployeePay(empId))
     var observable =
       Observable.create[Int](observer => {
         nextPrime(1, observer)
@@ -105,6 +113,7 @@ object HotVsColdObservablesScala extends App {
       })
         .switchMap[Int](prime => {
           val disposableStream$ = Observable.just(prime)
+
           disposableStream$
             .map(data => {
               if (data >= 100 && data <= 200)
@@ -153,7 +162,18 @@ object HotVsColdObservablesScala extends App {
           , () => onComplete(3, subscription3)
         )
 
-    Thread.sleep(10000)
+
+    var anySubscribersStillListening = false
+    do {
+      anySubscribersStillListening =
+        (
+          (subscription1 != null && ! subscription1.isUnsubscribed)
+            || (subscription2 != null && ! subscription2.isUnsubscribed)
+            || (subscription3 != null && ! subscription3.isUnsubscribed)
+          )
+      Thread.sleep(1000)
+    } while ( anySubscribersStillListening )
+
     println(s"DONE with ${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName}")
   }
 }
