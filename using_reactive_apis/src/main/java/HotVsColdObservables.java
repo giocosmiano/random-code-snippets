@@ -113,15 +113,16 @@ public class HotVsColdObservables {
 //            observer.tryOnError(new RuntimeException("Simulating an error that will halt the entire stream of data. Data=" + prime));
         }
 
-        if (! observer.isDisposed()) {
+        // emit the next data
+        else if (! observer.isDisposed()) {
             observer.onNext(prime);
-        }
 
-        CompletableFuture.supplyAsync(() -> {
-            setTimeout(100);
-            nextPrime(prime, observer);
-            return prime;
-        });
+            CompletableFuture.supplyAsync(() -> {
+                setTimeout(100);
+                nextPrime(prime, observer);
+                return prime;
+            });
+        }
     }
 
     public void runObservable(boolean isHotObservable) {
