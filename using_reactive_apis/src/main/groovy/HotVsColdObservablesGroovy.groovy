@@ -27,22 +27,12 @@ class HotVsColdObservablesGroovy {
     }
 
     def getNextPrime = { Integer number ->
-        Integer iNbr = number
-        iNbr++
+        Integer iNbr = number + 1
         while (! isPrime(iNbr)) iNbr++
         iNbr
     }
 
     def doOnNext = { Boolean isHotObservable, Integer subscriberNbr, Integer data ->
-        println(
-                String.format("%s Observables from %s - \t%s\t%s\t%s\t - doOnNext()"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                        , subscriberNbr == 1 ? String.format("Subscriber 1: %s", data) : ""
-                        , subscriberNbr == 2 ? String.format("\tSubscriber 2: %s", data) : ""
-                        , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", data) : ""
-                ))
-
         if (subscriberNbr == 1) {
             subscriber1.set(data)
 
@@ -52,29 +42,27 @@ class HotVsColdObservablesGroovy {
         } else if (subscriberNbr == 3) {
             subscriber3.set(data)
         }
+
+        println(
+                "${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()} - \t"
+                        + (subscriberNbr == 1 ? "Subscriber 1: ${subscriber1.get()}" : "")
+                        + (subscriberNbr == 2 ? "\tSubscriber 2: ${subscriber2.get()}" : "")
+                        + (subscriberNbr == 3 ? "\t\tSubscriber 3: ${subscriber3.get()}" : "")
+                        + "\t - from doOnNext()"
+        )
     }
 
     def doOnError = { Boolean isHotObservable, Integer subscriberNbr, Throwable error ->
         println(
-                String.format("%s Observables from %s - \t%s\t%s\t%s\t - doOnError()"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                        , subscriberNbr == 1 ? String.format("Subscriber 1: %s", error.getMessage()) : ""
-                        , subscriberNbr == 2 ? String.format("\tSubscriber 2: %s", error.getMessage()) : ""
-                        , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", error.getMessage()) : ""
-                ))
+                "${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()} - \t"
+                        + (subscriberNbr == 1 ? "Subscriber 1: ${error.getMessage()}" : "")
+                        + (subscriberNbr == 2 ? "\tSubscriber 2: ${error.getMessage()}" : "")
+                        + (subscriberNbr == 3 ? "\t\tSubscriber 3: ${error.getMessage()}" : "")
+                        + "\t - from doOnError()"
+        )
     }
 
     def doOnComplete = { Boolean isHotObservable, Integer subscriberNbr ->
-        System.out.println(
-                String.format("%s Observables from %s - \t%s\t%s\t%s\t - doOnComplete()"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                        , subscriberNbr == 1 ? String.format("Subscriber 1: %s", subscriber1.get()) : ""
-                        , subscriberNbr == 2 ? String.format("\tSubscriber 2: %s", subscriber2.get()) : ""
-                        , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", subscriber3.get()) : ""
-                ))
-
         if (subscriberNbr == 1) {
             disposable1.dispose()
 
@@ -84,12 +72,21 @@ class HotVsColdObservablesGroovy {
         } else if (subscriberNbr == 3) {
             disposable3.dispose()
         }
+
+        println(
+                "${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()} - \t"
+                        + (subscriberNbr == 1 ? "Subscriber 1: ${subscriber1.get()}" : "")
+                        + (subscriberNbr == 2 ? "\tSubscriber 2: ${subscriber2.get()}" : "")
+                        + (subscriberNbr == 3 ? "\t\tSubscriber 3: ${subscriber3.get()}" : "")
+                        + "\t - from doOnComplete()"
+        )
     }
 
 
     def nextPrime = { Integer number, ObservableEmitter<Integer> observer ->
         final Integer prime = getNextPrime(number)
 
+        // Emit a completion when threshold is reached
         if (prime >= 500) {
             observer.onComplete()
 
@@ -99,44 +96,47 @@ class HotVsColdObservablesGroovy {
 //        } else if (prime >= 200) {
 //            observer.onError(new RuntimeException("Simulating an error that will halt the entire stream of data. Data=" + prime))
 //            observer.tryOnError(new RuntimeException("Simulating an error that will halt the entire stream of data. Data=" + prime))
-        }
 
-        if (! observer.isDisposed()) {
+            // emit the next data
+        } else if (! observer.isDisposed()) {
             observer.onNext(prime)
-        }
 
-        CompletableFuture.supplyAsync({ ->
-            sleep(100)
-            nextPrime(prime, observer)
-            prime
-        })
+            CompletableFuture.supplyAsync({
+                sleep(100)
+                nextPrime(prime, observer)
+                prime
+            })
+        }
     }
 
     def runObservable = { boolean isHotObservable ->
-        println(
-                String.format("Starting %s Observables from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ))
+        println("Starting ${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()}")
 
         // NOTE: Using closure since I'm using groovy 2.5.8 and only groovy 2.6+ supports lambdas
         // https://stackoverflow.com/questions/23906748/groovy-compiler-does-not-accept-java-8-lambdas
 
-        Observable<Integer> observable = Observable.<Integer>create({ observer -> nextPrime(1, observer) } )
-                .switchMap({prime ->
-                    Observable<Integer> disposableStream$ = Observable.just(prime)
-                    return disposableStream$
-                            .map({data ->
-                                if (data >= 100 && data <= 200) {
-                                    throw new RuntimeException(String.format("Simulating an error skipping prime=%s, in-between 100 and 200, while continue streaming the rest", prime))
-                                }
-                                return data
-                            })
-                            .onErrorReturn({error ->
-                                System.out.println(String.format("Caught an error=%s", error.getMessage()))
-                                return 0
-                            })
-                })
+        // Simulating a non-blocking IO such as a ReST call then a Reactive Mongo chaining them up together e.g.
+        // http://localhost:8080/getEmployeeDetails/123
+        // CompletableFuture.supplyAsync(() -> getEmployee(empId))
+        //         .thenApply(emp -> getEmployeeDept(empId))
+        //         .thenApply(emp -> getEmployeePay(empId))
+        Observable<Integer> observable =
+                Observable.<Integer>create({ ObservableEmitter<Integer> observer -> nextPrime(1, observer) })
+                        .switchMap({ Integer prime ->
+                            Observable<Integer> disposableStream$ = Observable.just(prime)
+
+                            disposableStream$
+                                    .map({ Integer data ->
+                                        if (data >= 100 && data <= 200) {
+                                            throw new RuntimeException("Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest")
+                                        }
+                                        data
+                                    })
+                                    .onErrorReturn({ Throwable error ->
+                                        println("Caught an error=${error.getMessage()}")
+                                        0
+                                    })
+                        })
 
         if (isHotObservable) observable = observable.share()
 
@@ -163,36 +163,41 @@ class HotVsColdObservablesGroovy {
                 }
 
         observable
-                .doOnSubscribe({disposable -> onSubscribe(1, disposable) } )
+                .doOnSubscribe({ Disposable disposable -> onSubscribe(1, disposable) } )
                 .subscribe(
-                        {data -> onNext(1, data) }
-                        ,{error -> onError(1, error) }
-                        ,{ -> onComplete(1) }
+                        { Integer data -> onNext(1, data) }
+                        ,{ Throwable error -> onError(1, error) }
+                        ,{ onComplete(1) }
                 )
 
         sleep(2000)
         observable
-                .doOnSubscribe({disposable -> onSubscribe(2, disposable) } )
+                .doOnSubscribe({ Disposable disposable -> onSubscribe(2, disposable) } )
                 .subscribe(
-                        {data -> onNext(2, data) }
-                        ,{error -> onError(2, error) }
-                        ,{ -> onComplete(2) }
+                        { Integer data -> onNext(2, data) }
+                        ,{ Throwable error -> onError(2, error) }
+                        ,{ onComplete(2) }
                 )
 
         sleep(2000)
         observable
-                .doOnSubscribe({disposable -> onSubscribe(3, disposable) } )
+                .doOnSubscribe({ Disposable disposable -> onSubscribe(3, disposable) } )
                 .subscribe(
-                        {data -> onNext(3, data) }
-                        ,{error -> onError(3, error) }
-                        ,{ -> onComplete(3) }
+                        { Integer data -> onNext(3, data) }
+                        ,{ Throwable error -> onError(3, error) }
+                        ,{ onComplete(3) }
                 )
 
-        sleep(10000)
-        println(
-                String.format("DONE with %s Observables from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ))
+        def anySubscribersStillListening = {
+            sleep(1000)
+            (
+                    (disposable1 != null && ! disposable1.isDisposed())
+                            || (disposable2 != null && ! disposable2.isDisposed())
+                            || (disposable3 != null && ! disposable3.isDisposed())
+            )
+        }
+        while (anySubscribersStillListening.call()) continue
+
+        println("DONE with ${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()}")
     }
 }
