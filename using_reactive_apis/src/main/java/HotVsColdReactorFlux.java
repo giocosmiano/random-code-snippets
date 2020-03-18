@@ -31,8 +31,7 @@ public class HotVsColdReactorFlux {
     };
 
     private final Function<Integer, Integer> getNextPrime = number -> {
-        Integer iNbr = number;
-        iNbr++;
+        Integer iNbr = number + 1;
         while (! isPrime.apply(iNbr)) iNbr++;
         return iNbr;
     };
@@ -186,7 +185,7 @@ public class HotVsColdReactorFlux {
         disposable1 =
                 observable
                         .subscribe(
-                                data -> onNext.apply(1).accept(data)
+                                promise -> onNext.apply(1).accept(promise)
                                 , error -> onError.apply(1).accept(error)
                                 , () -> onComplete.accept(1)
                         );
@@ -195,7 +194,7 @@ public class HotVsColdReactorFlux {
         disposable2 =
                 observable
                         .subscribe(
-                                data -> onNext.apply(2).accept(data)
+                                promise -> onNext.apply(2).accept(promise)
                                 , error -> onError.apply(2).accept(error)
                                 , () -> onComplete.accept(2)
                         );
@@ -204,7 +203,7 @@ public class HotVsColdReactorFlux {
         disposable3 =
                 observable
                         .subscribe(
-                                data -> onNext.apply(3).accept(data)
+                                promise -> onNext.apply(3).accept(promise)
                                 , error -> onError.apply(3).accept(error)
                                 , () -> onComplete.accept(3)
                         );
