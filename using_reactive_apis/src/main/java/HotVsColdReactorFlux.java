@@ -3,7 +3,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -103,7 +102,10 @@ public class HotVsColdReactorFlux {
 
         // Emit a completion when threshold is reached
         if (prime >= 500) {
-            observer.complete();
+            CompletableFuture.runAsync(() -> {
+                setTimeout(100);
+                observer.complete();
+            });
 
             // https://github.com/ReactiveX/RxJava/wiki/Error-Handling
             // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
@@ -149,20 +151,12 @@ public class HotVsColdReactorFlux {
 
                             return disposableStream$
                                     .map(promise -> {
-                                        Integer data;
-
-                                        try {
-                                            data = promise.get();
+                                        return promise.thenApply(data -> {
                                             if (data >= 100 && data <= 200) {
                                                 throw new RuntimeException(String.format("Simulating an error skipping prime=%s, in-between 100 and 200, while continue streaming the rest", prime));
                                             }
 
-                                        } catch (InterruptedException | ExecutionException e) {
-                                            throw new RuntimeException(e.getMessage());
-                                        }
-
-                                        // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just setting it back to original prime
-                                        return CompletableFuture.supplyAsync(() -> {
+                                            // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just setting it back to original prime
                                             setTimeout(100);
                                             return data / 2; // set it back to original `prime` after doubling the value
                                         });

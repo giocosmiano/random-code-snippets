@@ -5,6 +5,7 @@ import rx.lang.scala.{Observable, Observer, Subscription}
 import scala.annotation.tailrec
 import scala.concurrent._
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 // the following is equivalent to `implicit val ec = ExecutionContext.global`
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,21 +37,33 @@ object HotVsColdObservablesScala extends App {
     chkIsPrime(start)
   }
 
-  def doOnNext(isHotObservable: Boolean, subscriberNbr: Int, data: Int): Unit = {
-    subscriberNbr match {
-      case 1 => subscriber1.set(data)
-      case 2 => subscriber2.set(data)
-      case 3 => subscriber3.set(data)
-      case _ => Unit
-    }
+  def doOnNext(isHotObservable: Boolean, subscriberNbr: Int, future: Future[Int]): Unit = {
+    future onComplete {
+      case Success(data) =>
+        subscriberNbr match {
+          case 1 => subscriber1.set(data)
+          case 2 => subscriber2.set(data)
+          case 3 => subscriber3.set(data)
+          case _ => Unit
+        }
 
-    println(
-      s"${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName} - \t"
-        + s"${if (subscriberNbr == 1) "Subscriber 1: " + subscriber1.get else ""}"
-        + s"${if (subscriberNbr == 2) "\tSubscriber 2: " + subscriber2.get else ""}"
-        + s"${if (subscriberNbr == 3) "\t\tSubscriber 3: " + subscriber3.get else ""}"
-        + "\t - from doOnNext()"
-    )
+        println(
+          s"${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName} - \t"
+            + s"${if (subscriberNbr == 1) "Subscriber 1: " + subscriber1.get else ""}"
+            + s"${if (subscriberNbr == 2) "\tSubscriber 2: " + subscriber2.get else ""}"
+            + s"${if (subscriberNbr == 3) "\t\tSubscriber 3: " + subscriber3.get else ""}"
+            + "\t - from doOnNext()"
+        )
+
+      case Failure(e) =>
+        println(
+          s"${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName} - \t"
+            + s"${if (subscriberNbr == 1) "Subscriber 1: " + e.getMessage else ""}"
+            + s"${if (subscriberNbr == 2) "\tSubscriber 2: " + e.getMessage else ""}"
+            + s"${if (subscriberNbr == 3) "\t\tSubscriber 3: " + e.getMessage else ""}"
+            + "\t - from doOnNext()"
+        )
+    }
   }
 
   def doOnError(isHotObservable: Boolean, subscriberNbr: Int, error: Throwable): Unit = {
@@ -80,7 +93,10 @@ object HotVsColdObservablesScala extends App {
 
     // Emit a completion when threshold is reached
     if (prime >= 500) {
-      observer.onCompleted()
+      Future {
+        Thread.sleep(100)
+        observer.onCompleted()
+      }
 
       // https://github.com/ReactiveX/RxJava/wiki/Error-Handling
       // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
@@ -111,24 +127,41 @@ object HotVsColdObservablesScala extends App {
         nextPrime(1, observer)
         Subscription()
       })
-        .switchMap[Int](prime => {
-          val disposableStream$ = Observable.just(prime)
+        .switchMap[Future[Int]](prime => {
+
+          // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
+          val f = Future {
+            Thread.sleep(100)
+            prime * 2 // double the value
+          }
+          val disposableStream$ = Observable.just(f)
 
           disposableStream$
-            .map(data => {
-              if (data >= 100 && data <= 200)
-                throw new RuntimeException(s"Simulating an error skipping prime=$prime, in-between 100 and 200, while continue streaming the rest")
-              data
+            .map(future => {
+              future map {
+                data =>
+                  if (data >= 100 && data <= 200)
+                    throw new RuntimeException(s"Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest")
+
+                  // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just setting it back to original prime
+                  Thread.sleep(100)
+                  data / 2 // set it back to original `prime` after doubling the value
+              } recover {
+                case e => throw new RuntimeException(e.getMessage)
+              }
             })
             .onErrorReturn(error => {
               println(error.getMessage)
-              0
+              Future {
+                Thread.sleep(100)
+                0
+              }
             })
         })
 
     if (isHotObservable) observable = observable.share
 
-    val onNext = (subscriberNbr: Int, data: Int) => doOnNext(isHotObservable, subscriberNbr, data)
+    val onNext = (subscriberNbr: Int, future: Future[Int]) => doOnNext(isHotObservable, subscriberNbr, future)
     val onError = (subscriberNbr: Int, error: Throwable) => doOnError(isHotObservable, subscriberNbr, error)
     val onComplete = (subscriberNbr: Int, subscription: Subscription) => doOnComplete(isHotObservable, subscriberNbr, subscription)
 
@@ -139,7 +172,7 @@ object HotVsColdObservablesScala extends App {
     subscription1 =
       observable
         .subscribe(
-          data => onNext(1, data)
+          future => onNext(1, future)
           , error => onError(1, error)
           , () => onComplete(1, subscription1)
         )
@@ -148,7 +181,7 @@ object HotVsColdObservablesScala extends App {
     subscription2 =
       observable
         .subscribe(
-          data => onNext(2, data)
+          future => onNext(2, future)
           , error => onError(2, error)
           , () => onComplete(2, subscription2)
         )
@@ -157,7 +190,7 @@ object HotVsColdObservablesScala extends App {
     subscription3 =
       observable
         .subscribe(
-          data => onNext(3, data)
+          future => onNext(3, future)
           , error => onError(3, error)
           , () => onComplete(3, subscription3)
         )
