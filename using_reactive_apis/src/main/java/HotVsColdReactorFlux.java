@@ -210,16 +210,16 @@ public class HotVsColdReactorFlux {
                         );
 
 
-        boolean isAllUnSubscribed;
+        boolean anySubscribersStillListening;
         do {
-            isAllUnSubscribed =
+            anySubscribersStillListening =
                     (
                             (disposable1 != null && ! disposable1.isDisposed())
                                     || (disposable2 != null && ! disposable2.isDisposed())
                                     || (disposable3 != null && ! disposable3.isDisposed())
                     );
             setTimeout(1000);
-        } while (isAllUnSubscribed);
+        } while (anySubscribersStillListening);
 
         System.out.println(
                 String.format("DONE with %s Reactor Flux from %s"
