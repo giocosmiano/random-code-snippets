@@ -88,7 +88,10 @@ class HotVsColdObservablesGroovy {
 
         // Emit a completion when threshold is reached
         if (prime >= 500) {
-            observer.onComplete()
+            CompletableFuture.runAsync({
+                sleep(100)
+                observer.onComplete()
+            })
 
             // https://github.com/ReactiveX/RxJava/wiki/Error-Handling
             // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
@@ -109,6 +112,7 @@ class HotVsColdObservablesGroovy {
         }
     }
 
+
     def runObservable = { boolean isHotObservable ->
         println("Starting ${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()}")
 
@@ -120,28 +124,64 @@ class HotVsColdObservablesGroovy {
         // CompletableFuture.supplyAsync(() -> getEmployee(empId))
         //         .thenApply(emp -> getEmployeeDept(empId))
         //         .thenApply(emp -> getEmployeePay(empId))
-        Observable<Integer> observable =
+        Observable<CompletableFuture<Integer>> observable =
                 Observable.<Integer>create({ ObservableEmitter<Integer> observer -> nextPrime(1, observer) })
-                        .switchMap({ Integer prime ->
-                            Observable<Integer> disposableStream$ = Observable.just(prime)
+                        .<CompletableFuture<Integer>>switchMap({ Integer prime ->
+
+                            // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
+                            CompletableFuture<Integer> cf =
+                                    CompletableFuture.supplyAsync({
+                                        sleep(100)
+                                        prime * 2 // double the value
+                                    })
+                            Observable<CompletableFuture<Integer>> disposableStream$ = Observable.just(cf)
 
                             disposableStream$
-                                    .map({ Integer data ->
+                                    .map({ CompletableFuture<Integer> promise ->
+
+                                        // using promise.get() as promise.thenApply() will throw an exception on data >= 100 && data <= 200 thus causing the stream to shut off
+                                        Integer data = promise.get()
                                         if (data >= 100 && data <= 200) {
                                             throw new RuntimeException("Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest")
                                         }
-                                        data
+
+                                        // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just setting it back to original prime
+                                        CompletableFuture.supplyAsync({
+                                            sleep(100)
+                                            data / 2 // set it back to original `prime` after doubling the value
+                                        })
+
+                                        // this promise.thenApply() closure will throw an exception thus shutting off the stream of data
+//                                        promise.thenApply({ Integer data ->
+//                                            if (data >= 100 && data <= 200) {
+//                                                throw new RuntimeException("Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest")
+//                                            }
+//
+//                                            // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just setting it back to original prime
+//                                            sleep(100)
+//                                            data / 2 // set it back to original `prime` after doubling the value
+//                                        })
+//                                        .exceptionally({ Throwable error -> throw new RuntimeException(error.getMessage()) })
                                     })
                                     .onErrorReturn({ Throwable error ->
                                         println("Caught an error=${error.getMessage()}")
-                                        0
+                                        CompletableFuture.supplyAsync({
+                                            sleep(100)
+                                            0
+                                        })
                                     })
                         })
 
         if (isHotObservable) observable = observable.share()
 
+        // using promise.get() as promise.thenAccept() doesn't seem to work on closure
         def onNext =
-                { Integer subscriberNbr, Integer data -> doOnNext(isHotObservable, subscriberNbr, data) }
+                { Integer subscriberNbr, CompletableFuture<Integer> promise ->
+                        doOnNext(isHotObservable, subscriberNbr, (Integer)promise.get()) }
+//        def onNext =
+//                { Integer subscriberNbr, CompletableFuture<Integer> promise ->
+//                    promise.thenAccept({ Integer data ->
+//                        doOnNext(isHotObservable, subscriberNbr, data) } ) }
 
         def onError =
                 { Integer subscriberNbr, Throwable error -> doOnError(isHotObservable, subscriberNbr, error) }
@@ -165,7 +205,7 @@ class HotVsColdObservablesGroovy {
         observable
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(1, disposable) } )
                 .subscribe(
-                        { Integer data -> onNext(1, data) }
+                        { CompletableFuture<Integer> promise -> onNext(1, promise) }
                         ,{ Throwable error -> onError(1, error) }
                         ,{ onComplete(1) }
                 )
@@ -174,7 +214,7 @@ class HotVsColdObservablesGroovy {
         observable
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(2, disposable) } )
                 .subscribe(
-                        { Integer data -> onNext(2, data) }
+                        { CompletableFuture<Integer> promise -> onNext(2, promise) }
                         ,{ Throwable error -> onError(2, error) }
                         ,{ onComplete(2) }
                 )
@@ -183,7 +223,7 @@ class HotVsColdObservablesGroovy {
         observable
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(3, disposable) } )
                 .subscribe(
-                        { Integer data -> onNext(3, data) }
+                        { CompletableFuture<Integer> promise -> onNext(3, promise) }
                         ,{ Throwable error -> onError(3, error) }
                         ,{ onComplete(3) }
                 )
