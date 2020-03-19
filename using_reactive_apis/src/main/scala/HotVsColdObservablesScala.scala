@@ -134,7 +134,7 @@ object HotVsColdObservablesScala extends App {
     // Emit a completion when threshold is reached
     if (prime >= 500) {
       Future {
-        Thread.sleep(100)
+        Thread.sleep(500)
         observer.onCompleted()
       }
 
@@ -172,6 +172,16 @@ object HotVsColdObservablesScala extends App {
       })
         .switchMap[Future[Either[String,Int]]](prime => {
 
+          // Simulating a non-blocking IO using doubleIt and resetIt functions below
+          val f = Future {
+            Thread.sleep(100)
+            Right(prime)
+          }
+          val disposableStream$ = Observable.just(f)
+          disposableStream$
+
+/*
+          // NOTE: un-comment if want to try different simulation without using doubleIt and resetIt functions below
           // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
           val f = Future {
             Thread.sleep(100)
@@ -198,9 +208,35 @@ object HotVsColdObservablesScala extends App {
                   }
               }
             })
+*/
         })
 
     if (isHotObservable) observable = observable.share
+
+    // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just applying a timeout and doubling the value
+    val doubleIt: Future[Either[String,Int]] => Future[Either[String,Int]] = future => {
+      future map { either =>
+        Thread.sleep(100)
+        var data = either.right.get
+        data *= 2 // double the value
+
+        // Simulating an error using Either.left()
+        if (data >= 100 && data <= 200) {
+          val error = s"Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest"
+          Left(error)
+
+        } else Right(data)
+      }
+    }
+
+    // Simulating a non-blocking IO e.g. ReST call, but for now just applying a timeout and setting it back to original prime
+    val resetIt: Future[Either[String,Int]] => Future[Either[String,Int]] = future => {
+      future map { either =>
+        Thread.sleep(100)
+        if (either.isRight) Right(either.right.get / 2)
+        else either
+      }
+    }
 
     val onNext = (subscriberNbr: Int, future: Future[Either[String,Int]]) => doOnNext(isHotObservable, subscriberNbr, future)
     val onError = (subscriberNbr: Int, error: Throwable) => doOnError(isHotObservable, subscriberNbr, error)
@@ -212,6 +248,8 @@ object HotVsColdObservablesScala extends App {
 
     subscription1 =
       observable
+        .map(future => doubleIt(future))
+        .map(future => resetIt(future))
         .subscribe(
           future => onNext(1, future)
           , error => onError(1, error)
@@ -221,6 +259,8 @@ object HotVsColdObservablesScala extends App {
     Thread.sleep(2000)
     subscription2 =
       observable
+        .map(future => doubleIt(future))
+        .map(future => resetIt(future))
         .subscribe(
           future => onNext(2, future)
           , error => onError(2, error)
@@ -230,6 +270,8 @@ object HotVsColdObservablesScala extends App {
     Thread.sleep(2000)
     subscription3 =
       observable
+        .map(future => doubleIt(future))
+        .map(future => resetIt(future))
         .subscribe(
           future => onNext(3, future)
           , error => onError(3, error)
