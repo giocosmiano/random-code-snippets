@@ -8,11 +8,21 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap-grid.css">
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.27.0/ramda.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.5/redux.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.5.2/rxjs.umd.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.js"></script>
+	<script src=https://cdnjs.cloudflare.com/ajax/libs/ramda/0.27.0/ramda.js></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.js"></script>
 	<script>
+		const Either = {
+			error: null
+			, success: null
+		}
+				, isEitherAnError = either => ! _.isNull(either.error)
+				, isEitherASuccess = either => ! _.isNull(either.success)
+				, eitherValue = either => isEitherAnError(either) ? either.error : either.success
+		;
+
 		const isPrime = number => {
 			for (let i = 2; i < number; i++) {
 				if (number % i === 0) return false;
@@ -44,15 +54,42 @@
 		.pipe(rxjs.operators.switchMap(prime => {
 			const disposableStream$ = rxjs.of(prime);
 			return disposableStream$
-					.pipe(rxjs.operators.map(prime => {
-								if (prime >= 100 && prime <= 200)
-									throw new Error(`Simulating an error skipping data in-between 100 and 200, "data=${prime}", while continue streaming the rest`);
-								else
-									return prime;
+					.pipe(
+							// Un-comment to see simulation # 1, using Either as error simulation
+							rxjs.operators.map(prime => {
+								let newPrime = prime * 2
+										, either = Object.assign({}, Either);
+								if (newPrime >= 100 && newPrime <= 200) {
+									either.error = `Simulating an error skipping the double value of prime in-between 100 and 200 where prime=${prime}, double=${newPrime}`;
+								} else {
+									either.success = newPrime
+								}
+								return either;
 							})
+							, rxjs.operators.map(either => {
+								if (isEitherASuccess(either)) {
+									either.success /= 2;
+								}
+								return either;
+							})
+
+/*
+							// Un-comment to see simulation # 2, throwing an Error to skip erroneous data
+							rxjs.operators.map(prime => {
+								let newPrime = prime * 2
+										, either = Object.assign({}, Either);
+								if (newPrime >= 100 && newPrime <= 200) {
+									throw new Error(`Simulating an error skipping the double of prime, in-between 100 and 200. prime=${prime}, double=${newPrime}`);
+								}
+								either.success = prime;
+								return either;
+							})
+*/
+
 							// comment to simulate an error that will halt the entire stream of data
 							, rxjs.operators.catchError(error => rxjs.of(error))
-					);
+					)
+					;
 		}))
 		, hotObservables = coldObservables.pipe(rxjs.operators.share())
 		, mapOfSubscribers = new Map();
@@ -120,8 +157,8 @@
 					btnElem.attr('data-is-subscriber-on', 'false');
 					enableDisableBtnStopAll();
 					}
-				, dataHandler = prime => {
-						spanElem.text(prime);
+				, dataHandler = either => {
+						spanElem.text(eitherValue(either));
 						logOnData();
 					}
 				, errorHandler = prime => {

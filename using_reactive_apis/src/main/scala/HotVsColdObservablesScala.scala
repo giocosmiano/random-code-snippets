@@ -172,7 +172,7 @@ object HotVsColdObservablesScala extends App {
       })
         .switchMap[Future[Either[String,Int]]](prime => {
 
-          // Simulating a non-blocking IO using doubleIt and resetIt functions below
+          // Simulation # 1 - a non-blocking IO using doubleIt and resetIt functions below
           val f = Future {
             Thread.sleep(100)
             Right(prime)
@@ -182,7 +182,7 @@ object HotVsColdObservablesScala extends App {
 
 /*
           // NOTE: un-comment if want to try different simulation without using doubleIt and resetIt functions below
-          // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
+          // Simulation # 2 - a non-blocking IO e.g. ReST call, but for now just doubling the prime value
           val f = Future {
             Thread.sleep(100)
             Right(prime * 2) // double the value
@@ -200,7 +200,7 @@ object HotVsColdObservablesScala extends App {
 
                   // Simulating an error using Either.left()
                   if (data >= 100 && data <= 200) {
-                    val error = s"Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest"
+                    val error = s"Simulating an error skipping double value of prime=$data, in-between 100 and 200, while continue streaming the rest"
                     Left(error)
 
                   } else {
@@ -214,27 +214,49 @@ object HotVsColdObservablesScala extends App {
     if (isHotObservable) observable = observable.share
 
     // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just applying a timeout and doubling the value
-    val doubleIt: Future[Either[String,Int]] => Future[Either[String,Int]] = future => {
+    val doubleIt: (Int, Future[Either[String,Int]]) => Future[Either[String,Int]] = (subscriberNbr, future) => {
       future map { either =>
+
         Thread.sleep(100)
-        var data = either.right.get
-        data *= 2 // double the value
+        val data = either.right.get
+        val newValue = data * 2 // double the value
+
+//        println(
+//          s"${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName} - \t"
+//            + s"${if (subscriberNbr == 1) "Subscriber 1: from " + data + " to " + newValue else ""}"
+//            + s"${if (subscriberNbr == 2) "\tSubscriber 2: from " + data + " to " + newValue else ""}"
+//            + s"${if (subscriberNbr == 3) "\t\tSubscriber 3: from " + data + " to " + newValue else ""}"
+//            + "\t - from doubleIt()"
+//        )
 
         // Simulating an error using Either.left()
-        if (data >= 100 && data <= 200) {
-          val error = s"Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest"
+        if (newValue >= 100 && newValue <= 200) {
+          val error = s"Simulating an error skipping double value of prime in-between 100 and 200, where prime=$data, double=$newValue"
           Left(error)
 
-        } else Right(data)
+        } else Right(newValue)
       }
     }
 
     // Simulating a non-blocking IO e.g. ReST call, but for now just applying a timeout and setting it back to original prime
-    val resetIt: Future[Either[String,Int]] => Future[Either[String,Int]] = future => {
+    val resetIt: (Int, Future[Either[String,Int]]) => Future[Either[String,Int]] = (subscriberNbr, future) => {
       future map { either =>
+
         Thread.sleep(100)
-        if (either.isRight) Right(either.right.get / 2)
-        else either
+
+        if (either.isRight) {
+          val data = either.right.get
+          val newValue = data / 2
+//          println(
+//            s"${if (isHotObservable) "Hot" else "Cold"} Observables from ${Thread.currentThread.getName} - \t"
+//              + s"${if (subscriberNbr == 1) "Subscriber 1: from " + data + " to " + newValue else ""}"
+//              + s"${if (subscriberNbr == 2) "\tSubscriber 2: from " + data + " to " + newValue else ""}"
+//              + s"${if (subscriberNbr == 3) "\t\tSubscriber 3: from " + data + " to " + newValue else ""}"
+//              + "\t - from resetIt()"
+//          )
+          Right(newValue)
+
+        } else either
       }
     }
 
@@ -248,8 +270,8 @@ object HotVsColdObservablesScala extends App {
 
     subscription1 =
       observable
-        .map(future => doubleIt(future))
-        .map(future => resetIt(future))
+        .map(future => doubleIt(1, future))
+        .map(future => resetIt(1, future))
         .subscribe(
           future => onNext(1, future)
           , error => onError(1, error)
@@ -259,8 +281,8 @@ object HotVsColdObservablesScala extends App {
     Thread.sleep(2000)
     subscription2 =
       observable
-        .map(future => doubleIt(future))
-        .map(future => resetIt(future))
+        .map(future => doubleIt(2, future))
+        .map(future => resetIt(2, future))
         .subscribe(
           future => onNext(2, future)
           , error => onError(2, error)
@@ -270,8 +292,8 @@ object HotVsColdObservablesScala extends App {
     Thread.sleep(2000)
     subscription3 =
       observable
-        .map(future => doubleIt(future))
-        .map(future => resetIt(future))
+        .map(future => doubleIt(3, future))
+        .map(future => resetIt(3, future))
         .subscribe(
           future => onNext(3, future)
           , error => onError(3, error)

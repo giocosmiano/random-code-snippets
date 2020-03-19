@@ -160,7 +160,7 @@ class HotVsColdObservablesGroovy {
                 Observable.<Integer>create({ ObservableEmitter<Integer> observer -> nextPrime(1, observer) })
                         .<CompletableFuture<Either<String,Integer>>>switchMap({ Integer prime ->
 
-                            // Simulating a non-blocking IO using doubleIt and resetIt functions below
+                            // Simulation # 1 - a non-blocking IO using doubleIt and resetIt functions below
                             CompletableFuture<Either<String,Integer>> cf =
                                     CompletableFuture.supplyAsync({
                                         sleep(100)
@@ -172,7 +172,7 @@ class HotVsColdObservablesGroovy {
 
 /*
                             // NOTE: un-comment if want to try different simulation without using doubleIt and resetIt functions below
-                            // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
+                            // Simulation # 2 - a non-blocking IO e.g. ReST call, but for now just doubling the prime value
                             CompletableFuture<Either<String,Integer>> cf =
                                     CompletableFuture.supplyAsync({
                                         sleep(100)
@@ -205,32 +205,49 @@ class HotVsColdObservablesGroovy {
 
         // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and doubling the value
         def doubleIt =
-                { CompletableFuture<Either<String,Integer>> promise ->
+                { Integer subscriberNbr, CompletableFuture<Either<String,Integer>> promise ->
                     promise.thenApply({ Either either ->
 
                         sleep(100)
                         Integer data = either.get()
-                        data *= 2 // double the value
+                        Integer newValue = data * 2
+//                        println(
+//                                "${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()} - \t"
+//                                        + (subscriberNbr == 1 ? "Subscriber 1: from ${data} to ${newValue}" : "")
+//                                        + (subscriberNbr == 2 ? "\tSubscriber 2: from ${data} to ${newValue}" : "")
+//                                        + (subscriberNbr == 3 ? "\t\tSubscriber 3: from ${data} to ${newValue}" : "")
+//                                        + "\t - from doubleIt()"
+//                        )
 
                         // Simulating an error using Either.left()
-                        if (data >= 100 && data <= 200) {
-                            String error = "Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest"
+                        if (newValue >= 100 && newValue <= 200) {
+                            String error = "Simulating an error skipping double value of prime in-between 100 and 200, where prime=${data}, double=${newValue}"
                             Either.left(error)
 
                         } else {
-                            Either.right(data)
+                            Either.right(newValue)
                         }
                     })
                 }
 
         // Simulating a non-blocking IO e.g. ReST call, but for now just a Consumer applying a timeout and setting it back to original prime
         def resetIt =
-                { CompletableFuture<Either<String,Integer>> promise ->
+                { Integer subscriberNbr, CompletableFuture<Either<String,Integer>> promise ->
                     promise.thenApply({ Either either ->
-
                         sleep(100)
+
                         if (either.isRight()) {
-                            return Either.right(either.get() / 2)
+                            Integer data = either.get()
+                            Integer newValue = data / 2
+//                            println(
+//                                    "${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()} - \t"
+//                                            + (subscriberNbr == 1 ? "Subscriber 1: from ${data} to ${newValue}" : "")
+//                                            + (subscriberNbr == 2 ? "\tSubscriber 2: from ${data} to ${newValue}" : "")
+//                                            + (subscriberNbr == 3 ? "\t\tSubscriber 3: from ${data} to ${newValue}" : "")
+//                                            + "\t - from resetIt()"
+//                            )
+                            return Either.right(newValue)
+
                         } else {
                             return either
                         }
@@ -267,8 +284,8 @@ class HotVsColdObservablesGroovy {
 
         observable
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(1, disposable) } )
-                .map({ CompletableFuture<Either<String,Integer>> promise -> doubleIt(promise) } )
-                .map({ CompletableFuture<Either<String,Integer>> promise -> resetIt(promise) } )
+                .map({ CompletableFuture<Either<String,Integer>> promise -> doubleIt(1, promise) } )
+                .map({ CompletableFuture<Either<String,Integer>> promise -> resetIt(1, promise) } )
                 .subscribe(
                         { CompletableFuture<Either<String,Integer>> promise -> onNext(1, promise) }
                         , { Throwable error -> onError(1, error) }
@@ -278,8 +295,8 @@ class HotVsColdObservablesGroovy {
         sleep(2000)
         observable
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(2, disposable) } )
-                .map({ CompletableFuture<Either<String,Integer>> promise -> doubleIt(promise) } )
-                .map({ CompletableFuture<Either<String,Integer>> promise -> resetIt(promise) } )
+                .map({ CompletableFuture<Either<String,Integer>> promise -> doubleIt(2, promise) } )
+                .map({ CompletableFuture<Either<String,Integer>> promise -> resetIt(2, promise) } )
                 .subscribe(
                         { CompletableFuture<Either<String,Integer>> promise -> onNext(2, promise) }
                         , { Throwable error -> onError(2, error) }
@@ -289,8 +306,8 @@ class HotVsColdObservablesGroovy {
         sleep(2000)
         observable
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(3, disposable) } )
-                .map({ CompletableFuture<Either<String,Integer>> promise -> doubleIt(promise) } )
-                .map({ CompletableFuture<Either<String,Integer>> promise -> resetIt(promise) } )
+                .map({ CompletableFuture<Either<String,Integer>> promise -> doubleIt(3, promise) } )
+                .map({ CompletableFuture<Either<String,Integer>> promise -> resetIt(3, promise) } )
                 .subscribe(
                         { CompletableFuture<Either<String,Integer>> promise -> onNext(3, promise) }
                         , { Throwable error -> onError(3, error) }

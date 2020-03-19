@@ -180,7 +180,7 @@ public class HotVsColdObservables {
                 Observable.<Integer>create(observer -> nextPrime(1, observer))
                         .switchMap(prime -> {
 
-                            // Simulating a non-blocking IO using doubleIt and resetIt functions below
+                            // Simulation # 1 - a non-blocking IO using doubleIt and resetIt functions below
                             CompletableFuture<Either<String,Integer>> cf =
                                     CompletableFuture.supplyAsync(() -> {
                                         setTimeout(100);
@@ -192,7 +192,7 @@ public class HotVsColdObservables {
 
 /*
                             // NOTE: un-comment if want to try different simulation without using doubleIt and resetIt functions below
-                            // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
+                            // Simulation # 2 - a non-blocking IO e.g. ReST call, but for now just doubling the prime value
                             CompletableFuture<Either<String,Integer>> cf =
                                     CompletableFuture.supplyAsync(() -> {
                                         setTimeout(100);
@@ -225,29 +225,49 @@ public class HotVsColdObservables {
         if (isHotObservable) observable = observable.share();
 
         // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and doubling the value
-        Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>> doubleIt =
-                promise -> promise.thenApply(either -> {
+        Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> doubleIt =
+                subscriberNbr -> promise -> promise.thenApply(either -> {
 
                     setTimeout(100);
                     Integer data = either.get();
-                    data *= 2; // double the value
+                    Integer newValue = data * 2;
+//                    System.out.println(
+//                            String.format("%s Observables from %s - \t%s\t%s\t%s\t - doubleIt()"
+//                                    , isHotObservable ? "Hot" : "Cold"
+//                                    , Thread.currentThread().getName()
+//                                    , subscriberNbr == 1 ? String.format("Subscriber 1: from %s to %s", data, newValue) : ""
+//                                    , subscriberNbr == 2 ? String.format("\tSubscriber 2: from %s to %s", data, newValue) : ""
+//                                    , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: from %s to %s", data, newValue) : ""
+//                            ));
 
                     // Simulating an error using Either.left()
-                    if (data >= 100 && data <= 200) {
-                        String error = String.format("Simulating an error skipping prime=%s, in-between 100 and 200, while continue streaming the rest", data);
+                    if (newValue >= 100 && newValue <= 200) {
+                        String error = String.format("Simulating an error skipping double value of prime in-between 100 and 200, where prime=%s, double=%s", data, newValue);
                         return Either.left(error);
 
                     } else {
-                        return Either.right(data);
+                        return Either.right(newValue);
                     }
                 });
 
         // Simulating a non-blocking IO e.g. ReST call, but for now just a Consumer applying a timeout and setting it back to original prime
-        Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>> resetIt =
-                promise -> promise.thenApply(either -> {
+        Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> resetIt =
+                subscriberNbr -> promise -> promise.thenApply(either -> {
                     setTimeout(100);
+
                     if (either.isRight()) {
-                        return Either.right(either.get() / 2);
+                        Integer data = either.get();
+                        Integer newValue = data / 2;
+//                        System.out.println(
+//                                String.format("%s Observables from %s - \t%s\t%s\t%s\t - resetIt()"
+//                                        , isHotObservable ? "Hot" : "Cold"
+//                                        , Thread.currentThread().getName()
+//                                        , subscriberNbr == 1 ? String.format("Subscriber 1: from %s to %s", data, newValue) : ""
+//                                        , subscriberNbr == 2 ? String.format("\tSubscriber 2: from %s to %s", data, newValue) : ""
+//                                        , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: from %s to %s", data, newValue) : ""
+//                                ));
+                        return Either.right(newValue);
+
                     } else {
                         return either;
                     }
@@ -283,8 +303,8 @@ public class HotVsColdObservables {
      */
         observable
                 .doOnSubscribe(disposable -> onSubscribe.apply(1).accept(disposable))
-                .map(promise -> doubleIt.apply(promise))
-                .map(promise -> resetIt.apply(promise))
+                .map(promise -> doubleIt.apply(1).apply(promise))
+                .map(promise -> resetIt.apply(1).apply(promise))
                 .subscribe(
                         promise -> onNext.apply(1).accept(promise)
                         , error -> onError.apply(1).accept(error)
@@ -302,8 +322,8 @@ public class HotVsColdObservables {
         setTimeout(2000);
         observable
                 .doOnSubscribe(disposable -> onSubscribe.apply(2).accept(disposable))
-                .map(promise -> doubleIt.apply(promise))
-                .map(promise -> resetIt.apply(promise))
+                .map(promise -> doubleIt.apply(2).apply(promise))
+                .map(promise -> resetIt.apply(2).apply(promise))
                 .subscribe(
                         promise -> onNext.apply(2).accept(promise)
                         , error -> onError.apply(2).accept(error)
@@ -321,8 +341,8 @@ public class HotVsColdObservables {
         setTimeout(2000);
         observable
                 .doOnSubscribe(disposable -> onSubscribe.apply(3).accept(disposable))
-                .map(promise -> doubleIt.apply(promise))
-                .map(promise -> resetIt.apply(promise))
+                .map(promise -> doubleIt.apply(3).apply(promise))
+                .map(promise -> resetIt.apply(3).apply(promise))
                 .subscribe(
                         promise -> onNext.apply(3).accept(promise)
                         , error -> onError.apply(3).accept(error)
