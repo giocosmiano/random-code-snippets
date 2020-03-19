@@ -206,8 +206,8 @@ class HotVsColdObservablesGroovy {
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(1, disposable) } )
                 .subscribe(
                         { CompletableFuture<Integer> promise -> onNext(1, promise) }
-                        ,{ Throwable error -> onError(1, error) }
-                        ,{ onComplete(1) }
+                        , { Throwable error -> onError(1, error) }
+                        , { onComplete(1) }
                 )
 
         sleep(2000)
@@ -215,8 +215,8 @@ class HotVsColdObservablesGroovy {
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(2, disposable) } )
                 .subscribe(
                         { CompletableFuture<Integer> promise -> onNext(2, promise) }
-                        ,{ Throwable error -> onError(2, error) }
-                        ,{ onComplete(2) }
+                        , { Throwable error -> onError(2, error) }
+                        , { onComplete(2) }
                 )
 
         sleep(2000)
@@ -224,8 +224,8 @@ class HotVsColdObservablesGroovy {
                 .doOnSubscribe({ Disposable disposable -> onSubscribe(3, disposable) } )
                 .subscribe(
                         { CompletableFuture<Integer> promise -> onNext(3, promise) }
-                        ,{ Throwable error -> onError(3, error) }
-                        ,{ onComplete(3) }
+                        , { Throwable error -> onError(3, error) }
+                        , { onComplete(3) }
                 )
 
         def anySubscribersStillListening = {
