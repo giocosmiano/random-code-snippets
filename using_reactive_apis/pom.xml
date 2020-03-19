@@ -17,6 +17,8 @@
         <groovyVersion>2.5.8</groovyVersion>
         <springBootVersion>2.1.5.RELEASE</springBootVersion>
         <springReactorVersion>3.2.15.RELEASE</springReactorVersion>
+        <googleGuavaVersion>28.2-jre</googleGuavaVersion>
+        <vavrVersion>0.10.2</vavrVersion>
     </properties>
 
     <dependencies>
@@ -69,6 +71,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${springBootVersion}</version>
+        </dependency>
+
+        <!-- https://github.com/google/guava/wiki -->
+        <!-- https://github.com/google/guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${googleGuavaVersion}</version>
+        </dependency>
+
+        <!-- https://www.vavr.io/ -->
+        <!-- https://www.vavr.io/vavr-docs/ -->
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr</artifactId>
+            <version>${vavrVersion}</version>
         </dependency>
 
     </dependencies>

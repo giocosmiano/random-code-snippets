@@ -2,6 +2,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.vavr.control.Either;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +38,40 @@ public class HotVsColdObservables {
 
     public static void main(String[] args) {
         HotVsColdObservables observables = new HotVsColdObservables();
+
         observables.runObservable(false);
+//        observables.runObservableWithManualErrorHandling(false);
+    }
+
+    public void doOnNext(boolean isHotObservable, final Integer subscriberNbr, final Either<String,Integer> either) {
+        String message;
+
+        if (either.isRight()) {
+            Integer data = either.get();
+            message = String.valueOf(data);
+
+            if (subscriberNbr == 1) {
+                subscriber1.set(data);
+
+            } else if (subscriberNbr == 2) {
+                subscriber2.set(data);
+
+            } else if (subscriberNbr == 3) {
+                subscriber3.set(data);
+            }
+
+        } else {
+            message = either.getLeft();
+        }
+
+        System.out.println(
+                String.format("%s Observables from %s - \t%s\t%s\t%s\t - doOnNext()"
+                        , isHotObservable ? "Hot" : "Cold"
+                        , Thread.currentThread().getName()
+                        , subscriberNbr == 1 ? String.format("Subscriber 1: %s", message) : ""
+                        , subscriberNbr == 2 ? String.format("\tSubscriber 2: %s", message) : ""
+                        , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: %s", message) : ""
+                ));
     }
 
     public void doOnNext(boolean isHotObservable, final Integer subscriberNbr, final Integer data) {
@@ -127,7 +161,153 @@ public class HotVsColdObservables {
         }
     }
 
+    /*
+     * Using Either from `vavr` library to continuously stream data with errors, either with the value on right or error on left
+     */
     public void runObservable(boolean isHotObservable) {
+        System.out.println(
+                String.format("Starting %s Observables from %s"
+                        , isHotObservable ? "Hot" : "Cold"
+                        , Thread.currentThread().getName()
+                ));
+
+        // Simulating a non-blocking IO such as a ReST call then a Reactive Mongo chaining them up together e.g.
+        // http://localhost:8080/getEmployeeDetails/123
+        // CompletableFuture.supplyAsync(() -> getEmployee(empId))
+        //         .thenApply(emp -> getEmployeeDept(empId))
+        //         .thenApply(emp -> getEmployeePay(empId));
+        Observable<CompletableFuture<Either<String,Integer>>> observable =
+                Observable.<Integer>create(observer -> nextPrime(1, observer))
+                        .switchMap(prime -> {
+
+                            // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
+                            CompletableFuture<Either<String,Integer>> cf =
+                                    CompletableFuture.supplyAsync(() -> {
+                                        setTimeout(100);
+                                        return Either.right(prime * 2); // double the value
+                                    });
+                            Observable<CompletableFuture<Either<String,Integer>>> disposableStream$ = Observable.just(cf);
+
+                            return disposableStream$
+                                    .map(promise -> {
+                                        return promise.thenApply(either -> {
+
+                                            // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and setting it back to original prime
+                                            setTimeout(100);
+                                            Integer data = either.get();
+
+                                            // Simulating an error using Either.left()
+                                            if (data >= 100 && data <= 200) {
+                                                String error = String.format("Simulating an error skipping prime=%s, in-between 100 and 200, while continue streaming the rest", data);
+                                                return Either.left(error);
+
+                                            } else {
+                                                return either.map(value -> value / 2);  // set it back to original `prime` after doubling the value
+                                            }
+                                        });
+                                    });
+                        })
+                ;
+
+        if (isHotObservable) observable = observable.share();
+
+        Function<Integer, Consumer<CompletableFuture<Either<String,Integer>>>> onNext =
+                subscriberNbr -> promise -> promise.thenAccept(either -> doOnNext(isHotObservable, subscriberNbr, either));
+
+        Function<Integer, Consumer<Throwable>> onError =
+                subscriberNbr -> error -> doOnError(isHotObservable, subscriberNbr, error);
+
+        Consumer<Integer> onComplete =
+                subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr);
+
+        Function<Integer, Consumer<Disposable>> onSubscribe =
+                subscriberNbr -> disposable -> {
+                    if (subscriberNbr == 1) {
+                        disposable1 = disposable;
+
+                    } else if (subscriberNbr == 2) {
+                        disposable2 = disposable;
+
+                    } else if (subscriberNbr == 3) {
+                        disposable3 = disposable;
+                    }
+                };
+
+    /*
+      un-comment the 2 implementations to see the difference on how exception handling is perform between
+      1) .subscribe(onData, onError, onComplete) vs
+      2) .doOnNext, .doOnError, .doOnComplete
+      https://github.com/ReactiveX/RxJava/issues/6163
+     */
+        observable
+                .doOnSubscribe(disposable -> onSubscribe.apply(1).accept(disposable))
+                .subscribe(
+                        promise -> onNext.apply(1).accept(promise)
+                        , error -> onError.apply(1).accept(error)
+                        , () -> onComplete.accept(1)
+                )
+        ;
+//        observable
+//                .doOnNext(data -> onNext.apply(1).accept(data))
+//                .doOnError(error -> onError.apply(1).accept(error))
+//                .doOnComplete(() -> onComplete.accept(1))
+//                .doOnSubscribe(disposable -> onSubscribe.apply(1).accept(disposable))
+//                .onErrorResumeNext(observable)
+//                .subscribe();
+
+        setTimeout(2000);
+        observable
+                .doOnSubscribe(disposable -> onSubscribe.apply(2).accept(disposable))
+                .subscribe(
+                        promise -> onNext.apply(2).accept(promise)
+                        , error -> onError.apply(2).accept(error)
+                        , () -> onComplete.accept(2)
+                )
+        ;
+//        observable
+//                .doOnNext(data -> onNext.apply(2).accept(data))
+//                .doOnError(error -> onError.apply(2).accept(error))
+//                .doOnComplete(() -> onComplete.accept(2))
+//                .doOnSubscribe(disposable -> onSubscribe.apply(2).accept(disposable))
+//                .onErrorResumeNext(observable)
+//                .subscribe();
+
+        setTimeout(2000);
+        observable
+                .doOnSubscribe(disposable -> onSubscribe.apply(3).accept(disposable))
+                .subscribe(
+                        promise -> onNext.apply(3).accept(promise)
+                        , error -> onError.apply(3).accept(error)
+                        , () -> onComplete.accept(3)
+                )
+        ;
+//        observable
+//                .doOnNext(data -> onNext.apply(3).accept(data))
+//                .doOnError(error -> onError.apply(3).accept(error))
+//                .doOnComplete(() -> onComplete.accept(3))
+//                .doOnSubscribe(disposable -> onSubscribe.apply(3).accept(disposable))
+//                .onErrorResumeNext(observable)
+//                .subscribe();
+
+        boolean anySubscribersStillListening;
+        do {
+            anySubscribersStillListening =
+                    (
+                            (disposable1 != null && ! disposable1.isDisposed())
+                                    || (disposable2 != null && ! disposable2.isDisposed())
+                                    || (disposable3 != null && ! disposable3.isDisposed())
+                    );
+            setTimeout(1000);
+        } while (anySubscribersStillListening);
+
+        System.out.println(
+                String.format("DONE with %s Observables from %s"
+                        , isHotObservable ? "Hot" : "Cold"
+                        , Thread.currentThread().getName()
+                ));
+    }
+
+    public void runObservableWithManualErrorHandling(boolean isHotObservable) {
         System.out.println(
                 String.format("Starting %s Observables from %s"
                         , isHotObservable ? "Hot" : "Cold"
@@ -154,12 +334,16 @@ public class HotVsColdObservables {
                             return disposableStream$
                                     .map(promise -> {
                                         return promise.thenApply(data -> {
+
+                                            // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and setting it back to original prime
+                                            setTimeout(100);
+
+                                            // Simulating an error
                                             if (data >= 100 && data <= 200) {
-                                                throw new RuntimeException(String.format("Simulating an error skipping prime=%s, in-between 100 and 200, while continue streaming the rest", prime));
+                                                String error = String.format("Simulating an error skipping prime=%s, in-between 100 and 200, while continue streaming the rest", data);
+                                                throw new RuntimeException(error);
                                             }
 
-                                            // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just setting it back to original prime
-                                            setTimeout(100);
                                             return data / 2; // set it back to original `prime` after doubling the value
                                         });
                                     })

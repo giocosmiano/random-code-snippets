@@ -1,6 +1,7 @@
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.disposables.Disposable
+import io.vavr.control.Either
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
@@ -16,7 +17,9 @@ class HotVsColdObservablesGroovy {
 
     static void main(String[] args) {
         HotVsColdObservablesGroovy observables = new HotVsColdObservablesGroovy()
+
         observables.runObservable(false)
+//        observables.runObservableWithManualErrorHandling(false)
     }
 
     def isPrime = { Integer number ->
@@ -32,7 +35,37 @@ class HotVsColdObservablesGroovy {
         iNbr
     }
 
-    def doOnNext = { Boolean isHotObservable, Integer subscriberNbr, Integer data ->
+    def doOnNext = { Boolean isHotObservable, Integer subscriberNbr, Either<String,Integer> either ->
+        String message
+
+        if (either.isRight()) {
+            Integer data = either.get()
+            message = String.valueOf(data)
+
+            if (subscriberNbr == 1) {
+                subscriber1.set(data)
+
+            } else if (subscriberNbr == 2) {
+                subscriber2.set(data)
+
+            } else if (subscriberNbr == 3) {
+                subscriber3.set(data)
+            }
+
+        } else {
+            message = either.getLeft()
+        }
+
+        println(
+                "${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()} - \t"
+                        + (subscriberNbr == 1 ? "Subscriber 1: ${message}" : "")
+                        + (subscriberNbr == 2 ? "\tSubscriber 2: ${message}" : "")
+                        + (subscriberNbr == 3 ? "\t\tSubscriber 3: ${message}" : "")
+                        + "\t - from doOnNext()"
+        )
+    }
+
+    def doOnNext2 = { Boolean isHotObservable, Integer subscriberNbr, Integer data ->
         if (subscriberNbr == 1) {
             subscriber1.set(data)
 
@@ -112,8 +145,119 @@ class HotVsColdObservablesGroovy {
         }
     }
 
-
     def runObservable = { boolean isHotObservable ->
+        println("Starting ${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()}")
+
+        // NOTE: Using closure since I'm using groovy 2.5.8 and only groovy 2.6+ supports lambdas
+        // https://stackoverflow.com/questions/23906748/groovy-compiler-does-not-accept-java-8-lambdas
+
+        // Simulating a non-blocking IO such as a ReST call then a Reactive Mongo chaining them up together e.g.
+        // http://localhost:8080/getEmployeeDetails/123
+        // CompletableFuture.supplyAsync(() -> getEmployee(empId))
+        //         .thenApply(emp -> getEmployeeDept(empId))
+        //         .thenApply(emp -> getEmployeePay(empId))
+        Observable<CompletableFuture<Either<String,Integer>>> observable =
+                Observable.<Integer>create({ ObservableEmitter<Integer> observer -> nextPrime(1, observer) })
+                        .<CompletableFuture<Either<String,Integer>>>switchMap({ Integer prime ->
+
+                            // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
+                            CompletableFuture<Either<String,Integer>> cf =
+                                    CompletableFuture.supplyAsync({
+                                        sleep(100)
+                                        Either.right(prime * 2) // double the value
+                                    })
+                            Observable<CompletableFuture<Either<String,Integer>>> disposableStream$ = Observable.just(cf)
+
+                            disposableStream$
+                                    .map({ CompletableFuture<Either<String,Integer>> promise ->
+                                        promise.thenApply({ Either<String,Integer> either ->
+
+                                            // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and setting it back to original prime
+                                            sleep(100)
+                                            Integer data = either.get()
+
+                                            // Simulating an error using Either.left()
+                                            if (data >= 100 && data <= 200) {
+                                                String error = "Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest"
+                                                Either.left(error)
+
+                                            } else {
+                                                Either.right(data / 2) // set it back to original `prime` after doubling the value
+                                            }
+                                        })
+                                    })
+                        })
+
+        if (isHotObservable) observable = observable.share()
+
+        // using promise.get() as promise.thenAccept() doesn't seem to work on closure
+        def onNext =
+                { Integer subscriberNbr, CompletableFuture<Either<String,Integer>> promise ->
+                    doOnNext(isHotObservable, subscriberNbr, (Either)promise.get()) }
+//        def onNext =
+//                { Integer subscriberNbr, CompletableFuture<Either<String,Integer>> promise ->
+//                    promise.thenAccept({ Integer data ->
+//                        doOnNext(isHotObservable, subscriberNbr, data) } ) }
+
+        def onError =
+                { Integer subscriberNbr, Throwable error -> doOnError(isHotObservable, subscriberNbr, error) }
+
+        def onComplete =
+                { Integer subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr) }
+
+        def onSubscribe =
+                { Integer subscriberNbr, Disposable disposable ->
+                    if (subscriberNbr == 1) {
+                        disposable1 = disposable
+
+                    } else if (subscriberNbr == 2) {
+                        disposable2 = disposable
+
+                    } else if (subscriberNbr == 3) {
+                        disposable3 = disposable
+                    }
+                }
+
+        observable
+                .doOnSubscribe({ Disposable disposable -> onSubscribe(1, disposable) } )
+                .subscribe(
+                        { CompletableFuture<Either<String,Integer>> promise -> onNext(1, promise) }
+                        , { Throwable error -> onError(1, error) }
+                        , { onComplete(1) }
+                )
+
+        sleep(2000)
+        observable
+                .doOnSubscribe({ Disposable disposable -> onSubscribe(2, disposable) } )
+                .subscribe(
+                        { CompletableFuture<Either<String,Integer>> promise -> onNext(2, promise) }
+                        , { Throwable error -> onError(2, error) }
+                        , { onComplete(2) }
+                )
+
+        sleep(2000)
+        observable
+                .doOnSubscribe({ Disposable disposable -> onSubscribe(3, disposable) } )
+                .subscribe(
+                        { CompletableFuture<Either<String,Integer>> promise -> onNext(3, promise) }
+                        , { Throwable error -> onError(3, error) }
+                        , { onComplete(3) }
+                )
+
+        def anySubscribersStillListening = {
+            sleep(1000)
+            (
+                    (disposable1 != null && ! disposable1.isDisposed())
+                            || (disposable2 != null && ! disposable2.isDisposed())
+                            || (disposable3 != null && ! disposable3.isDisposed())
+            )
+        }
+        while (anySubscribersStillListening.call()) continue
+
+        println("DONE with ${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()}")
+    }
+
+    def runObservableWithManualErrorHandling = { boolean isHotObservable ->
         println("Starting ${isHotObservable ? 'Hot' : 'Cold'} Observables from ${Thread.currentThread().getName()}")
 
         // NOTE: Using closure since I'm using groovy 2.5.8 and only groovy 2.6+ supports lambdas
@@ -139,29 +283,39 @@ class HotVsColdObservablesGroovy {
                             disposableStream$
                                     .map({ CompletableFuture<Integer> promise ->
 
+                                        // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and setting it back to original prime
+                                        sleep(100)
+
                                         // using promise.get() as promise.thenApply() will throw an exception on data >= 100 && data <= 200 thus causing the stream to shut off
                                         Integer data = promise.get()
+
+                                        // Simulating an error
                                         if (data >= 100 && data <= 200) {
-                                            throw new RuntimeException("Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest")
+                                            String error = "Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest"
+                                            throw new RuntimeException(error)
                                         }
 
-                                        // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just setting it back to original prime
                                         CompletableFuture.supplyAsync({
-                                            sleep(100)
                                             data / 2 // set it back to original `prime` after doubling the value
                                         })
 
+/*
                                         // this promise.thenApply() closure will throw an exception thus shutting off the stream of data
-//                                        promise.thenApply({ Integer data ->
-//                                            if (data >= 100 && data <= 200) {
-//                                                throw new RuntimeException("Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest")
-//                                            }
-//
-//                                            // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just setting it back to original prime
-//                                            sleep(100)
-//                                            data / 2 // set it back to original `prime` after doubling the value
-//                                        })
-//                                        .exceptionally({ Throwable error -> throw new RuntimeException(error.getMessage()) })
+                                        promise.thenApply({ Integer data ->
+
+                                            // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and setting it back to original prime
+                                            sleep(100)
+
+                                            // Simulating an error
+                                            if (data >= 100 && data <= 200) {
+                                                String error = "Simulating an error skipping prime=$data, in-between 100 and 200, while continue streaming the rest"
+                                                throw new RuntimeException(error)
+                                            }
+
+                                            data / 2 // set it back to original `prime` after doubling the value
+                                        })
+                                        .exceptionally({ Throwable error -> throw new RuntimeException(error.getMessage()) })
+*/
                                     })
                                     .onErrorReturn({ Throwable error ->
                                         println("Caught an error=${error.getMessage()}")
@@ -177,11 +331,11 @@ class HotVsColdObservablesGroovy {
         // using promise.get() as promise.thenAccept() doesn't seem to work on closure
         def onNext =
                 { Integer subscriberNbr, CompletableFuture<Integer> promise ->
-                        doOnNext(isHotObservable, subscriberNbr, (Integer)promise.get()) }
+                    doOnNext2(isHotObservable, subscriberNbr, (Integer)promise.get()) }
 //        def onNext =
 //                { Integer subscriberNbr, CompletableFuture<Integer> promise ->
 //                    promise.thenAccept({ Integer data ->
-//                        doOnNext(isHotObservable, subscriberNbr, data) } ) }
+//                        doOnNext2(isHotObservable, subscriberNbr, data) } ) }
 
         def onError =
                 { Integer subscriberNbr, Throwable error -> doOnError(isHotObservable, subscriberNbr, error) }
