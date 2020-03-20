@@ -197,10 +197,11 @@ object HotVsColdObservablesScala extends App {
                   // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a timeout and setting it back to original prime
                   Thread.sleep(100)
                   val data = either.right.get
+                  val prime = data / 2
 
                   // Simulating an error using Either.left()
                   if (data >= 100 && data <= 200) {
-                    val error = s"Simulating an error skipping double value of prime=$data, in-between 100 and 200, while continue streaming the rest"
+                    val error = s"Simulating an error skipping double value of prime in-between 100 and 200, where prime=$prime and double=$data"
                     Left(error)
 
                   } else {
@@ -231,7 +232,7 @@ object HotVsColdObservablesScala extends App {
 
         // Simulating an error using Either.left()
         if (newValue >= 100 && newValue <= 200) {
-          val error = s"Simulating an error skipping double value of prime in-between 100 and 200, where prime=$data, double=$newValue"
+          val error = s"Simulating an error skipping double value of prime in-between 100 and 200, where prime=$data and double=$newValue"
           Left(error)
 
         } else Right(newValue)

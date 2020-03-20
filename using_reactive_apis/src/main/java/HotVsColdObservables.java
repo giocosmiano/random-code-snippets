@@ -207,10 +207,11 @@ public class HotVsColdObservables {
                                             // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and setting it back to original prime
                                             setTimeout(100);
                                             Integer data = either.get();
+                                            Integer prime = data / 2;
 
                                             // Simulating an error using Either.left()
                                             if (data >= 100 && data <= 200) {
-                                                String error = String.format("Simulating an error skipping prime=%s, in-between 100 and 200, while continue streaming the rest", data);
+                                                String error = String.format("Simulating an error skipping double value of prime in-between 100 and 200, where prime=%s and double=%s", prime, data);
                                                 return Either.left(error);
 
                                             } else {
@@ -242,7 +243,7 @@ public class HotVsColdObservables {
 
                     // Simulating an error using Either.left()
                     if (newValue >= 100 && newValue <= 200) {
-                        String error = String.format("Simulating an error skipping double value of prime in-between 100 and 200, where prime=%s, double=%s", data, newValue);
+                        String error = String.format("Simulating an error skipping double value of prime in-between 100 and 200, where prime=%s and double=%s", data, newValue);
                         return Either.left(error);
 
                     } else {

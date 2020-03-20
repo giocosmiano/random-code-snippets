@@ -60,7 +60,7 @@
 								let newPrime = prime * 2
 										, either = Object.assign({}, Either);
 								if (newPrime >= 100 && newPrime <= 200) {
-									either.error = `Simulating an error skipping the double value of prime in-between 100 and 200 where prime=${prime}, double=${newPrime}`;
+									either.error = `Simulating an error skipping the double value of prime in-between 100 and 200 where prime=${prime} and double=${newPrime}`;
 								} else {
 									either.success = newPrime
 								}
@@ -79,7 +79,7 @@
 								let newPrime = prime * 2
 										, either = Object.assign({}, Either);
 								if (newPrime >= 100 && newPrime <= 200) {
-									throw new Error(`Simulating an error skipping the double of prime, in-between 100 and 200. prime=${prime}, double=${newPrime}`);
+									throw new Error(`Simulating an error skipping the double of prime, in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
 								}
 								either.success = prime;
 								return either;
