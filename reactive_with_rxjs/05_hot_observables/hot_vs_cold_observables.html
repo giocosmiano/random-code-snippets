@@ -7,22 +7,22 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap-grid.css">
 
+	<!-- https://cdnjs.com/ -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.5/redux.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.5.2/rxjs.umd.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.js"></script>
-	<script src=https://cdnjs.cloudflare.com/ajax/libs/ramda/0.27.0/ramda.js></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.js"></script>
-	<script>
-		const Either = {
-			error: null
-			, success: null
-		}
-				, isEitherAnError = either => ! _.isNull(either.error)
-				, isEitherASuccess = either => ! _.isNull(either.success)
-				, eitherValue = either => isEitherAnError(either) ? either.error : either.success
-		;
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.27.0/ramda.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/folktale/2.0.1/folktale.js"></script>
 
+	<!-- https://www.jsdelivr.com/ -->
+	<!-- https://zellwk.com/blog/jsdelivr/ -->
+<!--	<script src="https://cdn.jsdelivr.net/npm/sanctuary@3.0.0/index.js"></script>-->
+	<script src="https://cdn.jsdelivr.net/npm/sanctuary-either@2.1.0/index.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/ramda-fantasy@0.8.0/dist/ramda-fantasy.js"></script>
+
+	<script>
 		const isPrime = number => {
 			for (let i = 2; i < number; i++) {
 				if (number % i === 0) return false;
@@ -56,38 +56,33 @@
 			return disposableStream$
 					.pipe(
 							// Un-comment to see simulation # 1, using Either as error simulation
+/*
 							rxjs.operators.map(prime => {
-								let newPrime = prime * 2
-										, either = Object.assign({}, Either);
+								let newPrime = prime * 2; // double the value for error simulation
 								if (newPrime >= 100 && newPrime <= 200) {
-									either.error = `Simulating an error skipping the double value of prime in-between 100 and 200 where prime=${prime} and double=${newPrime}`;
-								} else {
-									either.success = newPrime
+									return RF.Either.Left(`Simulating an error skipping the double value of prime in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
 								}
-								return either;
+								return RF.Either.Right(newPrime);  // from https://github.com/sanctuary-js/sanctuary-either
 							})
 							, rxjs.operators.map(either => {
-								if (isEitherASuccess(either)) {
-									either.success /= 2;
+								if (either.isRight) {
+									either.value /= 2; // resetting it back to original prime
 								}
-								return either;
-							})
-
-/*
-							// Un-comment to see simulation # 2, throwing an Error to skip erroneous data
-							rxjs.operators.map(prime => {
-								let newPrime = prime * 2
-										, either = Object.assign({}, Either);
-								if (newPrime >= 100 && newPrime <= 200) {
-									throw new Error(`Simulating an error skipping the double of prime, in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
-								}
-								either.success = prime;
 								return either;
 							})
 */
 
+							// Un-comment to see simulation # 2, throwing an Error to skip erroneous data
+							rxjs.operators.map(prime => {
+								let newPrime = prime * 2;
+								if (newPrime >= 100 && newPrime <= 200) {
+									throw new Error(`Simulating an error skipping the double of prime, in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
+								}
+								return RF.Either.Right(prime); // from https://github.com/sanctuary-js/sanctuary-either
+							})
+
 							// comment to simulate an error that will halt the entire stream of data
-							, rxjs.operators.catchError(error => rxjs.of(error))
+							, rxjs.operators.catchError(error => rxjs.of(RF.Either.Left(error.message)))
 					)
 					;
 		}))
@@ -158,7 +153,7 @@
 					enableDisableBtnStopAll();
 					}
 				, dataHandler = either => {
-						spanElem.text(eitherValue(either));
+						spanElem.text(either.value);
 						logOnData();
 					}
 				, errorHandler = prime => {

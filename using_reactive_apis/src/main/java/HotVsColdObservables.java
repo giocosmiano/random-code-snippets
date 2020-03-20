@@ -196,7 +196,7 @@ public class HotVsColdObservables {
                             CompletableFuture<Either<String,Integer>> cf =
                                     CompletableFuture.supplyAsync(() -> {
                                         setTimeout(100);
-//                                        return Either.right(prime * 2);
+                                        return Either.right(prime * 2);
                                     });
                             Observable<CompletableFuture<Either<String,Integer>>> disposableStream$ = Observable.just(cf);
 
@@ -207,18 +207,27 @@ public class HotVsColdObservables {
                                             // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and setting it back to original prime
                                             setTimeout(100);
                                             Integer data = either.get();
-                                            Integer prime = data / 2;
+                                            Integer origPrime = data / 2;
 
                                             // Simulating an error using Either.left()
                                             if (data >= 100 && data <= 200) {
-                                                String error = String.format("Simulating an error skipping double value of prime in-between 100 and 200, where prime=%s and double=%s", prime, data);
+                                                String error = String.format("Simulating an error skipping double value of prime in-between 100 and 200, where prime=%s and double=%s", origPrime, data);
                                                 return Either.left(error);
 
                                             } else {
                                                 return either.map(value -> value / 2);  // set it back to original `prime` after doubling the value
                                             }
                                         });
-                                    });
+                                    })
+//                                    .onErrorReturn(error -> {
+//                                                Either<String,Integer> either = Either.left(error.getMessage());
+//                                                CompletableFuture<Either<String,Integer>> cfError =
+//                                                        CompletableFuture.supplyAsync(() -> {
+//                                                            setTimeout(100);
+//                                                            return either;
+//                                                        });
+//                                                return cfError;
+//                                            });
 */
                         })
                 ;
