@@ -1,0 +1,204 @@
+<html lang="en">
+
+	<head>
+		<title>RxJS Hot vs Cold Observables</title>
+	</head>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap-grid.css">
+
+	<!-- https://cdnjs.com/ -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.5/redux.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.5.2/rxjs.umd.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.27.0/ramda.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/folktale/2.0.1/folktale.js"></script>
+
+	<!-- https://www.jsdelivr.com/ -->
+	<!-- https://zellwk.com/blog/jsdelivr/ -->
+<!--	<script src="https://cdn.jsdelivr.net/npm/sanctuary@3.0.0/index.js"></script>-->
+	<script src="https://cdn.jsdelivr.net/npm/sanctuary-either@2.1.0/index.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/ramda-fantasy@0.8.0/dist/ramda-fantasy.js"></script>
+
+	<script>
+		const isPrime = number => {
+			for (let i = 2; i < number; i++) {
+				if (number % i === 0) return false;
+			}
+			return true;
+		};
+
+		const coldObservables = rxjs.Observable.create(observer => {
+			let number = 1;
+			let nextPrime = () => {
+				number++;
+				while (! isPrime(number)) number++;
+
+				if (number >= 400) {
+					observer.complete();
+				}
+
+				// un-comment to simulate an error that will halt the entire stream of data
+				// else if (number >= 200) {
+				// 	observer.error(number);
+				// }
+
+				observer.next(number);
+				setTimeout(nextPrime, 100);
+			};
+
+			nextPrime();
+		})
+		.pipe(rxjs.operators.switchMap(prime => {
+			const disposableStream$ = rxjs.of(prime);
+			return disposableStream$
+					.pipe(
+							// Un-comment to see simulation # 1, using Either as error simulation
+/*
+							rxjs.operators.map(prime => {
+								let newPrime = prime * 2; // double the value for error simulation
+								if (newPrime >= 100 && newPrime <= 200) {
+									return RF.Either.Left(`Simulating an error skipping the double value of prime in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
+								}
+								return RF.Either.Right(newPrime);  // from https://github.com/sanctuary-js/sanctuary-either
+							})
+							, rxjs.operators.map(either => {
+								if (either.isRight) {
+									either.value /= 2; // resetting it back to original prime
+								}
+								return either;
+							})
+*/
+
+							// Un-comment to see simulation # 2, throwing an Error to skip erroneous data
+							rxjs.operators.map(prime => {
+								let newPrime = prime * 2;
+								if (newPrime >= 100 && newPrime <= 200) {
+									throw new Error(`Simulating an error skipping the double of prime, in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
+								}
+								return RF.Either.Right(prime); // from https://github.com/sanctuary-js/sanctuary-either
+							})
+
+							// comment to simulate an error that will halt the entire stream of data
+							, rxjs.operators.catchError(error => rxjs.of(RF.Either.Left(error.message)))
+					)
+					;
+		}))
+		, hotObservables = coldObservables.pipe(rxjs.operators.share())
+		, mapOfSubscribers = new Map();
+
+		const onStopAll = btnElemId => {
+			const btnElem = $(`#${btnElemId}`)
+					, isHotObservable = btnElem.attr('data-is-hot-observable') === 'true'
+			;
+
+			let hotCold;
+			if (isHotObservable) hotCold = 'Hot';
+			else hotCold = 'Cold';
+
+			const btnHotColdElem = $(`#btn${hotCold}StopAll`)
+					, btnElem1 = $(`#btn${hotCold}Elem1`)
+					, btnElem2 = $(`#btn${hotCold}Elem2`)
+					, btnElem3 = $(`#btn${hotCold}Elem3`)
+			;
+
+			mapOfSubscribers.get(btnElem1.attr('id')).unsubscribe();
+			mapOfSubscribers.get(btnElem2.attr('id')).unsubscribe();
+			mapOfSubscribers.get(btnElem3.attr('id')).unsubscribe();
+
+			btnHotColdElem.attr('disabled', 'disabled');
+		};
+
+		const onSubscribe = (btnElemId, spanElemId) => {
+			const btnElem = $(`#${btnElemId}`)
+					, spanElem = $(`#${spanElemId}`)
+					, btnElemNbr = btnElem.attr('data-elem-nbr')
+					, isSubscriberOn = btnElem.attr('data-is-subscriber-on') === 'true'
+					, isHotObservable = btnElem.attr('data-is-hot-observable') === 'true'
+			;
+
+			let hotCold;
+			if (isHotObservable) hotCold = 'Hot';
+			else hotCold = 'Cold';
+
+			const btnHotColdElem = $(`#btn${hotCold}StopAll`)
+					, btnElem1 = $(`#btn${hotCold}Elem1`)
+					, btnElem2 = $(`#btn${hotCold}Elem2`)
+					, btnElem3 = $(`#btn${hotCold}Elem3`)
+					, spanVal1 = $(`#span${hotCold}Elem1`)
+					, spanVal2 = $(`#span${hotCold}Elem2`)
+					, spanVal3 = $(`#span${hotCold}Elem3`)
+			;
+
+			const logOnData = () => console.log(`${hotCold} Observables - ${(btnElemNbr === '1') ? 'Subscriber 1: ' + spanVal1.text() : ''} ${(btnElemNbr === '2') ? '\t\tSubscriber 2: ' + spanVal2.text() : ''} ${(btnElemNbr === '3') ? '\t\t\t\tSubscriber 3: ' + spanVal3.text() : ''}`)
+				, logOnError = data => console.log(`${hotCold} Observables - ${(btnElemNbr === '1') ? 'Subscriber 1: ' + data : ''} ${(btnElemNbr === '2') ? '\t\tSubscriber 2: ' + data : ''} ${(btnElemNbr === '3') ? '\t\t\t\tSubscriber 3: ' + data : ''} - onError()`)
+				, logOnComplete = () => console.log(`${hotCold} Observables - ${(btnElemNbr === '1') ? 'Subscriber 1: ' : ''} ${(btnElemNbr === '2') ? '\t\tSubscriber 2: ' : ''} ${(btnElemNbr === '3') ? '\t\t\t\tSubscriber 3: ' : ''} - onComplete()`)
+			;
+
+			const enableDisableBtnStopAll = () => {
+						if (btnElem1.attr('data-is-subscriber-on') === 'true' &&
+								btnElem2.attr('data-is-subscriber-on') === 'true' &&
+								btnElem3.attr('data-is-subscriber-on') === 'true') {
+							btnHotColdElem.removeAttr('disabled');
+						} else {
+							btnHotColdElem.attr('disabled', 'disabled');
+						}
+					}
+				, unSubscribe = () => {
+					mapOfSubscribers.get(btnElemId).unsubscribe();
+					btnElem.html(`Start Subscriber ${btnElemNbr}`);
+					btnElem.attr('data-is-subscriber-on', 'false');
+					enableDisableBtnStopAll();
+					}
+				, dataHandler = either => {
+						spanElem.text(either.value);
+						logOnData();
+					}
+				, errorHandler = prime => {
+						unSubscribe();
+						logOnError(prime);
+					}
+				, completeHandler = () => {
+						unSubscribe();
+						logOnComplete();
+					}
+			;
+
+			if (isSubscriberOn) {
+				unSubscribe();
+				logOnData();
+
+			} else {
+				let observable;
+				if (isHotObservable) observable = hotObservables;
+				else observable = coldObservables;
+
+				const subscriber = observable.subscribe(dataHandler, errorHandler, completeHandler);
+				mapOfSubscribers.set(btnElemId, subscriber);
+				btnElem.html(`Stop Subscriber ${btnElemNbr}`);
+				btnElem.attr('data-is-subscriber-on', 'true');
+			}
+
+			enableDisableBtnStopAll();
+		};
+	</script>
+
+	<body style="margin: 10px; padding: 10px;">
+		<div class="alert alert-warning" role="alert">
+			<span style="font-weight: bold;">RxJS Cold Observables</span>
+			<button id="btnColdElem1" type="button" class="btn btn-primary btn-sm" data-elem-nbr="1" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem1.id)">Start Subscriber 1</button><span id="spanColdElem1" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnColdElem2" type="button" class="btn btn-primary btn-sm" data-elem-nbr="2" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem2.id)">Start Subscriber 2</button><span id="spanColdElem2" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnColdElem3" type="button" class="btn btn-primary btn-sm" data-elem-nbr="3" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem3.id)">Start Subscriber 3</button><span id="spanColdElem3" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnColdStopAll" type="button" class="btn btn-primary btn-sm" data-is-hot-observable="false" onclick="onStopAll(this.id)" disabled="disabled">Stop All Subscribers</button><span id="spanColdStopAll" style="margin: 10px; padding: 10px;">---</span>
+		</div>
+		<div class="alert alert-danger" role="alert">
+			<span style="font-weight: bold;">RxJS Hot Observables</span>
+			<button id="btnHotElem1" type="button" class="btn btn-primary btn-sm" data-elem-nbr="1" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem1.id)">Start Subscriber 1</button><span id="spanHotElem1" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnHotElem2" type="button" class="btn btn-primary btn-sm" data-elem-nbr="2" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem2.id)">Start Subscriber 2</button><span id="spanHotElem2" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnHotElem3" type="button" class="btn btn-primary btn-sm" data-elem-nbr="3" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem3.id)">Start Subscriber 3</button><span id="spanHotElem3" style="margin: 10px; padding: 10px;">---</span>
+			<button id="btnHotStopAll" type="button" class="btn btn-primary btn-sm" data-is-hot-observable="true" onclick="onStopAll(this.id)" disabled="disabled">Stop All Subscribers</button><span id="spanHotStopAll" style="margin: 10px; padding: 10px;">---</span>
+		</div>
+	</body>
+</html>

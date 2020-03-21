@@ -1,0 +1,28 @@
+# Override the port Tomcat listens on
+server:
+  port: 9080
+
+# Customize log levels
+logging:
+  level:
+    reactor:
+      core: TRACE
+      util: TRACE
+    org:
+      springframework.data: TRACE
+    io:
+      netty: DEBUG
+      reactor: DEBUG
+    com:
+      giocosmiano: DEBUG
+
+# enable actuator endpoints
+#endpoints.autoconfig.enabled=true
+#endpoints.beans.enabled=true
+#endpoints.configprops.enabled=true
+#endpoints.env.enabled=true
+#endpoints.health.enabled=true
+#endpoints.info.enabled=true
+#endpoints.metrics.enabled=true
+#endpoints.mappings.enabled=true
+#endpoints.trace.enabled=true
