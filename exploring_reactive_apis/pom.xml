@@ -13,6 +13,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <rxJavaVersion>2.2.8</rxJavaVersion>
         <rxScalaVersion>0.27.0</rxScalaVersion>
+        <rxStreamVersion>1.2.1</rxStreamVersion>
         <scalaVersion>2.11.12</scalaVersion>
         <groovyVersion>2.5.8</groovyVersion>
         <springBootVersion>2.2.5.RELEASE</springBootVersion>
@@ -21,6 +22,7 @@
         <vavrVersion>0.10.2</vavrVersion>
         <lombokVersion>1.18.12</lombokVersion>
         <flapdoodleVersion>2.2.0</flapdoodleVersion>
+        <swaggerVersion>2.9.2</swaggerVersion>
         <apacheCommonsLangVersion>3.9</apacheCommonsLangVersion>
     </properties>
 
@@ -36,6 +38,12 @@
             <groupId>io.reactivex</groupId>
             <artifactId>rxscala_2.11</artifactId>
             <version>${rxScalaVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava-reactive-streams</artifactId>
+            <version>${rxStreamVersion}</version>
         </dependency>
 
         <dependency>
@@ -70,11 +78,21 @@
             <version>${springBootVersion}</version>
         </dependency>
 
+        <!-- using spring boot web mvc -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>${springBootVersion}</version>
+        </dependency>
+
+        <!-- using spring boot webflux -->
+<!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
             <version>${springBootVersion}</version>
         </dependency>
+-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -137,6 +155,19 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${apacheCommonsLangVersion}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger2 -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${swaggerVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swaggerVersion}</version>
         </dependency>
 
     </dependencies>

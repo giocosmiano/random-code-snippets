@@ -3,14 +3,15 @@ package com.giocosmiano.exploration.reactiveApis;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.vavr.control.Either;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.*;
 
@@ -24,6 +25,7 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
 
     private static final Logger log = LoggerFactory.getLogger(HotVsColdObservables.class);
 
+    // NOTE: This is a simulation of a 3-Subscribers from 1-Observable
     public static void main(String[] args) {
         log.info(
                 String.format("Starting %s Observables from %s"
@@ -32,16 +34,28 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
                 ));
 
         HotVsColdObservables observables = new HotVsColdObservables();
-        observables.runObservable(DEFAULT_COLD_OBSERVABLE, DEFAULT_THRESHOLD);
+
+        Observable<CompletableFuture<Either<String,Integer>>> observable =
+                observables.createObservable(DEFAULT_COLD_OBSERVABLE, DEFAULT_THRESHOLD);
+
+        observables.createObservableSubscriber(SUBSCRIBER_NBR_1, observable);
+
+        setTimeout.accept(2000); // delay 2 seconds then start subscriber # 2
+        observables.createObservableSubscriber(SUBSCRIBER_NBR_2, observable);
+
+        setTimeout.accept(2000); // delay 2 seconds then start subscriber # 3
+        observables.createObservableSubscriber(SUBSCRIBER_NBR_3, observable);
 
         boolean anySubscribersStillListening;
         do {
-            anySubscribersStillListening =
-                    (
-                            (observables.disposable1 != null && ! observables.disposable1.isDisposed())
-                                    || (observables.disposable2 != null && ! observables.disposable2.isDisposed())
-                                    || (observables.disposable3 != null && ! observables.disposable3.isDisposed())
-                    );
+            Collection<Disposable> disposables =
+                    observables.mapOfDisposable
+                            .values()
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .filter(disposable -> ! disposable.isDisposed())
+                            .collect(Collectors.toList());
+            anySubscribersStillListening = ! disposables.isEmpty();
             setTimeout.accept(1000);
         } while (anySubscribersStillListening);
 
@@ -50,6 +64,22 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
                         , isHotObservable ? "Hot" : "Cold"
                         , Thread.currentThread().getName()
                 ));
+    }
+
+    // NOTE: This is for a simulation of a 3-Subscribers from 1-Observable, from main()
+    private void createObservableSubscriber(
+            final Integer subscriberNbr
+            , final Observable<CompletableFuture<Either<String,Integer>>> observable
+    ) {
+        observable
+                .doOnSubscribe(disposable -> this.mapOfDisposable.put(subscriberNbr, disposable))
+                .map(promise -> doubleIt.apply(subscriberNbr).apply(promise))
+                .map(promise -> resetIt.apply(subscriberNbr).apply(promise))
+                .subscribe(
+                        promise -> onNext.apply(subscriberNbr).accept(promise)
+                        , error -> onError.apply(subscriberNbr).accept(error)
+                        , () -> onComplete.accept(subscriberNbr)
+                );
     }
 
     private void nextPrime(final Integer number, final Integer threshold, final ObservableEmitter<Integer> observer) {
@@ -83,7 +113,7 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
 
     private Observable<CompletableFuture<Either<String,Integer>>> createObservable(boolean isHotObservable, final Integer threshold) {
         Observable<CompletableFuture<Either<String,Integer>>> observable =
-                Observable.<Integer>create(observer -> nextPrime(1, threshold, observer))
+                Observable.<Integer>create(observer -> nextPrime(START_PRIME_AT_1, threshold, observer))
                         .switchMap(prime -> {
 
                             CompletableFuture<Either<String,Integer>> cf =
@@ -108,32 +138,9 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
     //         .thenApply(emp -> getEmployeePay(empId));
     public Observable<CompletableFuture<Either<String,Integer>>> runObservable(boolean isHotObservable, final Integer threshold) {
 
-        Observable<CompletableFuture<Either<String,Integer>>> observable = createObservable(isHotObservable, threshold);
-
-        Function<Integer, Consumer<Disposable>> onSubscribe =
-                subscriberNbr -> disposable -> {
-                    if (subscriberNbr == 1) {
-                        disposable1 = disposable;
-
-                    } else if (subscriberNbr == 2) {
-                        disposable2 = disposable;
-
-                    } else if (subscriberNbr == 3) {
-                        disposable3 = disposable;
-                    }
-                };
-
-        observable
-                .doOnSubscribe(disposable -> onSubscribe.apply(1).accept(disposable))
-                .map(promise -> doubleIt.apply(1).apply(promise))
-                .map(promise -> resetIt.apply(1).apply(promise))
-                .subscribe(
-                        promise -> onNext.apply(1).accept(promise)
-                        , error -> onError.apply(1).accept(error)
-                        , () -> onComplete.accept(1)
-                )
-        ;
-
-        return observable;
+        return createObservable(isHotObservable, threshold)
+                .map(promise -> doubleThePrime.apply(promise))
+                .map(promise -> resetThePrime.apply(promise))
+                ;
     }
 }

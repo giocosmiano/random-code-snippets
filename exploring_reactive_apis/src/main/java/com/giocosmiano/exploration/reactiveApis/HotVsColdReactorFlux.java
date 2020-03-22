@@ -4,11 +4,14 @@ import io.vavr.control.Either;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.*;
 
@@ -22,6 +25,7 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
 
     private static final Logger log = LoggerFactory.getLogger(HotVsColdReactorFlux.class);
 
+    // NOTE: This is a simulation of a 3-Subscribers from 1-Reactor Flux
     public static void main(String[] args) {
         log.info(
                 String.format("Starting %s Reactor Flux from %s"
@@ -29,17 +33,29 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
                         , Thread.currentThread().getName()
                 ));
 
-        HotVsColdReactorFlux flux = new HotVsColdReactorFlux();
-        flux.runObservable(DEFAULT_COLD_OBSERVABLE, DEFAULT_THRESHOLD);
+        HotVsColdReactorFlux reactorFlux = new HotVsColdReactorFlux();
+
+        Flux<CompletableFuture<Either<String, Integer>>> flux =
+                reactorFlux.createFlux(DEFAULT_COLD_OBSERVABLE, DEFAULT_THRESHOLD);
+
+        reactorFlux.createFluxSubscriber(SUBSCRIBER_NBR_1, flux);
+
+        setTimeout.accept(2000); // delay 2 seconds then start subscriber # 2
+        reactorFlux.createFluxSubscriber(SUBSCRIBER_NBR_2, flux);
+
+        setTimeout.accept(2000); // delay 2 seconds then start subscriber # 3
+        reactorFlux.createFluxSubscriber(SUBSCRIBER_NBR_3, flux);
 
         boolean anySubscribersStillListening;
         do {
-            anySubscribersStillListening =
-                    (
-                            (flux.disposable1 != null && ! flux.disposable1.isDisposed())
-                                    || (flux.disposable2 != null && ! flux.disposable2.isDisposed())
-                                    || (flux.disposable3 != null && ! flux.disposable3.isDisposed())
-                    );
+            Collection<reactor.core.Disposable> disposables =
+                    reactorFlux.mapOfDisposableFlux
+                            .values()
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .filter(disposable -> ! disposable.isDisposed())
+                            .collect(Collectors.toList());
+            anySubscribersStillListening =  ! disposables.isEmpty();
             setTimeout.accept(1000);
         } while (anySubscribersStillListening);
 
@@ -48,6 +64,22 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
                         , isHotObservable ? "Hot" : "Cold"
                         , Thread.currentThread().getName()
                 ));
+    }
+
+    // NOTE: This is for a simulation of a 3-Subscribers from 1-Reactor Flux, from main()
+    private void createFluxSubscriber(
+            final Integer subscriberNbr
+            , final Flux<CompletableFuture<Either<String, Integer>>> flux
+    ) {
+        Disposable disposable = flux
+                .map(promise -> doubleIt.apply(subscriberNbr).apply(promise))
+                .map(promise -> resetIt.apply(subscriberNbr).apply(promise))
+                .subscribe(
+                        promise -> onNext.apply(subscriberNbr).accept(promise)
+                        , error -> onError.apply(subscriberNbr).accept(error)
+                        , () -> onComplete.accept(subscriberNbr)
+                );
+        this.mapOfDisposableFlux.put(subscriberNbr, disposable);
     }
 
     private void nextPrime(final Integer number, final Integer threshold, final FluxSink<Integer> observer) {
@@ -80,7 +112,7 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
 
     private Flux<CompletableFuture<Either<String,Integer>>> createFlux(boolean isHotObservable, final Integer threshold) {
         Flux<CompletableFuture<Either<String, Integer>>> flux =
-                Flux.<Integer>create(observer -> nextPrime(1, threshold, observer))
+                Flux.<Integer>create(observer -> nextPrime(START_PRIME_AT_1, threshold, observer))
                         .switchMap(prime -> {
 
                             CompletableFuture<Either<String, Integer>> cf =
@@ -102,15 +134,11 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
     // CompletableFuture.supplyAsync(() -> getEmployee(empId))
     //         .thenApply(emp -> getEmployeeDept(empId))
     //         .thenApply(emp -> getEmployeePay(empId));
-    public Flux<CompletableFuture<Either<String,Integer>>> runObservable(boolean isHotObservable, final Integer threshold) {
-        Flux<CompletableFuture<Either<String, Integer>>> flux = createFlux(isHotObservable, threshold);
+    public Flux<CompletableFuture<Either<String,Integer>>> runReactorFux(boolean isHotObservable, final Integer threshold) {
 
-        Consumer<Integer> onComplete =
-                subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr);
-
-        return flux
-                .map(promise -> doubleIt.apply(1).apply(promise))
-                .map(promise -> resetIt.apply(1).apply(promise))
+        return createFlux(isHotObservable, threshold)
+                .map(promise -> doubleThePrime.apply(promise))
+                .map(promise -> resetThePrime.apply(promise))
                 ;
     }
 }

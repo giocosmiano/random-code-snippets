@@ -5,6 +5,8 @@ import io.vavr.control.Either;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -23,33 +25,20 @@ public abstract class HotVsColdReactiveApis {
     protected final AtomicInteger subscriber2 = new AtomicInteger();
     protected final AtomicInteger subscriber3 = new AtomicInteger();
 
-    protected Disposable disposable1 = null;
-    protected Disposable disposable2 = null;
-    protected Disposable disposable3 = null;
-
-    protected Disposable disposableFlux1 = null;
-    protected Disposable disposableFlux2 = null;
-    protected Disposable disposableFlux3 = null;
+    protected Map<Integer, Disposable> mapOfDisposable = new HashMap<>();
+    protected Map<Integer, reactor.core.Disposable> mapOfDisposableFlux = new HashMap<>();
 
     protected static boolean isHotObservable = false;
 
     protected static final Logger log = LoggerFactory.getLogger(HotVsColdReactiveApis.class);
 
     // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and doubling the value
-    protected Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> doubleIt =
-            subscriberNbr -> promise -> promise.thenApply(either -> {
+    protected Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>> doubleThePrime =
+            promise -> promise.thenApply(either -> {
 
                 setTimeout.accept(100);
                 Integer data = either.get();
                 Integer newValue = data * 2;
-                log.info(
-                        String.format("%s from %s - \t%s\t%s\t%s\t - doubleIt()"
-                                , isHotObservable ? "Hot" : "Cold"
-                                , Thread.currentThread().getName()
-                                , subscriberNbr == 1 ? String.format("Subscriber 1: from %s to %s", data, newValue) : ""
-                                , subscriberNbr == 2 ? String.format("\tSubscriber 2: from %s to %s", data, newValue) : ""
-                                , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: from %s to %s", data, newValue) : ""
-                        ));
 
                 // Simulating an error using Either.left()
                 if (newValue >= 100 && newValue <= 200) {
@@ -61,28 +50,26 @@ public abstract class HotVsColdReactiveApis {
                 }
             });
 
+    protected Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> doubleIt =
+            subscriberNbr -> promise -> doubleThePrime.apply(promise);
+
     // Simulating a non-blocking IO e.g. ReST call, but for now just a Consumer applying a timeout and setting it back to original prime
-    protected Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> resetIt =
-            subscriberNbr -> promise -> promise.thenApply(either -> {
+    protected Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>> resetThePrime =
+            promise -> promise.thenApply(either -> {
                 setTimeout.accept(100);
 
                 if (either.isRight()) {
                     Integer data = either.get();
                     Integer newValue = data / 2;
-                    log.info(
-                            String.format("%s from %s - \t%s\t%s\t%s\t - resetIt()"
-                                    , isHotObservable ? "Hot" : "Cold"
-                                    , Thread.currentThread().getName()
-                                    , subscriberNbr == 1 ? String.format("Subscriber 1: from %s to %s", data, newValue) : ""
-                                    , subscriberNbr == 2 ? String.format("\tSubscriber 2: from %s to %s", data, newValue) : ""
-                                    , subscriberNbr == 3 ? String.format("\t\tSubscriber 3: from %s to %s", data, newValue) : ""
-                            ));
                     return Either.right(newValue);
 
                 } else {
                     return either;
                 }
             });
+
+    protected Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> resetIt =
+            subscriberNbr -> promise -> resetThePrime.apply(promise);
 
     protected Function<Integer, Consumer<CompletableFuture<Either<String,Integer>>>> onNext =
             subscriberNbr -> promise -> promise.thenAccept(either -> doOnNext(isHotObservable, subscriberNbr, either));
@@ -136,14 +123,18 @@ public abstract class HotVsColdReactiveApis {
     }
 
     public void doOnComplete(boolean isHotObservable, final Integer subscriberNbr) {
-        if (subscriberNbr == 1) {
-            disposable1.dispose();
 
-        } else if (subscriberNbr == 2) {
-            disposable2.dispose();
+        reactor.core.Disposable disposableFlux;
+        Disposable disposable = mapOfDisposable.get(subscriberNbr);
 
-        } else if (subscriberNbr == 3) {
-            disposable3.dispose();
+        if (disposable != null) {
+            disposable.dispose();
+        } else {
+
+            disposableFlux = mapOfDisposableFlux.get(subscriberNbr);
+            if (disposableFlux != null) {
+                disposableFlux.dispose();
+            }
         }
 
         log.info(

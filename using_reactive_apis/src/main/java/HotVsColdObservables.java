@@ -4,9 +4,14 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.vavr.control.Either;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 // Difference between RxJava vs Reactor
 // https://www.nurkiewicz.com/2019/02/rxjava-vs-reactor.html
@@ -15,13 +20,18 @@ import java.util.function.Function;
 // https://www.javacodegeeks.com/2018/08/frameworks-toolkits-make-java-reactive-rxjava-spring-reactor-akka-vert-x-overview.html
 public class HotVsColdObservables {
 
+    private static final Integer START_PRIME_AT_1 = 1;
+    private static final Integer SUBSCRIBER_NBR_1 = 1;
+    private static final Integer SUBSCRIBER_NBR_2 = 2;
+    private static final Integer SUBSCRIBER_NBR_3 = 3;
+    private static final Integer DEFAULT_THRESHOLD = 500;
+    private static final Boolean DEFAULT_COLD_OBSERVABLE = false;
+
     private final AtomicInteger subscriber1 = new AtomicInteger();
     private final AtomicInteger subscriber2 = new AtomicInteger();
     private final AtomicInteger subscriber3 = new AtomicInteger();
 
-    private Disposable disposable1 = null;
-    private Disposable disposable2 = null;
-    private Disposable disposable3 = null;
+    private Map<Integer, Disposable> mapOfDisposables = new HashMap<>();
 
     private final Function<Integer, Boolean> isPrime = number -> {
         for (int i = 2; i < number; i++) {
@@ -37,10 +47,37 @@ public class HotVsColdObservables {
     };
 
     public static void main(String[] args) {
+        boolean isHotObservable = DEFAULT_COLD_OBSERVABLE;
+
+        System.out.println(
+                String.format("Starting %s Observables from %s"
+                        , isHotObservable ? "Hot" : "Cold"
+                        , Thread.currentThread().getName()
+                ));
+
         HotVsColdObservables observables = new HotVsColdObservables();
 
-        observables.runObservable(false);
-//        observables.runObservableWithManualErrorHandling(false);
+        observables.runObservable(isHotObservable);
+//        observables.runObservableWithManualErrorHandling(isHotObservable);
+
+        boolean anySubscribersStillListening;
+        do {
+            Collection<Disposable> disposables =
+                    observables.mapOfDisposables
+                            .values()
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .filter(disposable -> ! disposable.isDisposed())
+                            .collect(Collectors.toList());
+            anySubscribersStillListening = ! disposables.isEmpty();
+            observables.setTimeout(1000);
+        } while (anySubscribersStillListening);
+
+        System.out.println(
+                String.format("DONE with %s Observables from %s"
+                        , isHotObservable ? "Hot" : "Cold"
+                        , Thread.currentThread().getName()
+                ));
     }
 
     public void doOnNext(boolean isHotObservable, final Integer subscriberNbr, final Either<String,Integer> either) {
@@ -107,14 +144,9 @@ public class HotVsColdObservables {
     }
 
     public void doOnComplete(boolean isHotObservable, final Integer subscriberNbr) {
-        if (subscriberNbr == 1) {
-            disposable1.dispose();
-
-        } else if (subscriberNbr == 2) {
-            disposable2.dispose();
-
-        } else if (subscriberNbr == 3) {
-            disposable3.dispose();
+        Disposable disposable = mapOfDisposables.get(subscriberNbr);
+        if (disposable != null) {
+            disposable.dispose();
         }
 
         System.out.println(
@@ -135,7 +167,7 @@ public class HotVsColdObservables {
         final Integer prime = getNextPrime.apply(number);
 
         // Emit a completion when threshold is reached
-        if (prime >= 500) {
+        if (prime >= DEFAULT_THRESHOLD) {
             CompletableFuture.runAsync(() -> {
                 setTimeout(500);
                 observer.onComplete();
@@ -165,11 +197,6 @@ public class HotVsColdObservables {
      * Using Either from `vavr` library to continuously stream data with errors, either with the value on right or error on left
      */
     public void runObservable(boolean isHotObservable) {
-        System.out.println(
-                String.format("Starting %s Observables from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ));
 
         // Simulating a non-blocking IO such as a ReST call then a Reactive Mongo chaining them up together e.g.
         // http://localhost:8080/getEmployeeDetails/123
@@ -177,7 +204,7 @@ public class HotVsColdObservables {
         //         .thenApply(emp -> getEmployeeDept(empId))
         //         .thenApply(emp -> getEmployeePay(empId));
         Observable<CompletableFuture<Either<String,Integer>>> observable =
-                Observable.<Integer>create(observer -> nextPrime(1, observer))
+                Observable.<Integer>create(observer -> nextPrime(START_PRIME_AT_1, observer))
                         .switchMap(prime -> {
 
                             // Simulation # 1 - a non-blocking IO using doubleIt and resetIt functions below
@@ -292,19 +319,6 @@ public class HotVsColdObservables {
         Consumer<Integer> onComplete =
                 subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr);
 
-        Function<Integer, Consumer<Disposable>> onSubscribe =
-                subscriberNbr -> disposable -> {
-                    if (subscriberNbr == 1) {
-                        disposable1 = disposable;
-
-                    } else if (subscriberNbr == 2) {
-                        disposable2 = disposable;
-
-                    } else if (subscriberNbr == 3) {
-                        disposable3 = disposable;
-                    }
-                };
-
     /*
       un-comment the 2 implementations to see the difference on how exception handling is perform between
       1) .subscribe(onData, onError, onComplete) vs
@@ -312,13 +326,13 @@ public class HotVsColdObservables {
       https://github.com/ReactiveX/RxJava/issues/6163
      */
         observable
-                .doOnSubscribe(disposable -> onSubscribe.apply(1).accept(disposable))
-                .map(promise -> doubleIt.apply(1).apply(promise))
-                .map(promise -> resetIt.apply(1).apply(promise))
+                .doOnSubscribe(disposable -> this.mapOfDisposables.put(SUBSCRIBER_NBR_1, disposable))
+                .map(promise -> doubleIt.apply(SUBSCRIBER_NBR_1).apply(promise))
+                .map(promise -> resetIt.apply(SUBSCRIBER_NBR_1).apply(promise))
                 .subscribe(
-                        promise -> onNext.apply(1).accept(promise)
-                        , error -> onError.apply(1).accept(error)
-                        , () -> onComplete.accept(1)
+                        promise -> onNext.apply(SUBSCRIBER_NBR_1).accept(promise)
+                        , error -> onError.apply(SUBSCRIBER_NBR_1).accept(error)
+                        , () -> onComplete.accept(SUBSCRIBER_NBR_1)
                 )
         ;
 //        observable
@@ -331,13 +345,13 @@ public class HotVsColdObservables {
 
         setTimeout(2000);
         observable
-                .doOnSubscribe(disposable -> onSubscribe.apply(2).accept(disposable))
-                .map(promise -> doubleIt.apply(2).apply(promise))
-                .map(promise -> resetIt.apply(2).apply(promise))
+                .doOnSubscribe(disposable -> this.mapOfDisposables.put(SUBSCRIBER_NBR_2, disposable))
+                .map(promise -> doubleIt.apply(SUBSCRIBER_NBR_2).apply(promise))
+                .map(promise -> resetIt.apply(SUBSCRIBER_NBR_2).apply(promise))
                 .subscribe(
-                        promise -> onNext.apply(2).accept(promise)
-                        , error -> onError.apply(2).accept(error)
-                        , () -> onComplete.accept(2)
+                        promise -> onNext.apply(SUBSCRIBER_NBR_2).accept(promise)
+                        , error -> onError.apply(SUBSCRIBER_NBR_2).accept(error)
+                        , () -> onComplete.accept(SUBSCRIBER_NBR_2)
                 )
         ;
 //        observable
@@ -350,13 +364,13 @@ public class HotVsColdObservables {
 
         setTimeout(2000);
         observable
-                .doOnSubscribe(disposable -> onSubscribe.apply(3).accept(disposable))
-                .map(promise -> doubleIt.apply(3).apply(promise))
-                .map(promise -> resetIt.apply(3).apply(promise))
+                .doOnSubscribe(disposable -> this.mapOfDisposables.put(SUBSCRIBER_NBR_3, disposable))
+                .map(promise -> doubleIt.apply(SUBSCRIBER_NBR_3).apply(promise))
+                .map(promise -> resetIt.apply(SUBSCRIBER_NBR_3).apply(promise))
                 .subscribe(
-                        promise -> onNext.apply(3).accept(promise)
-                        , error -> onError.apply(3).accept(error)
-                        , () -> onComplete.accept(3)
+                        promise -> onNext.apply(SUBSCRIBER_NBR_3).accept(promise)
+                        , error -> onError.apply(SUBSCRIBER_NBR_3).accept(error)
+                        , () -> onComplete.accept(SUBSCRIBER_NBR_3)
                 )
         ;
 //        observable
@@ -366,32 +380,9 @@ public class HotVsColdObservables {
 //                .doOnSubscribe(disposable -> onSubscribe.apply(3).accept(disposable))
 //                .onErrorResumeNext(observable)
 //                .subscribe();
-
-        boolean anySubscribersStillListening;
-        do {
-            anySubscribersStillListening =
-                    (
-                            (disposable1 != null && ! disposable1.isDisposed())
-                                    || (disposable2 != null && ! disposable2.isDisposed())
-                                    || (disposable3 != null && ! disposable3.isDisposed())
-                    );
-            setTimeout(1000);
-        } while (anySubscribersStillListening);
-
-        System.out.println(
-                String.format("DONE with %s Observables from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ));
     }
 
     public void runObservableWithManualErrorHandling(boolean isHotObservable) {
-        System.out.println(
-                String.format("Starting %s Observables from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ));
-
         // Simulating a non-blocking IO such as a ReST call then a Reactive Mongo chaining them up together e.g.
         // http://localhost:8080/getEmployeeDetails/123
         // CompletableFuture.supplyAsync(() -> getEmployee(empId))
@@ -446,19 +437,6 @@ public class HotVsColdObservables {
         Consumer<Integer> onComplete =
                 subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr);
 
-        Function<Integer, Consumer<Disposable>> onSubscribe =
-                subscriberNbr -> disposable -> {
-                    if (subscriberNbr == 1) {
-                        disposable1 = disposable;
-
-                    } else if (subscriberNbr == 2) {
-                        disposable2 = disposable;
-
-                    } else if (subscriberNbr == 3) {
-                        disposable3 = disposable;
-                    }
-                };
-
     /*
       un-comment the 2 implementations to see the difference on how exception handling is perform between
       1) .subscribe(onData, onError, onComplete) vs
@@ -466,11 +444,11 @@ public class HotVsColdObservables {
       https://github.com/ReactiveX/RxJava/issues/6163
      */
         observable
-                .doOnSubscribe(disposable -> onSubscribe.apply(1).accept(disposable))
+                .doOnSubscribe(disposable -> this.mapOfDisposables.put(SUBSCRIBER_NBR_1, disposable))
                 .subscribe(
-                        promise -> onNext.apply(1).accept(promise)
-                        , error -> onError.apply(1).accept(error)
-                        , () -> onComplete.accept(1)
+                        promise -> onNext.apply(SUBSCRIBER_NBR_1).accept(promise)
+                        , error -> onError.apply(SUBSCRIBER_NBR_1).accept(error)
+                        , () -> onComplete.accept(SUBSCRIBER_NBR_1)
                 )
         ;
 //        observable
@@ -483,11 +461,11 @@ public class HotVsColdObservables {
 
         setTimeout(2000);
         observable
-                .doOnSubscribe(disposable -> onSubscribe.apply(2).accept(disposable))
+                .doOnSubscribe(disposable -> this.mapOfDisposables.put(SUBSCRIBER_NBR_2, disposable))
                 .subscribe(
-                        promise -> onNext.apply(2).accept(promise)
-                        , error -> onError.apply(2).accept(error)
-                        , () -> onComplete.accept(2)
+                        promise -> onNext.apply(SUBSCRIBER_NBR_2).accept(promise)
+                        , error -> onError.apply(SUBSCRIBER_NBR_2).accept(error)
+                        , () -> onComplete.accept(SUBSCRIBER_NBR_2)
                 )
         ;
 //        observable
@@ -500,11 +478,11 @@ public class HotVsColdObservables {
 
         setTimeout(2000);
         observable
-                .doOnSubscribe(disposable -> onSubscribe.apply(3).accept(disposable))
+                .doOnSubscribe(disposable -> this.mapOfDisposables.put(SUBSCRIBER_NBR_3, disposable))
                 .subscribe(
-                        promise -> onNext.apply(3).accept(promise)
-                        , error -> onError.apply(3).accept(error)
-                        , () -> onComplete.accept(3)
+                        promise -> onNext.apply(SUBSCRIBER_NBR_3).accept(promise)
+                        , error -> onError.apply(SUBSCRIBER_NBR_3).accept(error)
+                        , () -> onComplete.accept(SUBSCRIBER_NBR_3)
                 )
         ;
 //        observable
@@ -514,22 +492,5 @@ public class HotVsColdObservables {
 //                .doOnSubscribe(disposable -> onSubscribe.apply(3).accept(disposable))
 //                .onErrorResumeNext(observable)
 //                .subscribe();
-
-        boolean anySubscribersStillListening;
-        do {
-            anySubscribersStillListening =
-                    (
-                            (disposable1 != null && ! disposable1.isDisposed())
-                                    || (disposable2 != null && ! disposable2.isDisposed())
-                                    || (disposable3 != null && ! disposable3.isDisposed())
-                    );
-            setTimeout(1000);
-        } while (anySubscribersStillListening);
-
-        System.out.println(
-                String.format("DONE with %s Observables from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ));
     }
 }
