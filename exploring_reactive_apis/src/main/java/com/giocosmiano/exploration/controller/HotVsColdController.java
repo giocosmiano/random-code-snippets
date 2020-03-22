@@ -4,19 +4,16 @@ import com.giocosmiano.exploration.domain.HotVsColdEither;
 import com.giocosmiano.exploration.service.HotVsColdReactiveService;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
-import io.vavr.control.Either;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.*;
 

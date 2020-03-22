@@ -4,16 +4,13 @@ import com.giocosmiano.exploration.domain.HotVsColdEither;
 import com.giocosmiano.exploration.reactiveApis.HotVsColdObservables;
 import com.giocosmiano.exploration.reactiveApis.HotVsColdReactorFlux;
 import io.reactivex.Single;
-import io.vavr.control.Either;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 // Difference between RxJava vs Reactor

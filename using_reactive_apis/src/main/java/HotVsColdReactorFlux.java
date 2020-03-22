@@ -202,7 +202,7 @@ public class HotVsColdReactorFlux {
         //         .thenApply(emp -> getEmployeeDept(empId))
         //         .thenApply(emp -> getEmployeePay(empId));
         Flux<CompletableFuture<Either<String,Integer>>> observable =
-                Flux.<Integer>create(observer -> nextPrime(1, observer))
+                Flux.<Integer>create(observer -> nextPrime(START_PRIME_AT_1, observer))
                         .switchMap(prime -> {
 
                             // Simulation # 1 - a non-blocking IO using doubleIt and resetIt functions below
@@ -341,7 +341,7 @@ public class HotVsColdReactorFlux {
         //         .thenApply(emp -> getEmployeeDept(empId))
         //         .thenApply(emp -> getEmployeePay(empId));
         Flux<CompletableFuture<Integer>> observable =
-                Flux.<Integer>create(observer -> nextPrime(1, observer))
+                Flux.<Integer>create(observer -> nextPrime(START_PRIME_AT_1, observer))
                         .switchMap(prime -> {
 
                             // Simulating a non-blocking IO e.g. ReST call, but for now just doubling the prime value
