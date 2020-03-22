@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.*;
 
 @RestController
+@RequestMapping(value = "/primeNumbers")
 public class HotVsColdController {
 
     private static final Logger log = LoggerFactory.getLogger(HotVsColdController.class);
@@ -32,7 +34,7 @@ public class HotVsColdController {
         this.hotVsColdReactiveService = hotVsColdReactiveService;
     }
 
-    @GetMapping(value = "/observable/primes", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/observables", produces = MediaType.APPLICATION_JSON_VALUE)
     public Single<ResponseEntity<List<HotVsColdEither>>> getObservablePrimes(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
@@ -40,33 +42,35 @@ public class HotVsColdController {
         boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
         Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
         log.info(
-                String.format("Requested %s Observable Prime Numbers up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
-                        , isHotObservable ? "Hot" : "Cold"
+                String.format("Generating Prime Numbers, using Observables, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
                         , requestedThreshold
                         , DEFAULT_THRESHOLD
                         , Thread.currentThread().getName()
                 ));
 
         return hotVsColdReactiveService.getObservablePrimes(isHotObservable, threshold)
-                .subscribeOn(Schedulers.computation()) // running on different thread
-                .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes));
+                .observeOn(Schedulers.computation()) // running on different thread
+                .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                ;
     }
 
-    @GetMapping(value = "/flux/primes", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<CompletableFuture<Either<String,Integer>>> getFluxPrimes(
+    @GetMapping(value = "/reactorFlux", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<List<HotVsColdEither>>> getFluxPrimes(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
     ) {
         boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
         Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
         log.info(
-                String.format("Requested %s Reactor Flux Prime Numbers up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
-                        , isHotObservable ? "Hot" : "Cold"
+                String.format("Generating Prime Numbers, using Reactor Flux, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
                         , requestedThreshold
                         , DEFAULT_THRESHOLD
                         , Thread.currentThread().getName()
                 ));
 
-        return hotVsColdReactiveService.getFluxPrimes(isHotObservable, threshold);
+        return hotVsColdReactiveService.getFluxPrimes(isHotObservable, threshold)
+                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
+                .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                ;
     }
 }

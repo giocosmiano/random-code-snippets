@@ -3,10 +3,15 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 // Difference between RxJava vs Reactor
 // https://www.nurkiewicz.com/2019/02/rxjava-vs-reactor.html
@@ -15,13 +20,18 @@ import java.util.function.Function;
 // https://www.javacodegeeks.com/2018/08/frameworks-toolkits-make-java-reactive-rxjava-spring-reactor-akka-vert-x-overview.html
 public class HotVsColdReactorFlux {
 
+    private static final Integer START_PRIME_AT_1 = 1;
+    private static final Integer SUBSCRIBER_NBR_1 = 1;
+    private static final Integer SUBSCRIBER_NBR_2 = 2;
+    private static final Integer SUBSCRIBER_NBR_3 = 3;
+    private static final Integer DEFAULT_THRESHOLD = 500;
+    private static final Boolean DEFAULT_COLD_OBSERVABLE = false;
+
     private final AtomicInteger subscriber1 = new AtomicInteger();
     private final AtomicInteger subscriber2 = new AtomicInteger();
     private final AtomicInteger subscriber3 = new AtomicInteger();
 
-    private Disposable disposable1 = null;
-    private Disposable disposable2 = null;
-    private Disposable disposable3 = null;
+    protected Map<Integer, Disposable> mapOfDisposables = new HashMap<>();
 
     private final Function<Integer, Boolean> isPrime = number -> {
         for (int i = 2; i < number; i++) {
@@ -37,9 +47,37 @@ public class HotVsColdReactorFlux {
     };
 
     public static void main(String[] args) {
+        boolean isHotObservable = DEFAULT_COLD_OBSERVABLE;
+
+        System.out.println(
+                String.format("Starting %s Reactor Flux from %s"
+                        , isHotObservable ? "Hot" : "Cold"
+                        , Thread.currentThread().getName()
+                ));
+
         HotVsColdReactorFlux observables = new HotVsColdReactorFlux();
-        observables.runObservable(false);
-//        observables.runObservableWithManualErrorHandling(false);
+
+        observables.runObservable(isHotObservable);
+//        observables.runObservableWithManualErrorHandling(isHotObservable);
+
+        boolean anySubscribersStillListening;
+        do {
+            Collection<Disposable> disposables =
+                    observables.mapOfDisposables
+                            .values()
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .filter(disposable -> ! disposable.isDisposed())
+                            .collect(Collectors.toList());
+            anySubscribersStillListening = ! disposables.isEmpty();
+            observables.setTimeout(1000);
+        } while (anySubscribersStillListening);
+
+        System.out.println(
+                String.format("DONE with %s Reactor Flux from %s"
+                        , isHotObservable ? "Hot" : "Cold"
+                        , Thread.currentThread().getName()
+                ));
     }
 
     public void doOnNext(boolean isHotObservable, final Integer subscriberNbr, final Either<String,Integer> either) {
@@ -106,14 +144,9 @@ public class HotVsColdReactorFlux {
     }
 
     public void doOnComplete(boolean isHotObservable, final Integer subscriberNbr) {
-        if (subscriberNbr == 1) {
-            disposable1.dispose();
-
-        } else if (subscriberNbr == 2) {
-            disposable2.dispose();
-
-        } else if (subscriberNbr == 3) {
-            disposable3.dispose();
+        Disposable disposable = mapOfDisposables.get(subscriberNbr);
+        if (disposable != null) {
+            disposable.dispose();
         }
 
         System.out.println(
@@ -134,7 +167,7 @@ public class HotVsColdReactorFlux {
         final Integer prime = getNextPrime.apply(number);
 
         // Emit a completion when threshold is reached
-        if (prime >= 500) {
+        if (prime >= DEFAULT_THRESHOLD) {
             CompletableFuture.runAsync(() -> {
                 setTimeout(500);
                 observer.complete();
@@ -162,11 +195,6 @@ public class HotVsColdReactorFlux {
      * Using Either from `vavr` library to continuously stream data with errors, either with the value on right or error on left
      */
     public void runObservable(boolean isHotObservable) {
-        System.out.println(
-                String.format("Starting %s Reactor Flux from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ));
 
         // Simulating a non-blocking IO such as a ReST call then a Reactive Mongo chaining them up together e.g.
         // http://localhost:8080/getEmployeeDetails/123
@@ -222,15 +250,30 @@ public class HotVsColdReactorFlux {
 
         if (isHotObservable) observable = observable.share();
 
+        createFluxSubscriber(isHotObservable, SUBSCRIBER_NBR_1, observable);
+
+        setTimeout(2000);
+        createFluxSubscriber(isHotObservable, SUBSCRIBER_NBR_2, observable);
+
+        setTimeout(2000);
+        createFluxSubscriber(isHotObservable, SUBSCRIBER_NBR_3, observable);
+    }
+
+    private void createFluxSubscriber(
+            boolean isHotObservable
+            , final Integer subscriberNbr
+            , final Flux<CompletableFuture<Either<String, Integer>>> flux
+    ) {
+
         // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and doubling the value
-        Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> doubleIt =
-                subscriberNbr -> promise -> promise.thenApply(either -> {
+        Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>> doubleIt =
+                promise -> promise.thenApply(either -> {
 
                     setTimeout(100);
                     Integer data = either.get();
-                    Integer newValue = data * 2; // double the value
+                    Integer newValue = data * 2;
 //                    System.out.println(
-//                            String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - doubleIt()"
+//                            String.format("%s Observables from %s - \t%s\t%s\t%s\t - doubleIt()"
 //                                    , isHotObservable ? "Hot" : "Cold"
 //                                    , Thread.currentThread().getName()
 //                                    , subscriberNbr == 1 ? String.format("Subscriber 1: from %s to %s", data, newValue) : ""
@@ -249,15 +292,15 @@ public class HotVsColdReactorFlux {
                 });
 
         // Simulating a non-blocking IO e.g. ReST call, but for now just a Consumer applying a timeout and setting it back to original prime
-        Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> resetIt =
-                subscriberNbr -> promise -> promise.thenApply(either -> {
+        Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>> resetIt =
+                promise -> promise.thenApply(either -> {
                     setTimeout(100);
 
                     if (either.isRight()) {
                         Integer data = either.get();
                         Integer newValue = data / 2;
 //                        System.out.println(
-//                                String.format("%s Reactor Flux from %s - \t%s\t%s\t%s\t - resetIt()"
+//                                String.format("%s Observables from %s - \t%s\t%s\t%s\t - resetIt()"
 //                                        , isHotObservable ? "Hot" : "Cold"
 //                                        , Thread.currentThread().getName()
 //                                        , subscriberNbr == 1 ? String.format("Subscriber 1: from %s to %s", data, newValue) : ""
@@ -271,64 +314,18 @@ public class HotVsColdReactorFlux {
                     }
                 });
 
-        Function<Integer, Consumer<CompletableFuture<Either<String,Integer>>>> onNext =
-                subscriberNbr -> promise -> promise.thenAccept(either -> doOnNext(isHotObservable, subscriberNbr, either));
+        Consumer<CompletableFuture<Either<String,Integer>>> onNext =
+                promise -> promise.thenAccept(either -> doOnNext(isHotObservable, subscriberNbr, either));
 
-        Function<Integer, Consumer<Throwable>> onError =
-                subscriberNbr -> error -> doOnError(isHotObservable, subscriberNbr, error);
-
-        Consumer<Integer> onComplete =
-                subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr);
-
-        disposable1 =
-                observable
-                        .map(promise -> doubleIt.apply(1).apply(promise))
-                        .map(promise -> resetIt.apply(1).apply(promise))
-                        .subscribe(
-                                promise -> onNext.apply(1).accept(promise)
-                                , error -> onError.apply(1).accept(error)
-                                , () -> onComplete.accept(1)
-                        );
-
-        setTimeout(2000);
-        disposable2 =
-                observable
-                        .map(promise -> doubleIt.apply(2).apply(promise))
-                        .map(promise -> resetIt.apply(2).apply(promise))
-                        .subscribe(
-                                promise -> onNext.apply(2).accept(promise)
-                                , error -> onError.apply(2).accept(error)
-                                , () -> onComplete.accept(2)
-                        );
-
-        setTimeout(2000);
-        disposable3 =
-                observable
-                        .map(promise -> doubleIt.apply(3).apply(promise))
-                        .map(promise -> resetIt.apply(3).apply(promise))
-                        .subscribe(
-                                promise -> onNext.apply(3).accept(promise)
-                                , error -> onError.apply(3).accept(error)
-                                , () -> onComplete.accept(3)
-                        );
-
-
-        boolean anySubscribersStillListening;
-        do {
-            anySubscribersStillListening =
-                    (
-                            (disposable1 != null && ! disposable1.isDisposed())
-                                    || (disposable2 != null && ! disposable2.isDisposed())
-                                    || (disposable3 != null && ! disposable3.isDisposed())
-                    );
-            setTimeout(1000);
-        } while (anySubscribersStillListening);
-
-        System.out.println(
-                String.format("DONE with %s Reactor Flux from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ));
+        Disposable disposable = flux
+                .map(promise -> doubleIt.apply(promise))
+                .map(promise -> resetIt.apply(promise))
+                .subscribe(
+                        promise -> onNext.accept(promise)
+                        , error -> doOnError(isHotObservable, subscriberNbr, error)
+                        , () -> doOnComplete(isHotObservable, subscriberNbr)
+                );
+        this.mapOfDisposables.put(subscriberNbr, disposable);
     }
 
     public void runObservableWithManualErrorHandling(boolean isHotObservable) {
@@ -385,48 +382,33 @@ public class HotVsColdReactorFlux {
         Consumer<Integer> onComplete =
                 subscriberNbr -> doOnComplete(isHotObservable, subscriberNbr);
 
-        disposable1 =
+        this.mapOfDisposables.put(SUBSCRIBER_NBR_1,
                 observable
                         .subscribe(
-                                promise -> onNext.apply(1).accept(promise)
-                                , error -> onError.apply(1).accept(error)
-                                , () -> onComplete.accept(1)
-                        );
+                                promise -> onNext.apply(SUBSCRIBER_NBR_1).accept(promise)
+                                , error -> onError.apply(SUBSCRIBER_NBR_1).accept(error)
+                                , () -> onComplete.accept(SUBSCRIBER_NBR_1)
+                        )
+        );
 
         setTimeout(2000);
-        disposable2 =
+        this.mapOfDisposables.put(SUBSCRIBER_NBR_2,
                 observable
                         .subscribe(
-                                promise -> onNext.apply(2).accept(promise)
-                                , error -> onError.apply(2).accept(error)
-                                , () -> onComplete.accept(2)
-                        );
+                                promise -> onNext.apply(SUBSCRIBER_NBR_2).accept(promise)
+                                , error -> onError.apply(SUBSCRIBER_NBR_2).accept(error)
+                                , () -> onComplete.accept(SUBSCRIBER_NBR_2)
+                        )
+        );
 
         setTimeout(2000);
-        disposable3 =
+        this.mapOfDisposables.put(SUBSCRIBER_NBR_3,
                 observable
                         .subscribe(
-                                promise -> onNext.apply(3).accept(promise)
-                                , error -> onError.apply(3).accept(error)
-                                , () -> onComplete.accept(3)
-                        );
-
-
-        boolean anySubscribersStillListening;
-        do {
-            anySubscribersStillListening =
-                    (
-                            (disposable1 != null && ! disposable1.isDisposed())
-                                    || (disposable2 != null && ! disposable2.isDisposed())
-                                    || (disposable3 != null && ! disposable3.isDisposed())
-                    );
-            setTimeout(1000);
-        } while (anySubscribersStillListening);
-
-        System.out.println(
-                String.format("DONE with %s Reactor Flux from %s"
-                        , isHotObservable ? "Hot" : "Cold"
-                        , Thread.currentThread().getName()
-                ));
+                                promise -> onNext.apply(SUBSCRIBER_NBR_3).accept(promise)
+                                , error -> onError.apply(SUBSCRIBER_NBR_3).accept(error)
+                                , () -> onComplete.accept(SUBSCRIBER_NBR_3)
+                        )
+        );
     }
 }

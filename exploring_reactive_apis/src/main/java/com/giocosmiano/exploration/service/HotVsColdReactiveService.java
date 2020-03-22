@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,13 +58,31 @@ public class HotVsColdReactiveService {
                     return atomicReference.get();
                 })
                 .lastElement()
-                .toSingle();
+                .toSingle()
+                ;
     }
 
-    public Flux<CompletableFuture<Either<String,Integer>>> getFluxPrimes(
+    public Mono<List<HotVsColdEither>> getFluxPrimes(
             boolean isHotObservable
             , final Integer threshold
     ) {
-        return hotVsColdReactorFlux.runReactorFux(isHotObservable, threshold);
+        AtomicReference<List<HotVsColdEither>> atomicReference = new AtomicReference<>();
+        atomicReference.set(new ArrayList<>());
+
+        return hotVsColdReactorFlux.runReactorFux(isHotObservable, threshold)
+                .map(promise -> {
+                    promise.thenAccept(either -> {
+                        HotVsColdEither hotVsColdEither = new HotVsColdEither();
+                        if (either.isRight()) {
+                            hotVsColdEither.setRightValue(either.get());
+                        } else {
+                            hotVsColdEither.setLeftValue(either.getLeft());
+                        }
+                        atomicReference.get().add(hotVsColdEither);
+                    });
+                    return atomicReference.get();
+                })
+                .last()
+                ;
     }
 }
