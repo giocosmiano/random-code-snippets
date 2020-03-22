@@ -8,8 +8,13 @@ import java.util.function.Function;
 
 public class HotVsColdUtilities {
 
-    public static Boolean DEFAULT_COLD_OBSERVABLE = false;
-    public static Integer DEFAULT_THRESHOLD = 500;
+    public static final Integer START_PRIME_AT_1 = 1;
+    public static final Integer SUBSCRIBER_NBR_1 = 1;
+    public static final Integer SUBSCRIBER_NBR_2 = 2;
+    public static final Integer SUBSCRIBER_NBR_3 = 3;
+    public static final Integer DEFAULT_THRESHOLD = 500;
+    public static final Boolean DEFAULT_COLD_OBSERVABLE = false;
+
     private static final Logger log = LoggerFactory.getLogger(HotVsColdUtilities.class);
 
     public static Function<Integer, Boolean> isPrime = number -> {
