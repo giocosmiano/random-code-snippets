@@ -141,6 +141,16 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
         return createObservable(isHotObservable, threshold)
                 .map(promise -> doubleThePrime.apply(promise))
                 .map(promise -> resetThePrime.apply(promise))
+                .doOnNext(promise -> {
+                    promise.thenAccept(either -> {
+                        log.info(
+                                String.format("Observable from %s - \t%s\t%s\t - doOnNext()"
+                                        , Thread.currentThread().getName()
+                                        , either.isRight() ? String.format("Value : %s", either.get().toString()) : ""
+                                        , either.isLeft() ? String.format("\tError : %s", either.getLeft()) : ""
+                                ));
+                    });
+                })
                 ;
     }
 }
