@@ -1,6 +1,7 @@
 package com.giocosmiano.exploration.controller;
 
 import com.giocosmiano.exploration.domain.HotVsColdEither;
+import com.giocosmiano.exploration.service.HotVsColdObservableServiceScala;
 import com.giocosmiano.exploration.service.HotVsColdReactiveService;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
@@ -68,6 +69,25 @@ public class HotVsColdController {
         return hotVsColdReactiveService.getFluxPrimes(isHotObservable, threshold)
                 .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
                 .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                ;
+    }
+
+    @GetMapping(value = "/scalaObservables", produces = MediaType.APPLICATION_JSON_VALUE)
+    public rx.lang.scala.Observable<ResponseEntity<List<HotVsColdEither>>> getObservablePrimesFromScala(
+            @RequestParam(name = "type", required = false) String type
+            , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
+    ) {
+        boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
+        Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
+        log.info(
+                String.format("Generating Prime Numbers, using Scala Observables, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
+                        , requestedThreshold
+                        , DEFAULT_THRESHOLD
+                        , Thread.currentThread().getName()
+                ));
+
+        return new HotVsColdObservableServiceScala()
+                .getObservablePrimesFromScala(isHotObservable, threshold)
                 ;
     }
 }
