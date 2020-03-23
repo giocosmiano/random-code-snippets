@@ -2,7 +2,6 @@ package com.giocosmiano.exploration.reactiveApis
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.giocosmiano.exploration.domain.HotVsColdEither
 import com.giocosmiano.exploration.reactiveApis.HotVsColdObservablesScala._
 import org.slf4j.{Logger, LoggerFactory}
 import rx.lang.scala.{Observable, Observer, Subscription}
@@ -18,30 +17,20 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class HotVsColdObservablesScala {
 
   def runObservable(isHotObservable: Boolean = DEFAULT_COLD_OBSERVABLE
-                    , threshold: Int = DEFAULT_THRESHOLD): Observable[HotVsColdEither] = {
+                    , threshold: Int = DEFAULT_THRESHOLD): Observable[Future[Either[String,Int]]] = {
 
-    val observable: Observable[HotVsColdEither] =
+    val observable: Observable[Future[Either[String,Int]]] =
     createObservable(isHotObservable, threshold)
       .map(future => doubleThePrime(future))
       .map(future => resetThePrime(future))
-      .map(future => {
-        val either = future.value.getOrElse(Left("error")).asInstanceOf[Either[String,Int]]
-        val hotVsColdEither = new HotVsColdEither
-        if (either.isRight) {
-          hotVsColdEither.setRightValue(either.right.get)
-        } else {
-          hotVsColdEither.setLeftValue(either.left.get)
-        }
-        hotVsColdEither
-      })
-      .doOnNext((either: HotVsColdEither) => {
-        log.info(
-          s"Observable from ${Thread.currentThread.getName} - \t"
-            + s"${if (either.getRightValue != null) "Value : " + either.getRightValue else ""}"
-            + s"${if (either.getLeftValue != null) "\tError : " + either.getLeftValue else ""}"
-            + "\t - from doOnNext()"
-        )
-      })
+//      .doOnNext((either: HotVsColdEither) => {
+//        log.info(
+//          s"Observable from ${Thread.currentThread.getName} - \t"
+//            + s"${if (either.getRightValue != null) "Value : " + either.getRightValue else ""}"
+//            + s"${if (either.getLeftValue != null) "\tError : " + either.getLeftValue else ""}"
+//            + "\t - from doOnNext()"
+//        )
+//      })
     observable
   }
 }

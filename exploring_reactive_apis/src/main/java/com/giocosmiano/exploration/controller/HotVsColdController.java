@@ -73,7 +73,7 @@ public class HotVsColdController {
     }
 
     @GetMapping(value = "/scalaObservables", produces = MediaType.APPLICATION_JSON_VALUE)
-    public rx.lang.scala.Observable<ResponseEntity<List<HotVsColdEither>>> getObservablePrimesFromScala(
+    public rx.lang.scala.Observable<List<HotVsColdEither>> getObservablePrimesFromScala(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
     ) {
@@ -88,6 +88,7 @@ public class HotVsColdController {
 
         return new HotVsColdObservableServiceScala()
                 .getObservablePrimesFromScala(isHotObservable, threshold)
+                .observeOn(rx.lang.scala.schedulers.ComputationScheduler.apply())
                 ;
     }
 }
