@@ -21,6 +21,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class HotVsColdObservableServiceScala {
 
+  // NOTE: RxScala has been EOL
+  // https://github.com/ReactiveX/RxScala
+  // https://github.com/ReactiveX/RxScala/issues/244
   def getObservablePrimesFromScala(isHotObservable: Boolean
                                    , threshold: Integer
                                   ): Observable[util.List[HotVsColdEither]] = {

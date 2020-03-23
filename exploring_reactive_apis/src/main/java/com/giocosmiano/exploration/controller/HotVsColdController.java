@@ -47,7 +47,7 @@ public class HotVsColdController {
                 ));
 
         return hotVsColdReactiveService.getObservablePrimes(isHotObservable, threshold)
-                .observeOn(Schedulers.computation()) // running on different thread
+                .subscribeOn(Schedulers.computation()) // running on different thread
                 .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
                 ;
     }
@@ -86,9 +86,12 @@ public class HotVsColdController {
                         , Thread.currentThread().getName()
                 ));
 
+        // NOTE: RxScala has been EOL
+        // https://github.com/ReactiveX/RxScala
+        // https://github.com/ReactiveX/RxScala/issues/244
         return new HotVsColdObservableServiceScala()
                 .getObservablePrimesFromScala(isHotObservable, threshold)
-                .observeOn(rx.lang.scala.schedulers.ComputationScheduler.apply())
+                .subscribeOn(rx.lang.scala.schedulers.ComputationScheduler.apply()) // running on different thread
                 ;
     }
 }

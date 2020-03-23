@@ -16,6 +16,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class HotVsColdObservablesScala {
 
+  // NOTE: RxScala has been EOL
+  // https://github.com/ReactiveX/RxScala
+  // https://github.com/ReactiveX/RxScala/issues/244
   def runObservable(isHotObservable: Boolean = DEFAULT_COLD_OBSERVABLE
                     , threshold: Int = DEFAULT_THRESHOLD): Observable[Future[Either[String,Int]]] = {
 
