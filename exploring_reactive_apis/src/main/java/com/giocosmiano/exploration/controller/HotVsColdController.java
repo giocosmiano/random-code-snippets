@@ -1,7 +1,7 @@
 package com.giocosmiano.exploration.controller;
 
 import com.giocosmiano.exploration.domain.HotVsColdEither;
-import com.giocosmiano.exploration.service.HotVsColdObservableServiceScala;
+//import com.giocosmiano.exploration.service.HotVsColdObservableServiceScala;
 import com.giocosmiano.exploration.service.HotVsColdReactiveService;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
@@ -72,6 +72,10 @@ public class HotVsColdController {
                 ;
     }
 
+    // NOTE: RxScala has been EOL
+    // https://github.com/ReactiveX/RxScala
+    // https://github.com/ReactiveX/RxScala/issues/244
+/*
     @GetMapping(value = "/scalaObservables", produces = MediaType.APPLICATION_JSON_VALUE)
     public rx.lang.scala.Observable<List<HotVsColdEither>> getObservablePrimesFromScala(
             @RequestParam(name = "type", required = false) String type
@@ -94,4 +98,5 @@ public class HotVsColdController {
                 .subscribeOn(rx.lang.scala.schedulers.ComputationScheduler.apply()) // running on different thread
                 ;
     }
+*/
 }
