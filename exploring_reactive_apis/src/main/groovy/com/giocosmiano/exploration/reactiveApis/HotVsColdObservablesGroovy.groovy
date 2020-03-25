@@ -332,7 +332,22 @@ class HotVsColdObservablesGroovy {
                                 ))
                     })
                 })
-                .map({ CompletableFuture<Either<String,Integer>> promise ->
+                .flatMap({ CompletableFuture<Either<String,Integer>> promise ->
+                    Observable.fromFuture(
+                            promise.thenApply({ Either<String,Integer> either ->
+                                HotVsColdEither hotVsColdEither = new HotVsColdEither()
+                                if (either.isRight()) {
+                                    hotVsColdEither.setRightValue(either.get())
+                                } else {
+                                    hotVsColdEither.setLeftValue(either.getLeft())
+                                }
+                                hotVsColdEither
+                            })
+                    )
+                })
+/*
+        // TODO: This smells bad. Use the above to remove the layer CompletableFuture between Observable and its inner value
+                .map( { CompletableFuture<Either<String,Integer>> promise ->
                     promise.thenApply({ Either<String,Integer> either ->
                         HotVsColdEither hotVsColdEither = new HotVsColdEither()
                         if (either.isRight()) {
@@ -341,8 +356,8 @@ class HotVsColdObservablesGroovy {
                             hotVsColdEither.setLeftValue(either.getLeft())
                         }
                         hotVsColdEither
-                    }).get()
+                    }).get() // this is blocking call
                 } )
-
+*/
     }
 }

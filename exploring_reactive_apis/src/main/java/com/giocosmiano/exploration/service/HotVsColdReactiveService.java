@@ -42,8 +42,22 @@ public class HotVsColdReactiveService {
             boolean isHotObservable
             , final Integer threshold
     ) {
-        // TODO: This smells bad. Need to remove the layer CompletableFuture between Flux and its inner value
         return hotVsColdObservables.runObservable(isHotObservable, threshold)
+                .flatMap(promise -> {
+                    return Observable.fromFuture(
+                            promise.thenApply(either -> {
+                                HotVsColdEither hotVsColdEither = new HotVsColdEither();
+                                if (either.isRight()) {
+                                    hotVsColdEither.setRightValue(either.get());
+                                } else {
+                                    hotVsColdEither.setLeftValue(either.getLeft());
+                                }
+                                return hotVsColdEither;
+                            })
+                    );
+                })
+/*
+                // TODO: This smells bad. Use the above to remove the layer CompletableFuture between Observable and its inner value
                 .map(promise -> {
                     return promise.thenApply(either -> {
                         HotVsColdEither hotVsColdEither = new HotVsColdEither();
@@ -53,8 +67,9 @@ public class HotVsColdReactiveService {
                             hotVsColdEither.setLeftValue(either.getLeft());
                         }
                         return hotVsColdEither;
-                    }).get();  // this is blocking
+                    }).get();  // this is blocking call
                 })
+*/
                 ;
     }
 
@@ -102,7 +117,7 @@ public class HotVsColdReactiveService {
                                         hotVsColdEither.setLeftValue(either.getLeft());
                                     }
                                     return hotVsColdEither;
-                                }).get(); // this is blocking
+                                }).get(); // this is blocking call
                     } catch (Exception e) { }
                     return newHotVsColdEither;
                 })
