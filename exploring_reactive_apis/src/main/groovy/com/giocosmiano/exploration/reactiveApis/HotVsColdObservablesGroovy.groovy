@@ -5,6 +5,7 @@ import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import io.vavr.control.Either
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+
+import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.setTimeout
 
 class HotVsColdObservablesGroovy {
     private static START_PRIME_AT_1 = 1
@@ -332,6 +335,24 @@ class HotVsColdObservablesGroovy {
                                 ))
                     })
                 })
+                .doOnError({ Throwable error ->
+                    log.error(
+                            String.format("Observable caught an error from %s - \t%s\t - doOnError()"
+                                    , Thread.currentThread().getName()
+                                    , error.getMessage()
+                            ))
+                })
+                .onErrorReturn({ Throwable error ->
+                    log.error(
+                            String.format("Observable caught an error from %s - \t%s\t - onErrorReturn()"
+                                    , Thread.currentThread().getName()
+                                    , error.getMessage()
+                            ))
+                    CompletableFuture.supplyAsync({ ->
+                        setTimeout.accept(100);
+                        Either.left(error.getMessage());
+                    })
+                })
                 .flatMap({ CompletableFuture<Either<String,Integer>> promise ->
                     Observable.fromFuture(
                             promise.thenApply({ Either<String,Integer> either ->
@@ -343,10 +364,10 @@ class HotVsColdObservablesGroovy {
                                 }
                                 hotVsColdEither
                             })
-                    )
+                    ).subscribeOn(Schedulers.computation()) // running on different thread
                 })
 /*
-        // TODO: This smells bad. Use the above to remove the layer CompletableFuture between Observable and its inner value
+        // TODO: This smells bad. Use the above flatMap() to remove the layer CompletableFuture in-between Observable and its inner value
                 .map( { CompletableFuture<Either<String,Integer>> promise ->
                     promise.thenApply({ Either<String,Integer> either ->
                         HotVsColdEither hotVsColdEither = new HotVsColdEither()

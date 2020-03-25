@@ -229,6 +229,11 @@
                 <version>4.3.1</version>
                 <executions>
                     <execution>
+                        <!-- Making sure Scala compiles first before Java -->
+                        <!-- https://stackoverflow.com/questions/33836905/maven-mixing-java-and-scala-in-one-project -->
+                        <!-- http://davidb.github.io/scala-maven-plugin/example_java.html -->
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>compile</goal>
                             <goal>testCompile</goal>

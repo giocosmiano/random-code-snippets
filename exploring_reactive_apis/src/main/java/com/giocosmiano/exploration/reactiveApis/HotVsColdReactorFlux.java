@@ -149,6 +149,24 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
                                 ));
                     });
                 })
+                .doOnError(error ->
+                        log.error(
+                                String.format("Reactor Flux caught an error from %s - \t%s\t - doOnError()"
+                                        , Thread.currentThread().getName()
+                                        , error.getMessage()
+                                ))
+                )
+                .onErrorResume(error -> {
+                    log.error(
+                            String.format("Reactor Flux caught an error from %s - \t%s\t - onErrorResume()"
+                                    , Thread.currentThread().getName()
+                                    , error.getMessage()
+                            ));
+                    return Flux.just(CompletableFuture.supplyAsync(() -> {
+                        setTimeout.accept(100);
+                        return Either.left(error.getMessage());
+                    }));
+                })
                 ;
     }
 }

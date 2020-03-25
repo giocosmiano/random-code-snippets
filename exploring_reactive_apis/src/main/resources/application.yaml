@@ -2,6 +2,15 @@
 server:
   port: 9080
 
+# Another implementation of getObservablePrimes() above that's causing Http response 503
+# org.springframework.web.context.request.async.AsyncRequestTimeoutException
+# https://stackoverflow.com/questions/39856198/recurring-asyncrequesttimeoutexception-in-spring-boot-admin-log
+# https://stackoverflow.com/questions/53650303/spring-boot-timeout-when-using-futures/53652640
+spring:
+  mvc:
+    async:
+      request-timeout: -1
+
 # Customize log levels
 logging:
   level:

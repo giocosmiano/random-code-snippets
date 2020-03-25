@@ -43,12 +43,20 @@ public abstract class HotVsColdReactiveApis {
                 // Simulating an error using Either.left()
                 if (newValue >= 100 && newValue <= 200) {
                     String error = String.format("Simulating an error skipping double value of prime in-between 100 and 200, where prime=%s and double=%s", data, newValue);
-                    return Either.left(error);
 
-                } else {
-                    return Either.right(newValue);
+                    // TODO: Need to find out why Observable.onErrorReturn(), Observable.onErrorResumeNext(), Flux.onErrorResume() is NOT being
+                    // executed when throwing a RuntimeException exception within CompletableFuture
+                    // Somehow this is causing Observable/Flux to shut streaming data, rather than continuing
+                    // to stream the rest of data, which includes errors as part of it (Either.left)
+//                     throw new RuntimeException(error);
+
+                    // comment this to simulate the error above
+                    return Either.left(error);
                 }
-            });
+
+                return Either.right(newValue);
+            })
+            ;
 
     protected Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> doubleIt =
             subscriberNbr -> promise -> doubleThePrime.apply(promise);
@@ -62,10 +70,9 @@ public abstract class HotVsColdReactiveApis {
                     Integer data = either.get();
                     Integer newValue = data / 2;
                     return Either.right(newValue);
-
-                } else {
-                    return either;
                 }
+
+                return either;
             });
 
     protected Function<Integer, Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>>> resetIt =

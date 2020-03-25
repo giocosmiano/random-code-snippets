@@ -151,6 +151,37 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
                                 ));
                     });
                 })
+                .doOnError(error ->
+                        log.error(
+                                String.format("Observable caught an error from %s - \t%s\t - doOnError()"
+                                        , Thread.currentThread().getName()
+                                        , error.getMessage()
+                                ))
+                )
+                .onErrorReturn(error -> {
+                    log.error(
+                            String.format("Observable caught an error from %s - \t%s\t - onErrorReturn()"
+                                    , Thread.currentThread().getName()
+                                    , error.getMessage()
+                            ));
+                    return CompletableFuture.supplyAsync(() -> {
+                        setTimeout.accept(100);
+                        return Either.left(error.getMessage());
+                    });
+                })
+                .onErrorResumeNext(error -> {
+                    log.error(
+                            String.format("Observable caught an error from %s - \t%s\t - onErrorResumeNext()"
+                                    , Thread.currentThread().getName()
+                                    , error.getMessage()
+                            ));
+                    return Observable.just(
+                            CompletableFuture.supplyAsync(() -> {
+                                setTimeout.accept(100);
+                                return Either.left(error.getMessage());
+                            })
+                    );
+                })
                 ;
     }
 }

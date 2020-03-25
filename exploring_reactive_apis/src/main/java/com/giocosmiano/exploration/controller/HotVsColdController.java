@@ -1,7 +1,7 @@
 package com.giocosmiano.exploration.controller;
 
 import com.giocosmiano.exploration.domain.HotVsColdEither;
-//import com.giocosmiano.exploration.service.HotVsColdObservableServiceScala;
+import com.giocosmiano.exploration.service.HotVsColdObservableServiceScala;
 import com.giocosmiano.exploration.reactiveApis.HotVsColdObservablesGroovy;
 import com.giocosmiano.exploration.service.HotVsColdReactiveService;
 import io.reactivex.Observable;
@@ -35,6 +35,7 @@ public class HotVsColdController {
         this.hotVsColdReactiveService = hotVsColdReactiveService;
     }
 
+    // Another implementation of getObservablePrimesOLD() below getting around Http response 503
     @GetMapping(value = "/observables", produces = MediaType.APPLICATION_JSON_VALUE)
     public Single<ResponseEntity<List<HotVsColdEither>>> getObservablePrimes(
             @RequestParam(name = "type", required = false) String type
@@ -49,9 +50,35 @@ public class HotVsColdController {
                         , Thread.currentThread().getName()
                 ));
 
-        return hotVsColdReactiveService.getObservablePrimes(isHotObservable, threshold)
+        return hotVsColdReactiveService
+                .getObservablePrimes(isHotObservable, threshold)
                 .subscribeOn(Schedulers.computation()) // running on different thread
                 .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                ;
+    }
+
+    // Another implementation of getObservablePrimes() above that's causing Http 503 due to CompletableFuture within Observable
+    // org.springframework.web.context.request.async.AsyncRequestTimeoutException
+    // https://stackoverflow.com/questions/39856198/recurring-asyncrequesttimeoutexception-in-spring-boot-admin-log
+    // https://stackoverflow.com/questions/53650303/spring-boot-timeout-when-using-futures/53652640
+    @Deprecated
+    @GetMapping(value = "/observablesOLD", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Observable<HotVsColdEither> getObservablePrimesOLD(
+            @RequestParam(name = "type", required = false) String type
+            , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
+    ) {
+        boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
+        Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
+        log.info(
+                String.format("Generating Prime Numbers, using RxJava Observables, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
+                        , requestedThreshold
+                        , DEFAULT_THRESHOLD
+                        , Thread.currentThread().getName()
+                ));
+
+        return hotVsColdReactiveService
+                .getObservablePrimesOLD(isHotObservable, threshold)
+                .subscribeOn(Schedulers.computation()) // running on different thread
                 ;
     }
 
@@ -69,7 +96,8 @@ public class HotVsColdController {
                         , Thread.currentThread().getName()
                 ));
 
-        return hotVsColdReactiveService.getStreamObservablePrimes(isHotObservable, threshold)
+        return hotVsColdReactiveService
+                .getStreamObservablePrimes(isHotObservable, threshold)
                 .subscribeOn(Schedulers.computation()) // running on different thread
                 .map(primeNumber -> ResponseEntity.ok(primeNumber))
                 ;
@@ -89,7 +117,8 @@ public class HotVsColdController {
                         , Thread.currentThread().getName()
                 ));
 
-        return hotVsColdReactiveService.getFluxPrimes(isHotObservable, threshold)
+        return hotVsColdReactiveService
+                .getFluxPrimes(isHotObservable, threshold)
                 .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
                 .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
                 ;
@@ -109,7 +138,8 @@ public class HotVsColdController {
                         , Thread.currentThread().getName()
                 ));
 
-        return hotVsColdReactiveService.getStreamFluxPrimes(isHotObservable, threshold)
+        return hotVsColdReactiveService
+                .getStreamFluxPrimes(isHotObservable, threshold)
                 .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
                 .map(primeNumber -> ResponseEntity.ok(primeNumber))
                 ;
@@ -160,7 +190,6 @@ public class HotVsColdController {
     // NOTE: RxScala has been EOL
     // https://github.com/ReactiveX/RxScala
     // https://github.com/ReactiveX/RxScala/issues/244
-/*
     @GetMapping(value = "/scalaObservables", produces = MediaType.APPLICATION_JSON_VALUE)
     public rx.lang.scala.Observable<List<HotVsColdEither>> getObservablePrimesFromScala(
             @RequestParam(name = "type", required = false) String type
@@ -183,5 +212,4 @@ public class HotVsColdController {
                 .subscribeOn(rx.lang.scala.schedulers.ComputationScheduler.apply()) // running on different thread
                 ;
     }
-*/
 }

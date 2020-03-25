@@ -3,9 +3,9 @@ package com.giocosmiano.exploration.service;
 import com.giocosmiano.exploration.domain.HotVsColdEither;
 import com.giocosmiano.exploration.reactiveApis.HotVsColdObservables;
 import com.giocosmiano.exploration.reactiveApis.HotVsColdReactorFlux;
-import com.sun.xml.internal.ws.util.CompletedFuture;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,8 @@ public class HotVsColdReactiveService {
             boolean isHotObservable
             , final Integer threshold
     ) {
-        return hotVsColdObservables.runObservable(isHotObservable, threshold)
+        return hotVsColdObservables
+                .runObservable(isHotObservable, threshold)
                 .flatMap(promise -> {
                     return Observable.fromFuture(
                             promise.thenApply(either -> {
@@ -54,10 +55,11 @@ public class HotVsColdReactiveService {
                                 }
                                 return hotVsColdEither;
                             })
-                    );
+                    ).subscribeOn(Schedulers.computation()) // running on different thread
+                    ;
                 })
 /*
-                // TODO: This smells bad. Use the above to remove the layer CompletableFuture between Observable and its inner value
+                // TODO: This smells bad. Use the above flatMap() to remove the layer CompletableFuture in-between Observable and its inner value
                 .map(promise -> {
                     return promise.thenApply(either -> {
                         HotVsColdEither hotVsColdEither = new HotVsColdEither();
@@ -73,6 +75,7 @@ public class HotVsColdReactiveService {
                 ;
     }
 
+    // Another implementation of getObservablePrimesOLD() below getting around Http response 503
     public Single<List<HotVsColdEither>> getObservablePrimes(
             boolean isHotObservable
             , final Integer threshold
@@ -80,7 +83,8 @@ public class HotVsColdReactiveService {
         AtomicReference<List<HotVsColdEither>> atomicReference = new AtomicReference<>();
         atomicReference.set(new ArrayList<>());
 
-        return hotVsColdObservables.runObservable(isHotObservable, threshold)
+        return hotVsColdObservables
+                .runObservable(isHotObservable, threshold)
                 .map(promise -> {
                     promise.thenAccept(either -> {
                         HotVsColdEither hotVsColdEither = new HotVsColdEither();
@@ -98,13 +102,59 @@ public class HotVsColdReactiveService {
                 ;
     }
 
+    // Another implementation of getObservablePrimes() above that's causing Http 503 due to CompletableFuture within Observable
+    // org.springframework.web.context.request.async.AsyncRequestTimeoutException
+    // https://stackoverflow.com/questions/39856198/recurring-asyncrequesttimeoutexception-in-spring-boot-admin-log
+    // https://stackoverflow.com/questions/53650303/spring-boot-timeout-when-using-futures/53652640
+    @Deprecated
+    public Observable<HotVsColdEither> getObservablePrimesOLD(
+            boolean isHotObservable
+            , final Integer threshold
+    ) {
+        return hotVsColdObservables
+                .runObservable(isHotObservable, threshold)
+                .flatMap(promise -> {
+                    return Observable.fromFuture(
+                            promise.thenApply(either -> {
+                                HotVsColdEither hotVsColdEither = new HotVsColdEither();
+                                if (either.isRight()) {
+                                    hotVsColdEither.setRightValue(either.get());
+                                } else {
+                                    hotVsColdEither.setLeftValue(either.getLeft());
+                                }
+                                return hotVsColdEither;
+                            })
+                    ).subscribeOn(Schedulers.computation()) // running on different thread
+                    ;
+                })
+                ;
+    }
+
     public Flux<HotVsColdEither> getStreamFluxPrimes(
             boolean isHotObservable
             , final Integer threshold
     ) {
-
-        // TODO: This smells really, really bad. Need to remove the layer CompletableFuture between Flux and its inner value
-        return hotVsColdReactorFlux.runReactorFux(isHotObservable, threshold)
+        // Converting Mono to Flux
+        // https://stackoverflow.com/questions/47399707/how-do-we-convert-a-monolisttype-to-a-fluxtype
+        return hotVsColdReactorFlux
+                .runReactorFux(isHotObservable, threshold)
+                .flatMap(promise -> {
+                    return Mono.<List<HotVsColdEither>>fromFuture(
+                            promise.thenApply(either -> {
+                                List<HotVsColdEither> listOfEithers = new ArrayList<>();
+                                HotVsColdEither hotVsColdEither = new HotVsColdEither();
+                                if (either.isRight()) {
+                                    hotVsColdEither.setRightValue(either.get());
+                                } else {
+                                    hotVsColdEither.setLeftValue(either.getLeft());
+                                }
+                                listOfEithers.add(hotVsColdEither);
+                                return listOfEithers;
+                            })
+                    ).flatMapMany(Flux::fromIterable);
+                })
+/*
+                // TODO: This smells really, really bad. Use the above flatMap() to remove the layer CompletableFuture in-between Flux and its inner value
                 .map(promise -> {
                     HotVsColdEither newHotVsColdEither = null;
                     try {
@@ -121,6 +171,7 @@ public class HotVsColdReactiveService {
                     } catch (Exception e) { }
                     return newHotVsColdEither;
                 })
+*/
                 ;
     }
 
@@ -131,7 +182,8 @@ public class HotVsColdReactiveService {
         AtomicReference<List<HotVsColdEither>> atomicReference = new AtomicReference<>();
         atomicReference.set(new ArrayList<>());
 
-        return hotVsColdReactorFlux.runReactorFux(isHotObservable, threshold)
+        return hotVsColdReactorFlux
+                .runReactorFux(isHotObservable, threshold)
                 .map(promise -> {
                     promise.thenAccept(either -> {
                         HotVsColdEither hotVsColdEither = new HotVsColdEither();
