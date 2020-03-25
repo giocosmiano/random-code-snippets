@@ -21,8 +21,10 @@
         <springBootVersion>2.2.5.RELEASE</springBootVersion>
         <springReactorVersion>3.2.15.RELEASE</springReactorVersion>
         <googleGuavaVersion>28.2-jre</googleGuavaVersion>
+        <googleJsonVersion>1.1.1</googleJsonVersion>
         <vavrVersion>0.10.2</vavrVersion>
         <lombokVersion>1.18.12</lombokVersion>
+        <jodaVersion>2.10.5</jodaVersion>
         <flapdoodleVersion>2.2.0</flapdoodleVersion>
         <swaggerVersion>2.9.2</swaggerVersion>
         <apacheCommonsLangVersion>3.9</apacheCommonsLangVersion>
@@ -143,6 +145,20 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${googleGuavaVersion}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>${googleJsonVersion}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/joda-time/joda-time -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>${jodaVersion}</version>
         </dependency>
 
         <!-- https://www.vavr.io/ -->

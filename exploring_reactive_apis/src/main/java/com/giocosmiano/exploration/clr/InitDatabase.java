@@ -1,0 +1,123 @@
+package com.giocosmiano.exploration.clr;
+
+import com.giocosmiano.exploration.domain.Book;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.util.*;
+
+@Component
+public class InitDatabase {
+
+    private static final Logger log = LoggerFactory.getLogger(InitDatabase.class);
+
+    /*
+     Pre-loading our MongoDB data store. For such operations, it's recommended to actually use the blocking API.
+     That's because when launching an application, there is a certain risk of a thread lock issue when both the
+     web container as well as our hand-written loader are starting up. Since Spring Boot also creates a
+     MongoOperations object, we can simply grab hold of that
+     */
+
+    @Bean
+    CommandLineRunner init(MongoOperations operations) {
+        return args -> {
+            initBooks(operations);
+        };
+    }
+
+    private void initBooks(final MongoOperations operations) {
+        try {
+            // https://howtodoinjava.com/java/io/read-file-from-resources-folder/
+            File file = ResourceUtils.getFile("classpath:sampleJsonData/books.json");
+            Reader reader = new FileReader(file);
+
+            // https://stackoverflow.com/questions/10926353/how-to-read-json-file-into-java-with-simple-json-library
+            // https://howtodoinjava.com/library/json-simple-read-write-json-examples/
+            operations.dropCollection(Book.class);
+
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(reader);
+
+            JSONArray listOfBooks = (JSONArray) obj;
+            listOfBooks.forEach(bookObj -> {
+                JSONObject book = (JSONObject) bookObj;
+
+                // id
+                String id = UUID.randomUUID().toString();
+                String origId = id;
+                if (book.get("_id") instanceof Long) {
+                    Long idLong = (Long) book.get("_id");
+                    origId = idLong.toString();
+                } else {
+                    JSONObject idObj = (JSONObject) book.get("_id");
+                    if (Objects.nonNull(idObj)) {
+                        origId = (String) idObj.get("$oid");
+                    }
+                }
+
+                // pageCount
+                Long pageCount = (Long) book.get("pageCount");
+
+                // published date
+                String publishedDateStr = null;
+                DateTime publishedDate = null;
+                JSONObject publishedDateObj = (JSONObject) book.get("publishedDate");
+                if (Objects.nonNull(publishedDateObj)) {
+                    publishedDateStr = (String) publishedDateObj.get("$date");
+                    publishedDateStr = publishedDateStr.replaceAll("T", " ");
+                    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSZ");
+                    publishedDate = DateTime.parse(publishedDateStr, formatter);
+                }
+
+                // authors
+                List<String> authors = new ArrayList<>();
+                JSONArray authorsObj = (JSONArray) book.get("authors");
+                authorsObj.forEach(author -> authors.add((String)author));
+
+                // categories
+                List<String> categories = new ArrayList<>();
+                JSONArray categoriesObj = (JSONArray) book.get("categories");
+                categoriesObj.forEach(category -> categories.add((String)category));
+
+                Book newBook = new Book(
+                        id
+                        , origId
+                        , (String) book.get("title")
+                        , (String) book.get("isbn")
+                        , pageCount
+                        , publishedDateStr
+                        , publishedDate
+                        , (String) book.get("thumbnailUrl")
+                        , (String) book.get("shortDescription")
+                        , (String) book.get("longDescription")
+                        , (String) book.get("status")
+                        , authors
+                        , categories
+                );
+
+                operations.insert(newBook);
+                log.debug(String.format("Inserted Book %s", newBook));
+            });
+
+            reader.close();
+            log.info(String.format("Finished loading %s books", listOfBooks.size()));
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+}

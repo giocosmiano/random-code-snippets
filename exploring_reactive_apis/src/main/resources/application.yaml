@@ -23,7 +23,7 @@ logging:
       netty: DEBUG
       reactor: DEBUG
     com:
-      giocosmiano: INFO
+      giocosmiano: DEBUG
 
 # enable actuator endpoints
 #endpoints.autoconfig.enabled=true
