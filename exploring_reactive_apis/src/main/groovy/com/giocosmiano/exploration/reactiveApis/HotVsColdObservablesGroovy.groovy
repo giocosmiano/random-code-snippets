@@ -30,6 +30,7 @@ class HotVsColdObservablesGroovy {
 
     private static final Logger log = LoggerFactory.getLogger(HotVsColdObservablesGroovy.class)
 
+    // NOTE: This is a simulation of a 3-Subscribers from 1-Observable
     static void main(String[] args) {
 
         Map<Integer, Disposable> mapOfDisposables = [:]
@@ -253,6 +254,7 @@ class HotVsColdObservablesGroovy {
         observable
     }
 
+    // NOTE: This is for a simulation of a 3-Subscribers from 1-Observable, from main()
     def runObservableForSubscriberNbr = {
         boolean isHotObservable, Integer subscriberNbr,
         Map<Integer, Disposable> mapOfDisposables, Observable<CompletableFuture<Either<String,Integer>>> observable ->

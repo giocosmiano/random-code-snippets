@@ -35,6 +35,7 @@ public class HotVsColdController {
         this.hotVsColdReactiveService = hotVsColdReactiveService;
     }
 
+    // NOTE: Returning Single<ResponseEntity> worked because the collection is wrapped within ResponseEntity
     // Another implementation of getObservablePrimesOLD() below getting around Http response 503
     @GetMapping(value = "/observables", produces = MediaType.APPLICATION_JSON_VALUE)
     public Single<ResponseEntity<List<HotVsColdEither>>> getObservablePrimes(
@@ -53,10 +54,11 @@ public class HotVsColdController {
         return hotVsColdReactiveService
                 .getObservablePrimes(isHotObservable, threshold)
                 .subscribeOn(Schedulers.computation()) // running on different thread
-                .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                .map(ResponseEntity::ok)
                 ;
     }
 
+    // NOTE: Don't use ResponseEntity when returning Observable because it'll include headers, body (with the data), statusCode and statusCodeValue
     // Another implementation of getObservablePrimes() above that's causing Http 503 due to CompletableFuture within Observable
     // org.springframework.web.context.request.async.AsyncRequestTimeoutException
     // https://stackoverflow.com/questions/39856198/recurring-asyncrequesttimeoutexception-in-spring-boot-admin-log
@@ -82,8 +84,9 @@ public class HotVsColdController {
                 ;
     }
 
+    // NOTE: Don't use ResponseEntity when returning Observable because it'll include headers, body (with the data), statusCode and statusCodeValue
     @GetMapping(value = "/streamObservables", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Observable<ResponseEntity<HotVsColdEither>> getStreamObservablePrimes(
+    public Observable<HotVsColdEither> getStreamObservablePrimes(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
     ) {
@@ -99,10 +102,10 @@ public class HotVsColdController {
         return hotVsColdReactiveService
                 .getStreamObservablePrimes(isHotObservable, threshold)
                 .subscribeOn(Schedulers.computation()) // running on different thread
-                .map(primeNumber -> ResponseEntity.ok(primeNumber))
                 ;
     }
 
+    // NOTE: Returning Mono<ResponseEntity> worked because the collection is wrapped within ResponseEntity
     @GetMapping(value = "/reactorFlux", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<List<HotVsColdEither>>> getFluxPrimes(
             @RequestParam(name = "type", required = false) String type
@@ -120,12 +123,13 @@ public class HotVsColdController {
         return hotVsColdReactiveService
                 .getFluxPrimes(isHotObservable, threshold)
                 .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
-                .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                .map(ResponseEntity::ok)
                 ;
     }
 
+    // NOTE: Don't use ResponseEntity when returning Flux because it'll include headers, body (with the data), statusCode and statusCodeValue
     @GetMapping(value = "/streamReactorFlux", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Flux<ResponseEntity<HotVsColdEither>> getStreamFluxPrimes(
+    public Flux<HotVsColdEither> getStreamFluxPrimes(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
     ) {
@@ -141,10 +145,10 @@ public class HotVsColdController {
         return hotVsColdReactiveService
                 .getStreamFluxPrimes(isHotObservable, threshold)
                 .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
-                .map(primeNumber -> ResponseEntity.ok(primeNumber))
                 ;
     }
 
+    // NOTE: Returning Single<ResponseEntity> worked because the collection is wrapped within ResponseEntity
     @GetMapping(value = "/groovyObservables", produces = MediaType.APPLICATION_JSON_VALUE)
     public Single<ResponseEntity<List<HotVsColdEither>>> getObservablePrimesFromGroovy(
             @RequestParam(name = "type", required = false) String type
@@ -162,12 +166,13 @@ public class HotVsColdController {
         return new HotVsColdObservablesGroovy()
                 .runObservable(isHotObservable, threshold)
                 .subscribeOn(Schedulers.computation()) // running on different thread
-                .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                .map(ResponseEntity::ok)
                 ;
     }
 
+    // NOTE: Don't use ResponseEntity when returning Observable because it'll include headers, body (with the data), statusCode and statusCodeValue
     @GetMapping(value = "/streamGroovyObservables", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Observable<ResponseEntity<HotVsColdEither>> getStreamObservablePrimesFromGroovy(
+    public Observable<HotVsColdEither> getStreamObservablePrimesFromGroovy(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
     ) {
@@ -183,7 +188,6 @@ public class HotVsColdController {
         return new HotVsColdObservablesGroovy()
                 .runStreamObservable(isHotObservable, threshold)
                 .subscribeOn(Schedulers.computation()) // running on different thread
-                .map(primeNumber -> ResponseEntity.ok(primeNumber))
                 ;
     }
 
