@@ -4,6 +4,8 @@ import com.giocosmiano.exploration.domain.Book;
 import com.giocosmiano.exploration.respository.BookRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Example;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,6 +23,18 @@ public class BookController {
     private static final Logger log = LoggerFactory.getLogger(BookController.class);
 
     private static final String API_BASE_PATH = "/api";
+
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    Mono<Book> bookById(@PathVariable("id") String id) {
+        return bookRepository.findById(id);
+    }
+
+    @GetMapping(value = "/originalId/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    Mono<Book> bookByOrigId(@PathVariable("id") String id) {
+        Book book = new Book();
+        book.setOrigId(id);
+        return bookRepository.findOne(Example.of(book));
+    }
 
     @GetMapping
     Flux<Book> books() {
