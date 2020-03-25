@@ -38,13 +38,13 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
         Flux<CompletableFuture<Either<String, Integer>>> flux =
                 reactorFlux.createFlux(DEFAULT_COLD_OBSERVABLE, DEFAULT_THRESHOLD);
 
-        reactorFlux.createFluxSubscriber(SUBSCRIBER_NBR_1, flux);
+        reactorFlux.runFluxForSubscriberNbr(SUBSCRIBER_NBR_1, flux);
 
         setTimeout.accept(2000); // delay 2 seconds then start subscriber # 2
-        reactorFlux.createFluxSubscriber(SUBSCRIBER_NBR_2, flux);
+        reactorFlux.runFluxForSubscriberNbr(SUBSCRIBER_NBR_2, flux);
 
         setTimeout.accept(2000); // delay 2 seconds then start subscriber # 3
-        reactorFlux.createFluxSubscriber(SUBSCRIBER_NBR_3, flux);
+        reactorFlux.runFluxForSubscriberNbr(SUBSCRIBER_NBR_3, flux);
 
         boolean anySubscribersStillListening;
         do {
@@ -67,7 +67,7 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
     }
 
     // NOTE: This is for a simulation of a 3-Subscribers from 1-Reactor Flux, from main()
-    private void createFluxSubscriber(
+    private void runFluxForSubscriberNbr(
             final Integer subscriberNbr
             , final Flux<CompletableFuture<Either<String, Integer>>> flux
     ) {

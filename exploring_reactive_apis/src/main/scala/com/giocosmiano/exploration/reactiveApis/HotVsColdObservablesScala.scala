@@ -63,19 +63,19 @@ object HotVsColdObservablesScala {
 
     val observable = createObservable(isHotObservable, threshold)
 
-    mapOfDisposable += SUBSCRIBER_NBR_1 -> createObservableSubscriber(isHotObservable, SUBSCRIBER_NBR_1, observable)
+    mapOfDisposable += SUBSCRIBER_NBR_1 -> runObservableForSubscriberNbr(isHotObservable, SUBSCRIBER_NBR_1, observable)
 
     Thread.sleep(2000)
-    mapOfDisposable += SUBSCRIBER_NBR_2 -> createObservableSubscriber(isHotObservable, SUBSCRIBER_NBR_2, observable)
+    mapOfDisposable += SUBSCRIBER_NBR_2 -> runObservableForSubscriberNbr(isHotObservable, SUBSCRIBER_NBR_2, observable)
 
     Thread.sleep(2000)
-    mapOfDisposable += SUBSCRIBER_NBR_3 -> createObservableSubscriber(isHotObservable, SUBSCRIBER_NBR_3, observable)
+    mapOfDisposable += SUBSCRIBER_NBR_3 -> runObservableForSubscriberNbr(isHotObservable, SUBSCRIBER_NBR_3, observable)
 
     var anySubscribersStillListening = false
     do {
       val disposables = mapOfDisposable.values.filter(e => e != null).filter(e => ! e.isUnsubscribed)
 
-      anySubscribersStillListening = ! disposables.isEmpty
+      anySubscribersStillListening = disposables.nonEmpty
       Thread.sleep(1000)
     } while ( anySubscribersStillListening )
 
@@ -222,10 +222,10 @@ object HotVsColdObservablesScala {
   }
 
   // NOTE: This is for a simulation of a 3-Subscribers from 1-Observable, from main()
-  def createObservableSubscriber(isHotObservable: Boolean
-                                 , subscriberNbr: Int
-                                 , observable: Observable[Future[Either[String,Int]]]
-                                ): Subscription = {
+  def runObservableForSubscriberNbr(isHotObservable: Boolean
+                                    , subscriberNbr: Int
+                                    , observable: Observable[Future[Either[String,Int]]]
+                                   ): Subscription = {
 
     val onNext = (subscriberNbr: Int, future: Future[Either[String,Int]]) => doOnNext(isHotObservable, subscriberNbr, future)
     val onError = (subscriberNbr: Int, error: Throwable) => doOnError(isHotObservable, subscriberNbr, error)

@@ -13,6 +13,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <rxJavaVersion>2.2.8</rxJavaVersion>
         <rxScalaVersion>0.27.0</rxScalaVersion>
+        <rxGroovyVersion>1.0.3</rxGroovyVersion>
         <rxStreamVersion>1.2.1</rxStreamVersion>
         <scalaVersion>2.11.12</scalaVersion>
         <scalaJdk8CompatVersion>0.8.0</scalaJdk8CompatVersion>
@@ -39,6 +40,12 @@
             <groupId>io.reactivex</groupId>
             <artifactId>rxscala_2.11</artifactId>
             <version>${rxScalaVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxgroovy</artifactId>
+            <version>${rxGroovyVersion}</version>
         </dependency>
 
         <dependency>

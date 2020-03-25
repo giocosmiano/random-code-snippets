@@ -2,6 +2,7 @@ package com.giocosmiano.exploration.controller;
 
 import com.giocosmiano.exploration.domain.HotVsColdEither;
 //import com.giocosmiano.exploration.service.HotVsColdObservableServiceScala;
+import com.giocosmiano.exploration.reactiveApis.HotVsColdObservablesGroovy;
 import com.giocosmiano.exploration.service.HotVsColdReactiveService;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
@@ -40,7 +41,7 @@ public class HotVsColdController {
         boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
         Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
         log.info(
-                String.format("Generating Prime Numbers, using Observables, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
+                String.format("Generating Prime Numbers, using RxJava Observables, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
                         , requestedThreshold
                         , DEFAULT_THRESHOLD
                         , Thread.currentThread().getName()
@@ -72,6 +73,27 @@ public class HotVsColdController {
                 ;
     }
 
+    @GetMapping(value = "/groovyObservables", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Single<ResponseEntity<List<HotVsColdEither>>> getObservablePrimesFromGroovy(
+            @RequestParam(name = "type", required = false) String type
+            , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
+    ) {
+        boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
+        Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
+        log.info(
+                String.format("Generating Prime Numbers, using RxGroovy Observables, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
+                        , requestedThreshold
+                        , DEFAULT_THRESHOLD
+                        , Thread.currentThread().getName()
+                ));
+
+        return new HotVsColdObservablesGroovy()
+                .runObservable(isHotObservable, threshold)
+                .subscribeOn(Schedulers.computation()) // running on different thread
+                .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                ;
+    }
+
     // NOTE: RxScala has been EOL
     // https://github.com/ReactiveX/RxScala
     // https://github.com/ReactiveX/RxScala/issues/244
@@ -84,7 +106,7 @@ public class HotVsColdController {
         boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
         Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
         log.info(
-                String.format("Generating Prime Numbers, using Scala Observables, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
+                String.format("Generating Prime Numbers, using RxScala Observables, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
                         , requestedThreshold
                         , DEFAULT_THRESHOLD
                         , Thread.currentThread().getName()

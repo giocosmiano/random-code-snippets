@@ -38,13 +38,13 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
         Observable<CompletableFuture<Either<String,Integer>>> observable =
                 observables.createObservable(DEFAULT_COLD_OBSERVABLE, DEFAULT_THRESHOLD);
 
-        observables.createObservableSubscriber(SUBSCRIBER_NBR_1, observable);
+        observables.runObservableForSubscriberNbr(SUBSCRIBER_NBR_1, observable);
 
         setTimeout.accept(2000); // delay 2 seconds then start subscriber # 2
-        observables.createObservableSubscriber(SUBSCRIBER_NBR_2, observable);
+        observables.runObservableForSubscriberNbr(SUBSCRIBER_NBR_2, observable);
 
         setTimeout.accept(2000); // delay 2 seconds then start subscriber # 3
-        observables.createObservableSubscriber(SUBSCRIBER_NBR_3, observable);
+        observables.runObservableForSubscriberNbr(SUBSCRIBER_NBR_3, observable);
 
         boolean anySubscribersStillListening;
         do {
@@ -67,7 +67,7 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
     }
 
     // NOTE: This is for a simulation of a 3-Subscribers from 1-Observable, from main()
-    private void createObservableSubscriber(
+    private void runObservableForSubscriberNbr(
             final Integer subscriberNbr
             , final Observable<CompletableFuture<Either<String,Integer>>> observable
     ) {
