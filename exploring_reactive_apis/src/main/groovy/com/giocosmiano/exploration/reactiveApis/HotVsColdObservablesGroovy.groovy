@@ -315,4 +315,34 @@ class HotVsColdObservablesGroovy {
                 .toSingle()
 
     }
+
+    Observable<HotVsColdEither> runStreamObservable(boolean isHotObservable, Integer threshold) {
+        def observable = createObservable(isHotObservable, threshold)
+
+        observable
+                .map({ CompletableFuture<Either<String,Integer>> promise -> doubleThePrime(promise) } )
+                .map({ CompletableFuture<Either<String,Integer>> promise -> resetThePrime(promise) } )
+                .doOnNext({ CompletableFuture<Either<String,Integer>> promise ->
+                    promise.thenAccept({ Either<String,Integer> either ->
+                        log.info(
+                                String.format("Observable from %s - \t%s\t%s\t - doOnNext()"
+                                        , Thread.currentThread().getName()
+                                        , either.isRight() ? String.format("Value : %s", either.get().toString()) : ""
+                                        , either.isLeft() ? String.format("\tError : %s", either.getLeft()) : ""
+                                ))
+                    })
+                })
+                .map({ CompletableFuture<Either<String,Integer>> promise ->
+                    promise.thenApply({ Either<String,Integer> either ->
+                        HotVsColdEither hotVsColdEither = new HotVsColdEither()
+                        if (either.isRight()) {
+                            hotVsColdEither.setRightValue(either.get())
+                        } else {
+                            hotVsColdEither.setLeftValue(either.getLeft())
+                        }
+                        hotVsColdEither
+                    }).get()
+                } )
+
+    }
 }

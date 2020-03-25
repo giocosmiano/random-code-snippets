@@ -4,6 +4,7 @@ import com.giocosmiano.exploration.domain.HotVsColdEither;
 //import com.giocosmiano.exploration.service.HotVsColdObservableServiceScala;
 import com.giocosmiano.exploration.reactiveApis.HotVsColdObservablesGroovy;
 import com.giocosmiano.exploration.service.HotVsColdReactiveService;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -53,6 +55,26 @@ public class HotVsColdController {
                 ;
     }
 
+    @GetMapping(value = "/streamObservables", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Observable<ResponseEntity<HotVsColdEither>> getStreamObservablePrimes(
+            @RequestParam(name = "type", required = false) String type
+            , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
+    ) {
+        boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
+        Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
+        log.info(
+                String.format("Generating Prime Numbers, using RxJava Observable Streams, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
+                        , requestedThreshold
+                        , DEFAULT_THRESHOLD
+                        , Thread.currentThread().getName()
+                ));
+
+        return hotVsColdReactiveService.getStreamObservablePrimes(isHotObservable, threshold)
+                .subscribeOn(Schedulers.computation()) // running on different thread
+                .map(primeNumber -> ResponseEntity.ok(primeNumber))
+                ;
+    }
+
     @GetMapping(value = "/reactorFlux", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<List<HotVsColdEither>>> getFluxPrimes(
             @RequestParam(name = "type", required = false) String type
@@ -70,6 +92,26 @@ public class HotVsColdController {
         return hotVsColdReactiveService.getFluxPrimes(isHotObservable, threshold)
                 .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
                 .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                ;
+    }
+
+    @GetMapping(value = "/streamReactorFlux", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Flux<ResponseEntity<HotVsColdEither>> getStreamFluxPrimes(
+            @RequestParam(name = "type", required = false) String type
+            , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
+    ) {
+        boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
+        Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
+        log.info(
+                String.format("Generating Prime Numbers, using Reactor Flux Streams, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
+                        , requestedThreshold
+                        , DEFAULT_THRESHOLD
+                        , Thread.currentThread().getName()
+                ));
+
+        return hotVsColdReactiveService.getStreamFluxPrimes(isHotObservable, threshold)
+                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
+                .map(primeNumber -> ResponseEntity.ok(primeNumber))
                 ;
     }
 
@@ -91,6 +133,27 @@ public class HotVsColdController {
                 .runObservable(isHotObservable, threshold)
                 .subscribeOn(Schedulers.computation()) // running on different thread
                 .map(listOfPrimes -> ResponseEntity.ok(listOfPrimes))
+                ;
+    }
+
+    @GetMapping(value = "/streamGroovyObservables", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Observable<ResponseEntity<HotVsColdEither>> getStreamObservablePrimesFromGroovy(
+            @RequestParam(name = "type", required = false) String type
+            , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
+    ) {
+        boolean isHotObservable = StringUtils.equalsIgnoreCase(type, "hot");
+        Integer threshold = Optional.ofNullable(requestedThreshold).orElseGet(() -> DEFAULT_THRESHOLD);
+        log.info(
+                String.format("Generating Prime Numbers, using RxGroovy Observable Streams, up-to threshold limit=%s (defaulting to %s, if not provided) from %s"
+                        , requestedThreshold
+                        , DEFAULT_THRESHOLD
+                        , Thread.currentThread().getName()
+                ));
+
+        return new HotVsColdObservablesGroovy()
+                .runStreamObservable(isHotObservable, threshold)
+                .subscribeOn(Schedulers.computation()) // running on different thread
+                .map(primeNumber -> ResponseEntity.ok(primeNumber))
                 ;
     }
 
