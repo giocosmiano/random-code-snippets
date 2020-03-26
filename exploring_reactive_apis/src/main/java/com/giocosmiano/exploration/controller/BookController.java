@@ -29,14 +29,14 @@ public class BookController {
         return bookRepository.findById(id);
     }
 
-    @GetMapping(value = "/originalId/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    Mono<Book> bookByOrigId(@PathVariable("id") String id) {
+    @GetMapping(value = "/isbn/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    Mono<Book> bookByIsbn(@PathVariable("id") String id) {
         Book book = new Book();
-        book.setOrigId(id);
+        book.setIsbn(id);
         return bookRepository.findOne(Example.of(book));
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     Flux<Book> books() {
         return bookRepository.findAll();
     }

@@ -2,8 +2,8 @@ package com.giocosmiano.exploration.clr;
 
 import com.giocosmiano.exploration.domain.Book;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -56,31 +56,24 @@ public class InitDatabase {
             listOfBooks.forEach(bookObj -> {
                 JSONObject book = (JSONObject) bookObj;
 
-                // id
-                String id = UUID.randomUUID().toString();
-                String origId = id;
-                if (book.get("_id") instanceof Long) {
-                    Long idLong = (Long) book.get("_id");
-                    origId = idLong.toString();
-                } else {
-                    JSONObject idObj = (JSONObject) book.get("_id");
-                    if (Objects.nonNull(idObj)) {
-                        origId = (String) idObj.get("$oid");
-                    }
-                }
-
-                // pageCount
+                // id & pageCount
+                Long id = (Long) book.get("_id");
                 Long pageCount = (Long) book.get("pageCount");
 
                 // published date
+                // https://stackoverflow.com/questions/15333320/how-to-convert-joda-time-datetime-to-java-util-date-and-vice-versa
+                // https://stackoverflow.com/questions/23987332/joda-datetime-isodatetimeformat-pattern
                 String publishedDateStr = null;
-                DateTime publishedDate = null;
+                Date publishedDate = null;
                 JSONObject publishedDateObj = (JSONObject) book.get("publishedDate");
                 if (Objects.nonNull(publishedDateObj)) {
                     publishedDateStr = (String) publishedDateObj.get("$date");
-                    publishedDateStr = publishedDateStr.replaceAll("T", " ");
-                    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSZ");
-                    publishedDate = DateTime.parse(publishedDateStr, formatter);
+                    DateTimeFormatter patternFormat = new DateTimeFormatterBuilder()
+                            .appendPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
+                            .appendTimeZoneOffset("Z", true, 2, 4)
+                            .toFormatter();
+                    DateTime publishedDateInJoda = DateTime.parse(publishedDateStr, patternFormat);
+                    publishedDate = publishedDateInJoda.toDate();
                 }
 
                 // authors
@@ -95,11 +88,9 @@ public class InitDatabase {
 
                 Book newBook = new Book(
                         id
-                        , origId
                         , (String) book.get("title")
                         , (String) book.get("isbn")
                         , pageCount
-                        , publishedDateStr
                         , publishedDate
                         , (String) book.get("thumbnailUrl")
                         , (String) book.get("shortDescription")
