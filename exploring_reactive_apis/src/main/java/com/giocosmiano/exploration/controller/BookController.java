@@ -42,7 +42,7 @@ public class BookController {
     public Flux<Book> streamingAllBooks() {
         return bookService
                 .streamingAllBooks()
-                .delayElements(Duration.ofMillis(10))
+                .delayElements(Duration.ofMillis(10)) // delay each element to throttle down streaming of data
         ;
     }
 
