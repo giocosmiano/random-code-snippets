@@ -1,14 +1,20 @@
 package com.giocosmiano.exploration.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.List;
 
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
-@Document
+@Document(collection = "books")
 public class Book {
 
     @Id
@@ -24,8 +30,11 @@ public class Book {
     private List<String> authors;
     private List<String> categories;
 
-    public Book() {}
+//  Using Lombok @NoArgsConstructor to take care of this
+//    public Book() {}
 
+/*
+ * Using Lombok @AllArgsConstructor to take care of these
     public Book(Long id, String title, String isbn, Long pageCount
             , Date publishedDate, String thumbnailUrl
             , String shortDescription, String longDescription, String status
@@ -42,5 +51,6 @@ public class Book {
         this.authors = authors;
         this.categories = categories;
     }
+*/
 }
 

@@ -20,7 +20,8 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.util.*;
 
-@Component
+// NOTE: Un-comment if its going to be used for simulation during development. In addition, comment `test` in `de.flapdoodle.embed.mongo` artifact (see POM)
+//@Component
 public class InitDatabase {
 
     private static final Logger log = LoggerFactory.getLogger(InitDatabase.class);
@@ -32,7 +33,8 @@ public class InitDatabase {
      MongoOperations object, we can simply grab hold of that
      */
 
-    @Bean
+    // NOTE: Un-comment if its going to be used for simulation during development. In addition, comment `test` in `de.flapdoodle.embed.mongo` artifact (see POM)
+//    @Bean
     CommandLineRunner init(MongoOperations operations) {
         return args -> {
             initBooks(operations);

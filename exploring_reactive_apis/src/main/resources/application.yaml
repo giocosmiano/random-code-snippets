@@ -10,6 +10,14 @@ spring:
   mvc:
     async:
       request-timeout: -1
+  data:
+    mongodb:
+      authentication-database: admin
+      host: localhost
+      port: 27017
+      username: test
+      password: password
+      database: test
 
 # Customize log levels
 logging:

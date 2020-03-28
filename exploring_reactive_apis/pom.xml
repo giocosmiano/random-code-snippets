@@ -177,12 +177,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- NOTE: Used for testing only -->
+        <!-- If its going to be used for simulation during development, enable `com.giocosmiano.exploration.clr.InitDatabase` command line runner (CLR) to load data -->
         <!-- https://mvnrepository.com/artifact/de.flapdoodle.embed/de.flapdoodle.embed.mongo -->
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
             <version>${flapdoodleVersion}</version>
-<!--            <scope>test</scope>-->
+            <scope>test</scope> <!-- comment this `test` if its going to be used for simulation during development -->
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
