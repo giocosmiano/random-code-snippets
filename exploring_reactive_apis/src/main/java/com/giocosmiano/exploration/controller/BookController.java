@@ -33,6 +33,7 @@ public class BookController {
         return bookService
                 .getById(Long.valueOf(id))
                 .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
                 ;
     }
 
@@ -42,6 +43,7 @@ public class BookController {
         return bookService
                 .getByIsbn(id)
                 .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
                 ;
     }
 
@@ -62,6 +64,7 @@ public class BookController {
                 .streamingAllBooks()
                 .delayElements(Duration.ofMillis(20)) // kludgy but for simulation purposes, delay each element to throttle down streaming of data to client
                 .map(ResponseEntity::ok)
+                .switchIfEmpty(Flux.just(ResponseEntity.noContent().build()))
         ;
     }
 
