@@ -1,0 +1,96 @@
+<html lang="en">
+
+	<head>
+		<title>Books Observable/Reactor Flux</title>
+	</head>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap-grid.css">
+
+	<!-- https://cdnjs.com/ -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.5/redux.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.5.2/rxjs.umd.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.27.0/ramda.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/oboe.js/2.1.5/oboe-browser.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/http-client/4.3.1/http-client.js"></script>
+
+	<!-- https://www.jsdelivr.com/ -->
+	<!-- https://zellwk.com/blog/jsdelivr/ -->
+<!--	<script src="https://cdn.jsdelivr.net/npm/sanctuary@3.0.0/index.js"></script>-->
+	<script src="https://cdn.jsdelivr.net/npm/sanctuary-either@2.1.0/index.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/ramda-fantasy@0.8.0/dist/ramda-fantasy.js"></script>
+
+	<script>
+		const observable = rxjs.Observable.create(observer => {
+			oboe('http://localhost:9080/books/streaming')
+					.node('{body}', response => observer.next(response.body))
+			;
+		})
+		, mapOfSubscribers = new Map()
+		, listOfBooks = [];
+
+		$(`#bookRow`).hide();
+		const onSubscribe = (btnElemId) => {
+
+			const unSubscribe = () => {
+						console.log('unsubscribe');
+						// mapOfSubscribers.get(btnElemId).unsubscribe();
+					}
+					, dataHandler = data => {
+						console.log(data);
+						listOfBooks.push(data);
+					}
+					, errorHandler = data => {
+						unSubscribe();
+						console.log(data);
+					}
+					, completeHandler = () => {
+						unSubscribe();
+						console.log(data);
+					}
+			;
+
+			const subscriber = observable.subscribe(dataHandler, errorHandler, completeHandler);
+			mapOfSubscribers.set(btnElemId, subscriber);
+		};
+	</script>
+
+	<body style="margin: 10px; padding: 10px;">
+		<div class="alert alert-success" role="alert">
+			<span style="font-weight: bold;">RxJS Observables/Reactor Flux</span>
+			<button id="btnBooks" type="button" class="btn btn-primary btn-sm" onclick="onSubscribe(this.id)">Stream All Books</button>
+		</div>
+
+		<div class="alert" role="alert">
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th style="width: 5%;">Book ID</th>
+						<th style="width: 10%;">ISBN</th>
+						<th style="width: 15%;">Title</th>
+						<th style="width: 10%;">Published Date</th>
+						<th style="width: 10%;">Thumbnail</th>
+						<th style="width: 25%;">Authors</th>
+						<th style="width: 25%;">Categories</th>
+					</tr>
+				</thead>
+			</table>
+			<table class="table table-hover table-striped ">
+				<tbody>
+					<tr id="bookRow">
+						<td style="width:  5%;" id="bookId">Book ID</td>
+						<td style="width: 10%;" id="bookIsbn">ISBN</td>
+						<td style="width: 15%;" id="bookTitle">Title</td>
+						<td style="width: 10%;" id="bookDate">Published Date</td>
+						<td style="width: 10%;" id="bookThumbnail">Thumbnail</td>
+						<td style="width: 25%;" id="bookAuthors">Authors</td>
+						<td style="width: 25%;" id="bookCategories">Categories</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>
