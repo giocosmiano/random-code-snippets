@@ -53,12 +53,14 @@ public class BookController {
                 ;
     }
 
+    // NOTE: Used for simulating streaming json
+    // Wrapping each element with ResponseEntity so that Oboe.js can watch/parse for `body` element in the UI (see books_reactor_flux.html)
     @ResponseBody
     @GetMapping(value = "/streaming", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
     public Flux<ResponseEntity<Book>> streamingAllBooks() {
         return bookService
                 .streamingAllBooks()
-                .delayElements(Duration.ofMillis(5)) // delay each element to throttle down streaming of data to client
+                .delayElements(Duration.ofMillis(20)) // kludgy but for simulation purposes, delay each element to throttle down streaming of data to client
                 .map(ResponseEntity::ok)
         ;
     }

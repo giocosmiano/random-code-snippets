@@ -1,11 +1,33 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 	<head>
-		<title>Books Observable/Reactor Flux</title>
+		<title>Simulation on Observable/Reactor Flux</title>
 	</head>
 
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap-grid.css">
+
+	<style>
+		[id^="bookId_"] {
+			width:  5%;
+		}
+		[id^="bookIsbn_"] {
+			width:  10%;
+		}
+		[id^="bookTitle_"] {
+			width:  25%;
+		}
+		[id^="bookDate_"] {
+			width:  15%;
+		}
+		[id^="bookAuthors_"] {
+			width:  25%;
+		}
+		[id^="bookCategories_"] {
+			width:  20%;
+		}
+	</style>
 
 	<!-- https://cdnjs.com/ -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
@@ -15,7 +37,6 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.27.0/ramda.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/oboe.js/2.1.5/oboe-browser.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/http-client/4.3.1/http-client.js"></script>
 
 	<!-- https://www.jsdelivr.com/ -->
 	<!-- https://zellwk.com/blog/jsdelivr/ -->
@@ -29,19 +50,29 @@
 					.node('{body}', response => observer.next(response.body))
 			;
 		})
+		, listOfBooks = []
 		, mapOfSubscribers = new Map()
-		, listOfBooks = [];
+		;
 
-		$(`#bookRow`).hide();
 		const onSubscribe = (btnElemId) => {
 
 			const unSubscribe = () => {
-						console.log('unsubscribe');
-						// mapOfSubscribers.get(btnElemId).unsubscribe();
+						listOfBooks.length = 0;
+						$("#bookTable tbody tr").remove();
+						mapOfSubscribers.get(btnElemId).unsubscribe();
 					}
 					, dataHandler = data => {
+						let tr = `<tr>` +
+								`<td id="bookId_${data.id}">${data.id}</td>` +
+								`<td id="bookIsbn_${data.id}">${data.isbn}</td>` +
+								`<td id="bookTitle_${data.id}">${data.title}</td>` +
+								`<td id="bookDate_${data.id}">${data.publishedDate}</td>` +
+								`<td id="bookAuthors_${data.id}">${data.authors.join(', ')}</td>` +
+								`<td id="bookCategories_${data.id}">${data.categories.join(', ')}</td>` +
+								`</tr>`;
 						console.log(data);
 						listOfBooks.push(data);
+						$('#bookTable').append(`${tr}`);
 					}
 					, errorHandler = data => {
 						unSubscribe();
@@ -53,6 +84,11 @@
 					}
 			;
 
+			const prevSubscriber = mapOfSubscribers.get(btnElemId);
+			if (! _.isEmpty(prevSubscriber)) {
+				unSubscribe();
+			}
+
 			const subscriber = observable.subscribe(dataHandler, errorHandler, completeHandler);
 			mapOfSubscribers.set(btnElemId, subscriber);
 		};
@@ -60,35 +96,23 @@
 
 	<body style="margin: 10px; padding: 10px;">
 		<div class="alert alert-success" role="alert">
-			<span style="font-weight: bold;">RxJS Observables/Reactor Flux</span>
-			<button id="btnBooks" type="button" class="btn btn-primary btn-sm" onclick="onSubscribe(this.id)">Stream All Books</button>
+			<span style="font-weight: bold; padding: 10px;">Streaming Simulation on RxJS Observables in UI and Reactor Flux from ReST</span>
+			<button id="btnBooks" type="button" class="btn btn-primary btn-sm" onclick="onSubscribe(this.id)">Get All Books</button>
 		</div>
 
-		<div class="alert" role="alert">
-			<table class="table table-hover">
+		<div class="alert" role="alert" id="bookContainer">
+			<table id="bookTable" class="table table-hover table-striped table-condensed">
 				<thead>
 					<tr>
-						<th style="width: 5%;">Book ID</th>
-						<th style="width: 10%;">ISBN</th>
-						<th style="width: 15%;">Title</th>
-						<th style="width: 10%;">Published Date</th>
-						<th style="width: 10%;">Thumbnail</th>
-						<th style="width: 25%;">Authors</th>
-						<th style="width: 25%;">Categories</th>
+						<th id="bookId_Hdr">Book ID</th>
+						<th id="bookIsbn_Hdr">ISBN</th>
+						<th id="bookTitle_Hdr">Title</th>
+						<th id="bookDate_Hdr">Published Date</th>
+						<th id="bookAuthors_Hdr">Authors</th>
+						<th id="bookCategories_Hdr">Categories</th>
 					</tr>
 				</thead>
-			</table>
-			<table class="table table-hover table-striped ">
 				<tbody>
-					<tr id="bookRow">
-						<td style="width:  5%;" id="bookId">Book ID</td>
-						<td style="width: 10%;" id="bookIsbn">ISBN</td>
-						<td style="width: 15%;" id="bookTitle">Title</td>
-						<td style="width: 10%;" id="bookDate">Published Date</td>
-						<td style="width: 10%;" id="bookThumbnail">Thumbnail</td>
-						<td style="width: 25%;" id="bookAuthors">Authors</td>
-						<td style="width: 25%;" id="bookCategories">Categories</td>
-					</tr>
 				</tbody>
 			</table>
 		</div>
