@@ -78,13 +78,13 @@ public class BookService {
         return bookRepository
                 .findById(id)
                 .map(Either::right)// storing the book so we can reply back to client the book is successfully deleted otherwise an error if empty
-                .flatMap(either -> {
-                    Book book = either.get();
-                    bookRepository.delete(book);
-                    return Mono.just(book);
-                })
+                .flatMap(either ->
+                        bookRepository
+                                .delete(either.get())
+                                .then(Mono.just(either.get())) // returning the deleted entity by playing another Mono<Book> after the Mono<Void> completes
+                )
                 .log("bookService.delete() on log()" + id)
-                .doOnSuccess(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ID ==> " + id))
+                .doOnSuccess(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
                 ;
     }
 }
