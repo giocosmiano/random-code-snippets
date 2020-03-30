@@ -10,14 +10,16 @@ spring:
   mvc:
     async:
       request-timeout: -1
-  data:
-    mongodb:
-      authentication-database: admin
-      host: localhost
-      port: 27017
-      username: test
-      password: password
-      database: test
+# NOTE: I'm using embedded MongoDB with flapdoodle for Reactive Mongo simulation
+# See `readme.md` about the 2 ways of simulating Reactive Mongo using installed MongoDB vs embedded MongoDB with flapdoodle
+#  data:
+#    mongodb:
+#      authentication-database: admin
+#      host: localhost
+#      port: 27017
+#      username: test
+#      password: password
+#      database: test
 
 # Customize log levels
 logging:

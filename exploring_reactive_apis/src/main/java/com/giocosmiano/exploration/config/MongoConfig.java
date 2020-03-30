@@ -8,9 +8,12 @@ import org.springframework.data.mongodb.config.AbstractReactiveMongoConfiguratio
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
+// NOTE: I'm using embedded MongoDB with flapdoodle for Reactive Mongo simulation
+// See `readme.md` about the 2 ways of simulating Reactive Mongo using installed MongoDB vs embedded MongoDB with flapdoodle
 @Configuration
 @EnableReactiveMongoRepositories(basePackages = "com.giocosmiano.exploration.repository")
-public class MongoConfig extends AbstractReactiveMongoConfiguration {
+//public class MongoConfig extends AbstractReactiveMongoConfiguration {
+public class MongoConfig {
 
     private MongoYamlConfig mongoYamlConfig;
 
@@ -18,6 +21,7 @@ public class MongoConfig extends AbstractReactiveMongoConfiguration {
         this.mongoYamlConfig = mongoYamlConfig;
     }
 
+/*
     @Bean
     public MongoClient reactiveMongoClient() {
         // mongodb://myDBReader:D1fficultP40ssw0rd@mongodb0.example.com:27017/myDB?authSource=admin
@@ -41,4 +45,5 @@ public class MongoConfig extends AbstractReactiveMongoConfiguration {
     public ReactiveMongoTemplate reactiveMongoTemplate() {
         return new ReactiveMongoTemplate(reactiveMongoClient(), getDatabaseName());
     }
+*/
 }

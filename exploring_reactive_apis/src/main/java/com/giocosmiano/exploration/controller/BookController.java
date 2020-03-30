@@ -69,10 +69,12 @@ public class BookController {
     }
 
     @ResponseBody
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<Void> create(@RequestBody Flux<Book> books) {
-        return bookService.create(books)
-                .then();
+    @PostMapping(value = "create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<Void> create(@RequestBody Flux<Book> book) {
+        return bookService
+                .create(book)
+                .then()
+                ;
     }
 
     @GetMapping(value = "/view")
