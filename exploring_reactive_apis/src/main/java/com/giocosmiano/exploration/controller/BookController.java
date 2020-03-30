@@ -29,7 +29,7 @@ public class BookController {
 
     @ResponseBody
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> getById(@PathVariable("id") Long id) {
+    public Mono<ResponseEntity<Book>> getById(@PathVariable("id") final Long id) {
         return bookService
                 .getById(id)
                 .map(ResponseEntity::ok)
@@ -39,7 +39,7 @@ public class BookController {
 
     @ResponseBody
     @GetMapping(value = "/isbn/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<ResponseEntity<Book>> getByIsbn(@PathVariable("id") String id) {
+    public Flux<ResponseEntity<Book>> getByIsbn(@PathVariable("id") final String id) {
         return bookService
                 .getByIsbn(id)
                 .map(ResponseEntity::ok)
@@ -70,7 +70,7 @@ public class BookController {
 
     @ResponseBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> create(@RequestBody Book book) {
+    public Mono<ResponseEntity<Book>> create(@RequestBody final Book book) {
         return bookService
                 .create(book)
                 .map(ResponseEntity::ok)
@@ -80,7 +80,7 @@ public class BookController {
 
     @ResponseBody
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> update(@RequestBody Book book) {
+    public Mono<ResponseEntity<Book>> update(@RequestBody final Book book) {
         return bookService
                 .update(book)
                 .map(ResponseEntity::ok)
@@ -90,10 +90,11 @@ public class BookController {
 
     @ResponseBody
     @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Void>> delete(@PathVariable("id") Long id) {
+    public Mono<ResponseEntity<Book>> delete(@PathVariable("id") final Long id) {
         return bookService
                 .delete(id)
                 .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
                 ;
     }
 

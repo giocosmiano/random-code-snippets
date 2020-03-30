@@ -2,6 +2,7 @@ package com.giocosmiano.exploration.service;
 
 import com.giocosmiano.exploration.domain.Book;
 import com.giocosmiano.exploration.repository.BookRepository;
+import io.vavr.control.Either;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class BookService {
         return bookRepository.streamingAllBooks();
     }
 
-    public Mono<Book> create(Book book) {
+    public Mono<Book> create(final Book book) {
         if (Objects.nonNull(book)) {
             book.setId(new ObjectId().getTime());
             return bookRepository
@@ -52,10 +53,12 @@ public class BookService {
         }
     }
 
-    public Mono<Book> update(Book book) {
+    public Mono<Book> update(final Book book) {
         if (Objects.nonNull(book) && Objects.nonNull(book.getId())) {
             return bookRepository
-                    .save(book)
+                    .findById(book.getId())
+                    .map(oldBook -> book)
+                    .flatMap(bookRepository::save)
                     .log("bookService.update() on log()" + book)
                     .doOnSuccess(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
                     ;
@@ -65,11 +68,23 @@ public class BookService {
         }
     }
 
-    public Mono<Void> delete(Long id) {
+    // http://zetcode.com/all/#springboot
+    // http://zetcode.com/springboot/mongodbreactive/
+    // https://mkyong.com/mongodb/spring-data-mongodb-update-document/
+    // https://medium.com/@nikeshshetty/5-common-mistakes-of-webflux-novices-f8eda0cd6291
+    // https://www.devglan.com/spring-boot/spring-boot-mongodb-crud
+    // https://www.roytuts.com/spring-boot-mongodb-functional-reactive-crud-example/
+    public Mono<Book> delete(final Long id) {
         return bookRepository
-                .deleteById(id)
+                .findById(id)
+                .map(Either::right)// storing the book so we can reply back to client the book is successfully deleted otherwise an error if empty
+                .flatMap(either -> {
+                    Book book = either.get();
+                    bookRepository.delete(book);
+                    return Mono.just(book);
+                })
                 .log("bookService.delete() on log()" + id)
-                .doOnSuccess(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book with ID ==> " + id))
+                .doOnSuccess(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ID ==> " + id))
                 ;
     }
 }
