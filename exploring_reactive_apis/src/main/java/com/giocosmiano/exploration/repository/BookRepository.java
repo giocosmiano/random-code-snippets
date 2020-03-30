@@ -20,7 +20,7 @@ public interface BookRepository extends
 
     // https://www.devglan.com/spring-boot/spring-data-mongodb-queries
     @Query("{'isbn' : ?0}")
-    Mono<Book> findBookByIsbn(String id);
+    Flux<Book> findBookByIsbn(String id);
 
     @Query(value = "{}", fields = "{'shortDescription' : 0, 'longDescription' : 0, 'thumbnailUrl' : 0}") // all fields excluding short/long descriptions, thumbnailUrl
     Flux<Book> streamingAllBooks();

@@ -29,9 +29,9 @@ public class BookController {
 
     @ResponseBody
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> getById(@PathVariable("id") String id) {
+    public Mono<ResponseEntity<Book>> getById(@PathVariable("id") Long id) {
         return bookService
-                .getById(Long.valueOf(id))
+                .getById(id)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
                 ;
@@ -39,11 +39,11 @@ public class BookController {
 
     @ResponseBody
     @GetMapping(value = "/isbn/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> getByIsbn(@PathVariable("id") String id) {
+    public Flux<ResponseEntity<Book>> getByIsbn(@PathVariable("id") String id) {
         return bookService
                 .getByIsbn(id)
                 .map(ResponseEntity::ok)
-                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .switchIfEmpty(Flux.just(ResponseEntity.notFound().build()))
                 ;
     }
 
@@ -69,11 +69,31 @@ public class BookController {
     }
 
     @ResponseBody
-    @PostMapping(value = "create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<Void> create(@RequestBody Flux<Book> book) {
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Book>> create(@RequestBody Book book) {
         return bookService
                 .create(book)
-                .then()
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
+                ;
+    }
+
+    @ResponseBody
+    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Book>> update(@RequestBody Book book) {
+        return bookService
+                .update(book)
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
+                ;
+    }
+
+    @ResponseBody
+    @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Void>> delete(@PathVariable("id") Long id) {
+        return bookService
+                .delete(id)
+                .map(ResponseEntity::ok)
                 ;
     }
 
