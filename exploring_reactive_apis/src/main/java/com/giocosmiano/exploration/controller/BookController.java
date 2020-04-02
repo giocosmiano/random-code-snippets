@@ -27,6 +27,12 @@ public class BookController {
 
     private static final Logger log = LoggerFactory.getLogger(BookController.class);
 
+    @GetMapping(value = "/view")
+    public Mono<String> index(Model model) {
+        model.addAttribute("books", bookService.streamingAllBooks());
+        return Mono.just("booksReactorFlux");
+    }
+
     @ResponseBody
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Book>> getById(@PathVariable("id") final Long id) {
@@ -56,7 +62,7 @@ public class BookController {
     }
 
     // NOTE: Used for simulating streaming json
-    // Wrapping each element with ResponseEntity so that Oboe.js can watch/parse for `body` element in the UI (see books_reactor_flux.html)
+    // Wrapping each element with ResponseEntity so that Oboe.js can watch/parse for `body` element in the UI (see booksReactorFlux.html)
     @ResponseBody
     @GetMapping(value = "/streaming", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
     public Flux<ResponseEntity<Book>> streamingAllBooks() {
@@ -94,13 +100,7 @@ public class BookController {
         return bookService
                 .delete(id)
                 .map(ResponseEntity::ok)
-                .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
                 ;
-    }
-
-    @GetMapping(value = "/view")
-    public Mono<String> index(Model model) {
-        model.addAttribute("books", bookService.streamingAllBooks());
-        return Mono.just("redirect:/books_reactor_flux");
     }
 }

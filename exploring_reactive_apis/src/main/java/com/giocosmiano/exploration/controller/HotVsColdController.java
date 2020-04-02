@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,8 +22,8 @@ import java.util.Optional;
 
 import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.*;
 
-@RestController
-@RequestMapping(value = "/primeNumbers")
+@Controller
+@RequestMapping(value = "/hotVsColdObservables")
 public class HotVsColdController {
 
     private static final Logger log = LoggerFactory.getLogger(HotVsColdController.class);
@@ -35,9 +36,19 @@ public class HotVsColdController {
         this.hotVsColdReactiveService = hotVsColdReactiveService;
     }
 
+    @GetMapping
+    public Mono<String> index() {
+        return Mono.just("hotVsColdObservables");
+    }
+
+    @GetMapping(value = "/view")
+    public Mono<String> standAlone() {
+        return Mono.just("hotVsColdObservablesSA");
+    }
+
     // NOTE: Returning Single<ResponseEntity> worked because the collection is wrapped within ResponseEntity
     // Another implementation of getObservablePrimesOLD() below getting around Http response 503
-    @GetMapping(value = "/observables", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/primeObservables", produces = MediaType.APPLICATION_JSON_VALUE)
     public Single<ResponseEntity<List<HotVsColdEither>>> getObservablePrimes(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
@@ -64,7 +75,7 @@ public class HotVsColdController {
     // https://stackoverflow.com/questions/39856198/recurring-asyncrequesttimeoutexception-in-spring-boot-admin-log
     // https://stackoverflow.com/questions/53650303/spring-boot-timeout-when-using-futures/53652640
     @Deprecated
-    @GetMapping(value = "/observablesOLD", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/primeObservablesOLD", produces = MediaType.APPLICATION_JSON_VALUE)
     public Observable<HotVsColdEither> getObservablePrimesOLD(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
@@ -84,9 +95,9 @@ public class HotVsColdController {
                 ;
     }
 
-    // NOTE: Don't use ResponseEntity when returning Observable because it'll include headers, body (with the data), statusCode and statusCodeValue
-    @GetMapping(value = "/streamObservables", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Observable<HotVsColdEither> getStreamObservablePrimes(
+    // Wrapping each element with ResponseEntity so that Oboe.js can watch/parse for `body` element in the UI (see hotVsColdObservables.html)
+    @GetMapping(value = "/primeStreamObservables", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Observable<ResponseEntity<HotVsColdEither>> getStreamObservablePrimes(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
     ) {
@@ -102,11 +113,12 @@ public class HotVsColdController {
         return hotVsColdReactiveService
                 .getStreamObservablePrimes(isHotObservable, threshold)
                 .subscribeOn(Schedulers.computation()) // running on different thread
+                .map(ResponseEntity::ok)
                 ;
     }
 
     // NOTE: Returning Mono<ResponseEntity> worked because the collection is wrapped within ResponseEntity
-    @GetMapping(value = "/reactorFlux", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/primeReactorFlux", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<List<HotVsColdEither>>> getFluxPrimes(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
@@ -127,9 +139,9 @@ public class HotVsColdController {
                 ;
     }
 
-    // NOTE: Don't use ResponseEntity when returning Flux because it'll include headers, body (with the data), statusCode and statusCodeValue
-    @GetMapping(value = "/streamReactorFlux", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Flux<HotVsColdEither> getStreamFluxPrimes(
+    // Wrapping each element with ResponseEntity so that Oboe.js can watch/parse for `body` element in the UI (see hotVsColdObservables.html)
+    @GetMapping(value = "/primeStreamReactorFlux", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Flux<ResponseEntity<HotVsColdEither>> getStreamFluxPrimes(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
     ) {
@@ -145,11 +157,12 @@ public class HotVsColdController {
         return hotVsColdReactiveService
                 .getStreamFluxPrimes(isHotObservable, threshold)
                 .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
+                .map(ResponseEntity::ok)
                 ;
     }
 
     // NOTE: Returning Single<ResponseEntity> worked because the collection is wrapped within ResponseEntity
-    @GetMapping(value = "/groovyObservables", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/primeGroovyObservables", produces = MediaType.APPLICATION_JSON_VALUE)
     public Single<ResponseEntity<List<HotVsColdEither>>> getObservablePrimesFromGroovy(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
@@ -171,7 +184,7 @@ public class HotVsColdController {
     }
 
     // NOTE: Don't use ResponseEntity when returning Observable because it'll include headers, body (with the data), statusCode and statusCodeValue
-    @GetMapping(value = "/streamGroovyObservables", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    @GetMapping(value = "/primeStreamGroovyObservables", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
     public Observable<HotVsColdEither> getStreamObservablePrimesFromGroovy(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
@@ -194,7 +207,7 @@ public class HotVsColdController {
     // NOTE: RxScala has been EOL
     // https://github.com/ReactiveX/RxScala
     // https://github.com/ReactiveX/RxScala/issues/244
-    @GetMapping(value = "/scalaObservables", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/primeScalaObservables", produces = MediaType.APPLICATION_JSON_VALUE)
     public rx.lang.scala.Observable<List<HotVsColdEither>> getObservablePrimesFromScala(
             @RequestParam(name = "type", required = false) String type
             , @RequestParam(name = "threshold", required = false) Integer requestedThreshold
