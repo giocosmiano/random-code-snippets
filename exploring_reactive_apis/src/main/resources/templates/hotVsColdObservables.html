@@ -1,4 +1,5 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 	<head>
 		<title>RxJS Hot vs Cold Observables</title>
@@ -33,13 +34,6 @@
 	<script src="https://cdn.jsdelivr.net/npm/ramda-fantasy@0.8.0/dist/ramda-fantasy.js"></script>
 
 	<script>
-		const isPrime = number => {
-			for (let i = 2; i < number; i++) {
-				if (number % i === 0) return false;
-			}
-			return true;
-		};
-
 		const coldObservables = rxjs.Observable.create(observer => {
 			oboe('http://localhost:9080/hotVsColdObservables/primeStreamObservables')
 					.node('{body}', response => observer.next(response.body.rightValue || response.body.leftValue))
