@@ -44,14 +44,24 @@
 	<script src="https://cdn.jsdelivr.net/npm/sanctuary-either@2.1.0/index.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/ramda-fantasy@0.8.0/dist/ramda-fantasy.js"></script>
 
+	<!-- https://stackoverflow.com/questions/25687816/setting-up-a-javascript-variable-from-spring-model-by-using-thymeleaf -->
+	<!-- https://www.thymeleaf.org/doc/tutorials/2.1/usingthymeleaf.html#script-inlining-javascript-and-dart -->
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		let restEndpoint = [[${restEndpoint}]]; // 'http://localhost:9080/books/streaming';
+		console.log(restEndpoint);
+		/*]]>*/
+	</script>
+
 	<script>
 		const observable = rxjs.Observable.create(observer => {
-			oboe('http://localhost:9080/books/streaming')
+			oboe(restEndpoint)
 					.node('{body}', response => observer.next(response.body))
 			;
 		})
 		, listOfBooks = []
 		, mapOfSubscribers = new Map()
+		, pageTitle = "Streaming Simulation on RxJS Observables/Oboe.js in the UI while Reactive Mongo/Reactor Flux from ReST"
 		;
 
 		const onSubscribe = (btnElemId) => {
@@ -96,7 +106,7 @@
 
 	<body style="margin: 10px; padding: 10px;">
 		<div class="alert alert-success" role="alert">
-			<span style="font-weight: bold; padding: 10px;">Streaming Simulation on RxJS Observables/Oboe.js in the UI while Reactive Mongo/Reactor Flux from ReST</span>
+			<span id="pageTitle" style="font-weight: bold; padding: 10px;" th:text="${pageTitle}"></span>
 			<button id="btnBooks" type="button" class="btn btn-primary btn-sm" onclick="onSubscribe(this.id)">Get All Books</button>
 		</div>
 

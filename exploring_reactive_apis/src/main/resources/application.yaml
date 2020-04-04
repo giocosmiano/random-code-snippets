@@ -10,7 +10,8 @@ spring:
   mvc:
     async:
       request-timeout: -1
-# NOTE: I'm using embedded MongoDB with flapdoodle for Reactive Mongo simulation
+
+# NOTE: Using embedded MongoDB with flapdoodle for Reactive Mongo simulation
 # See `readme.md` about the 2 ways of simulating Reactive Mongo using installed MongoDB vs embedded MongoDB with flapdoodle
 #  data:
 #    mongodb:
@@ -21,6 +22,25 @@ spring:
 #      password: password
 #      database: test
 
+# NOTE: Using H2 blocking DB to simulate access with Reactor Flux/Mono to be non-blocking IO
+  datasource:
+    url: jdbc:h2:file:~/Documents/h2TestDB
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+    hikari:
+      maximum-pool-size: 100
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    show_sql: true
+  h2:
+    console:
+      enabled: true
+
 # Customize log levels
 logging:
   level:
@@ -28,7 +48,7 @@ logging:
       core: TRACE
       util: TRACE
     org:
-      springframework.data: TRACE
+#      springframework.data: INFO
     io:
       netty: DEBUG
       reactor: DEBUG

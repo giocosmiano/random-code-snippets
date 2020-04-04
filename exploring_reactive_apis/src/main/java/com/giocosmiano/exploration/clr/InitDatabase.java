@@ -1,6 +1,8 @@
 package com.giocosmiano.exploration.clr;
 
 import com.giocosmiano.exploration.domain.Book;
+import com.giocosmiano.exploration.domain.H2Book;
+import com.giocosmiano.exploration.repository.H2BookRepository;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
@@ -20,7 +22,9 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.util.*;
 
-// NOTE: I'm using embedded MongoDB with flapdoodle for Reactive Mongo simulation
+// NOTE:
+// 1) Using embedded MongoDB with flapdoodle for Reactive Mongo simulation
+// 2) Using H2 DB to simulate DB access with Reactor Flux/Mono for non-blocking IO
 // See `readme.md` about the 2 ways of simulating Reactive Mongo using installed MongoDB vs embedded MongoDB with flapdoodle
 @Component
 public class InitDatabase {
@@ -35,13 +39,17 @@ public class InitDatabase {
      */
 
     @Bean
-    CommandLineRunner init(MongoOperations operations) {
+    CommandLineRunner init(
+            MongoOperations mongoOperations
+            , H2BookRepository h2BookRepository) {
         return args -> {
-            initBooks(operations);
+            initBooks(mongoOperations, h2BookRepository);
         };
     }
 
-    private void initBooks(final MongoOperations operations) {
+    private void initBooks(
+            final MongoOperations mongoOperations
+            , final H2BookRepository h2BookRepository) {
         try {
             // https://howtodoinjava.com/java/io/read-file-from-resources-folder/
             File file = ResourceUtils.getFile("classpath:sampleJsonData/books.json");
@@ -49,7 +57,8 @@ public class InitDatabase {
 
             // https://stackoverflow.com/questions/10926353/how-to-read-json-file-into-java-with-simple-json-library
             // https://howtodoinjava.com/library/json-simple-read-write-json-examples/
-            operations.dropCollection(Book.class);
+            mongoOperations.dropCollection(Book.class);
+            h2BookRepository.deleteAll();
 
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(reader);
@@ -88,21 +97,42 @@ public class InitDatabase {
                 JSONArray categoriesObj = (JSONArray) book.get("categories");
                 categoriesObj.forEach(category -> categories.add((String)category));
 
+                String title = (String) book.get("title");
+                String isbn = (String) book.get("isbn");
+                String thumbnailUrl = (String) book.get("thumbnailUrl");
+                String shortDescription = (String) book.get("shortDescription");
+                String longDescription = (String) book.get("longDescription");
+                String status = (String) book.get("status");
+
                 Book newBook = new Book(
                         id
-                        , (String) book.get("title")
-                        , (String) book.get("isbn")
+                        , title
+                        , isbn
                         , pageCount
                         , publishedDate
-                        , (String) book.get("thumbnailUrl")
-                        , (String) book.get("shortDescription")
-                        , (String) book.get("longDescription")
-                        , (String) book.get("status")
+                        , thumbnailUrl
+                        , shortDescription
+                        , longDescription
+                        , status
                         , authors
                         , categories
                 );
+                mongoOperations.insert(newBook);
 
-                operations.insert(newBook);
+                H2Book h2Book = new H2Book();
+                h2Book.setId(id);
+                h2Book.setTitle(title);
+                h2Book.setIsbn(isbn);
+                h2Book.setPageCount(pageCount);
+                h2Book.setPublishedDate(publishedDate);
+                h2Book.setThumbnailUrl(thumbnailUrl);
+                h2Book.setShortDescription(shortDescription);
+                h2Book.setLongDescription(longDescription);
+                h2Book.setStatus(status);
+                h2Book.setAuthors(authors);
+                h2Book.setCategories(categories);
+                h2BookRepository.save(h2Book);
+
                 log.debug(String.format("Inserted Book %s", newBook));
             });
 

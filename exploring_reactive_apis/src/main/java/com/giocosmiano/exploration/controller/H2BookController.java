@@ -1,7 +1,7 @@
 package com.giocosmiano.exploration.controller;
 
-import com.giocosmiano.exploration.domain.Book;
-import com.giocosmiano.exploration.service.BookService;
+import com.giocosmiano.exploration.domain.H2Book;
+import com.giocosmiano.exploration.service.H2BookService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -15,33 +15,33 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 
 @Controller
-@RequestMapping(value = "/books")
+@RequestMapping(value = "/h2Books")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-public class BookController {
+public class H2BookController {
 
-    private BookService bookService;
+    private H2BookService bookService;
 
-    public BookController(BookService bookService) {
+    public H2BookController(H2BookService bookService) {
         this.bookService = bookService;
     }
 
-    private static final Logger log = LoggerFactory.getLogger(BookController.class);
+    private static final Logger log = LoggerFactory.getLogger(H2BookController.class);
 
     // see these Thymeleaf references when accessing data and javascript variables
     // https://www.thymeleaf.org/doc/tutorials/2.1/usingthymeleaf.html#script-inlining-javascript-and-dart
     // https://www.thymeleaf.org/doc/articles/springmvcaccessdata.html
     @GetMapping(value = "/view")
     public Mono<String> index(Model model) {
-//        model.addAttribute("restEndpoint", "http://localhost:9080/books/streaming");
-        model.addAttribute("restEndpoint", "/books/streaming");
-        model.addAttribute("repository", "mongo");
-        model.addAttribute("pageTitle", "Streaming Simulation on RxJS Observables and Oboe.js in the UI while Reactive Mongo and Reactor Flux from ReST");
+//        model.addAttribute("restEndpoint", "http://localhost:9080/h2Books/streaming");
+        model.addAttribute("restEndpoint", "/h2Books/streaming");
+        model.addAttribute("repository", "h2Books");
+        model.addAttribute("pageTitle", "Streaming Simulation on RxJS Observables and Oboe.js in the UI while H2 (non-reactive DB) and Reactor Flux from ReST");
         return Mono.just("booksReactorFlux");
     }
 
     @ResponseBody
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> getById(@PathVariable("id") final Long id) {
+    public Mono<ResponseEntity<H2Book>> getById(@PathVariable("id") final Long id) {
         return bookService
                 .getById(id)
                 .map(ResponseEntity::ok)
@@ -51,7 +51,7 @@ public class BookController {
 
     @ResponseBody
     @GetMapping(value = "/isbn/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<ResponseEntity<Book>> getByIsbn(@PathVariable("id") final String id) {
+    public Flux<ResponseEntity<H2Book>> getByIsbn(@PathVariable("id") final String id) {
         return bookService
                 .getByIsbn(id)
                 .map(ResponseEntity::ok)
@@ -61,7 +61,7 @@ public class BookController {
 
     @ResponseBody
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<Book> getAllBooks() {
+    public Flux<H2Book> getAllBooks() {
         return bookService
                 .getAllBooks()
                 ;
@@ -71,18 +71,19 @@ public class BookController {
     // Wrapping each element with ResponseEntity so that Oboe.js can watch/parse for `body` element in the UI (see booksReactorFlux.html)
     @ResponseBody
     @GetMapping(value = "/streaming", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Flux<ResponseEntity<Book>> streamingAllBooks() {
+    public Flux<ResponseEntity<H2Book>> streamingAllH2Books() {
         return bookService
-                .streamingAllBooks()
+                .getAllBooks()
                 .delayElements(Duration.ofMillis(20)) // kludgy but for simulation purposes, delay each element to throttle down streaming of data to client
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Flux.just(ResponseEntity.noContent().build()))
         ;
     }
 
+/*
     @ResponseBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> create(@RequestBody final Book book) {
+    public Mono<ResponseEntity<H2Book>> create(@RequestBody final H2Book book) {
         return bookService
                 .create(book)
                 .map(ResponseEntity::ok)
@@ -92,7 +93,7 @@ public class BookController {
 
     @ResponseBody
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> update(@RequestBody final Book book) {
+    public Mono<ResponseEntity<H2Book>> update(@RequestBody final H2Book book) {
         return bookService
                 .update(book)
                 .map(ResponseEntity::ok)
@@ -102,11 +103,12 @@ public class BookController {
 
     @ResponseBody
     @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<Book>> delete(@PathVariable("id") final Long id) {
+    public Mono<ResponseEntity<H2Book>> delete(@PathVariable("id") final Long id) {
         return bookService
                 .delete(id)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
                 ;
     }
+*/
 }
