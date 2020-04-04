@@ -7,9 +7,11 @@
    - a sample written using Reactor Flux v3.2.15
    - samples written using RxJava v2.2.8, RxGroovy and RxScala is now [EOL](https://github.com/ReactiveX/RxScala) 
 
- - **This project contains simulation for both use of Reactive Mongo and H2 (non-reactive DB) in conjunction with Reactor Flux/Mono**
+ - **This project contains simulation for both Reactive Mongo and H2 (non-reactive DB) in conjunction with Reactor Flux/Mono**
  
- - **NOTE: There are 2 ways of simulating Reactive Mongo**
+ - **Using H2 blocking DB simulating access with Reactor Flux/Mono to be non-blocking IO**
+ 
+ - **2 ways of simulating Reactive Mongo in this project**
    - Using an installed MongoDB
      - Comment the annotations `Component` for `InitDatabase` and `Bean` for `init(MongoOperations operations)` in
        [com.giocosmiano.exploration.clr.InitDatabase](https://github.com/giocosmiano/random-code-snippets/blob/master/exploring_reactive_apis/src/main/java/com/giocosmiano/exploration/clr/InitDatabase.java)
@@ -25,9 +27,6 @@
      - Comment the annotations `EnableReactiveMongoRepositories` for `MongoConfig` and entire block for 2 `Bean`s in
        [com.giocosmiano.exploration.config.MongoConfig](https://github.com/giocosmiano/random-code-snippets/blob/master/exploring_reactive_apis/src/main/java/com/giocosmiano/exploration/config/MongoConfig.java)
      - Comment the `spring.data.mongodb` configs in [application.yaml](https://github.com/giocosmiano/random-code-snippets/blob/master/exploring_reactive_apis/src/main/resources/application.yaml)
- 
- - **NOTE: Non-reactive DB **
-   - Using H2 blocking DB to simulate access with Reactor Flux/Mono to be non-blocking IO
 
  - Sample Mongo data set are from this [site](https://github.com/ozlerhakan/mongodb-json-files) 
 
