@@ -11,6 +11,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 
+import java.util.Objects;
+
 @Service
 public class H2BookService {
 
@@ -32,6 +34,7 @@ public class H2BookService {
     public Mono<H2Book> getById(Long id) {
         return Mono
                 .defer(() -> Mono.justOrEmpty(bookRepository.findById(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
+                .doOnSuccess(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
                 .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
                 ;
     }
@@ -39,6 +42,7 @@ public class H2BookService {
     public Flux<H2Book> getByIsbn(String id) {
         return Flux
                 .defer(() -> Flux.fromIterable(bookRepository.findByIsbn(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
+                .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
                 .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
                 ;
     }
@@ -46,23 +50,21 @@ public class H2BookService {
     public Flux<H2Book> getAllBooks() {
         return Flux
                 .defer(() -> Flux.fromIterable(bookRepository.findAll())) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
+                .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
                 .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
                 ;
     }
 
-/*
-    public Flux<H2Book> streamingAllH2Books() {
-        return bookRepository.streamingAllH2Books();
-    }
 
     public Mono<H2Book> create(final H2Book book) {
         if (Objects.nonNull(book)) {
-            book.setId(new ObjectId().getTime());
-            return bookRepository
-                    .save(book)
+            book.setId(null);
+            return Mono
+                    .fromCallable(() -> transactionTemplate.execute(status -> bookRepository.save(book)))
                     .log("bookService.create() on log()" + book)
                     .doOnSuccess(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
-                    ;
+                    .subscribeOn(jdbcScheduler) // running the request on different thread-pool
+            ;
 
         } else {
             return Mono.empty();
@@ -71,12 +73,17 @@ public class H2BookService {
 
     public Mono<H2Book> update(final H2Book book) {
         if (Objects.nonNull(book) && Objects.nonNull(book.getId())) {
-            return bookRepository
-                    .findById(book.getId())
-                    .map(oldH2Book -> book)
-                    .flatMap(bookRepository::save)
+            return Mono
+                    .fromCallable(() -> transactionTemplate.execute(status -> {
+                        H2Book oldBook = bookRepository.findById(book.getId()).orElse(null);
+                        if (Objects.isNull(oldBook)) {
+                            return oldBook;
+                        }
+                        return bookRepository.save(book);
+                    }))
                     .log("bookService.update() on log()" + book)
                     .doOnSuccess(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
+                    .subscribeOn(jdbcScheduler) // running the request on different thread-pool
                     ;
 
         } else {
@@ -91,17 +98,18 @@ public class H2BookService {
     // https://www.devglan.com/spring-boot/spring-boot-mongodb-crud
     // https://www.roytuts.com/spring-boot-mongodb-functional-reactive-crud-example/
     public Mono<H2Book> delete(final Long id) {
-        return bookRepository
-                .findById(id)
-                .map(Either::right)// storing the book so we can reply back to client the book is successfully deleted otherwise an error if empty
-                .flatMap(either ->
-                        bookRepository
-                                .delete(either.get())
-                                .then(Mono.just(either.get())) // returning the deleted entity by playing another Mono<H2Book> after the Mono<Void> completes
-                )
+        return Mono
+                .fromCallable(() -> transactionTemplate.execute(status -> {
+                    H2Book oldBook = bookRepository.findById(id).orElse(null);
+                    if (Objects.isNull(oldBook)) {
+                        return oldBook;
+                    }
+                    bookRepository.delete(oldBook);
+                    return oldBook;
+                }))
                 .log("bookService.delete() on log()" + id)
                 .doOnSuccess(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
+                .subscribeOn(jdbcScheduler) // running the request on different thread-pool
                 ;
     }
-*/
 }

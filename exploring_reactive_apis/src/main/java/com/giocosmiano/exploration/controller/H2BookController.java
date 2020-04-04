@@ -80,7 +80,6 @@ public class H2BookController {
         ;
     }
 
-/*
     @ResponseBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<H2Book>> create(@RequestBody final H2Book book) {
@@ -110,5 +109,4 @@ public class H2BookController {
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
                 ;
     }
-*/
 }
