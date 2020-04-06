@@ -41,62 +41,64 @@
 			return true;
 		};
 
-		const coldObservables = rxjs.Observable.create(observer => {
-			let number = 1;
-			let nextPrime = () => {
-				number++;
-				while (! isPrime(number)) number++;
+		const coldObservables =
+				rxjs.Observable.create(observer => {
+					let number = 1;
+					let nextPrime = () => {
+						number++;
+						while (! isPrime(number)) number++;
 
-				if (number >= 1200) {
-					observer.complete();
-				}
+						if (number >= 1200) {
+							observer.complete();
+						}
 
-				// un-comment to simulate an error that will halt the entire stream of data
-				// else if (number >= 200) {
-				// 	observer.error(number);
-				// }
+						// un-comment to simulate an error that will halt the entire stream of data
+						// else if (number >= 200) {
+						// 	observer.error(number);
+						// }
 
-				observer.next(number);
-				setTimeout(nextPrime, 100);
-			};
+						observer.next(number);
+						setTimeout(nextPrime, 100);
+					};
 
-			nextPrime();
-		})
-		.pipe(rxjs.operators.switchMap(prime => {
-			const disposableStream$ = rxjs.of(prime);
-			return disposableStream$
-					.pipe(
-							// Un-comment to see simulation # 1, using Either as error simulation
+					nextPrime();
+				})
+				.pipe(rxjs.operators.switchMap(prime => {
+							const disposableStream$ = rxjs.of(prime);
+							return disposableStream$
+									.pipe(
 /*
-							rxjs.operators.map(prime => {
-								let newPrime = prime * 2; // double the value for error simulation
-								if (newPrime >= 100 && newPrime <= 200) {
-									return RF.Either.Left(`Simulating an error skipping the double value of prime in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
-								}
-								return RF.Either.Right(newPrime);  // from https://github.com/sanctuary-js/sanctuary-either
-							})
-							, rxjs.operators.map(either => {
-								if (either.isRight) {
-									either.value /= 2; // resetting it back to original prime
-								}
-								return either;
-							})
+											// Un-comment to see simulation # 1, using Either as error simulation
+											rxjs.operators.map(prime => {
+												let newPrime = prime * 2; // double the value for error simulation
+												if (newPrime >= 100 && newPrime <= 200) {
+													return RF.Either.Left(`Simulating an error skipping the double value of prime in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
+												}
+												return RF.Either.Right(newPrime);  // from https://github.com/sanctuary-js/sanctuary-either
+											})
+											, rxjs.operators.map(either => {
+												if (either.isRight) {
+													either.value /= 2; // resetting it back to original prime
+												}
+												return either;
+											})
 */
 
-							// Un-comment to see simulation # 2, throwing an Error to skip erroneous data
-							rxjs.operators.map(prime => {
-								let newPrime = prime * 2;
-								if (newPrime >= 100 && newPrime <= 200) {
-									throw new Error(`Simulating an error skipping the double of prime, in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
-								}
-								return RF.Either.Right(prime); // from https://github.com/sanctuary-js/sanctuary-either
-							})
+											// Un-comment to see simulation # 2, throwing an Error to skip erroneous data
+											rxjs.operators.map(prime => {
+												let newPrime = prime * 2;
+												if (newPrime >= 100 && newPrime <= 200) {
+													throw new Error(`Simulating an error skipping the double of prime, in-between 100 and 200 where prime=${prime} and double=${newPrime}`);
+												}
+												return RF.Either.Right(prime); // from https://github.com/sanctuary-js/sanctuary-either
+											})
 
-							// comment to simulate an error that will halt the entire stream of data
-							, rxjs.operators.catchError(error => rxjs.of(RF.Either.Left(error.message)))
-					)
-					;
-		}))
+											// comment to simulate an error that will halt the entire stream of data
+											, rxjs.operators.catchError(error => rxjs.of(RF.Either.Left(error.message)))
+									)
+									;
+						})
+				)
 		, hotObservables = coldObservables.pipe(rxjs.operators.share())
 		, mapOfSubscribers = new Map();
 
