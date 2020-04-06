@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,7 +38,8 @@ public class HotVsColdController {
     }
 
     @GetMapping
-    public Mono<String> index() {
+    public Mono<String> index(Model model) {
+        model.addAttribute("restEndpoint", "/hotVsColdObservables/primeStreamObservables");
         return Mono.just("hotVsColdObservables");
     }
 
