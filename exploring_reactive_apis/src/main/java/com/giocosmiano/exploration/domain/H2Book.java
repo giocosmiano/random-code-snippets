@@ -32,66 +32,37 @@ public class H2Book implements Serializable {
     private String longDescription;
 
     private String status;
-    private String authors0;
-    private String authors1;
-    private String authors2;
-    private String authors3;
-    private String authors4;
-    private String authors5;
-    private String authors6;
-    private String authors7;
-    private String categories0;
-    private String categories1;
-    private String categories2;
-    private String categories3;
 
-    /* NOT exposing these getters for individual author/category items */
-    private String getAuthors0() {
-        return authors0;
-    }
+    // NOT exposing the getters/setters for individual author/category items
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String authors0;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String authors1;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String authors2;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String authors3;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String authors4;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String authors5;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String authors6;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String authors7;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String categories0;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String categories1;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String categories2;
+    @Getter(AccessLevel.PRIVATE) @Setter(AccessLevel.PRIVATE) private String categories3;
 
-    private String getAuthors1() {
-        return authors1;
-    }
-
-    private String getAuthors2() {
-        return authors2;
-    }
-
-    private String getAuthors3() {
-        return authors3;
-    }
-
-    private String getAuthors4() {
-        return authors4;
-    }
-
-    private String getAuthors5() {
-        return authors5;
-    }
-
-    private String getAuthors6() {
-        return authors6;
-    }
-
-    private String getAuthors7() {
-        return authors7;
-    }
-
-    private String getCategories0() {
-        return categories0;
-    }
-
-    private String getCategories1() {
-        return categories1;
-    }
-
-    private String getCategories2() {
-        return categories2;
-    }
-
-    private String getCategories3() {
-        return categories3;
+    @Transient
+    public Collection<String> getAuthors() {
+        return Arrays.asList(
+                authors0
+                , authors1
+                , authors2
+                , authors3
+                , authors4
+                , authors5
+                , authors6
+                , authors7
+        )
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+                ;
     }
 
     public void setAuthors(final List<String> authors) {
@@ -123,16 +94,12 @@ public class H2Book implements Serializable {
     }
 
     @Transient
-    public Collection<String> getAuthors() {
+    public Collection<String> getCategories() {
         return Arrays.asList(
-                authors0
-                , authors1
-                , authors2
-                , authors3
-                , authors4
-                , authors5
-                , authors6
-                , authors7
+                categories0
+                , categories1
+                , categories2
+                , categories3
         )
                 .stream()
                 .filter(Objects::nonNull)
@@ -154,20 +121,6 @@ public class H2Book implements Serializable {
                 categories3 = categories.get(3);
             }
         }
-    }
-
-    @Transient
-    public Collection<String> getCategories() {
-        return Arrays.asList(
-                categories0
-                , categories1
-                , categories2
-                , categories3
-        )
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-                ;
     }
 }
 
