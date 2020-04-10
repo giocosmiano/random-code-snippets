@@ -27,6 +27,15 @@ public class JwtService {
             }
             return encodedJwtBook;
         });
+
+        // OR using Mono.defer()
+//        return Mono.defer(() -> {
+//            String encodedJwtBook = null;
+//            if (Objects.nonNull(book)) {
+//                encodedJwtBook = JwtConfig.generateJwtConfigs(jwtSecretKey, book);
+//            }
+//            return Mono.justOrEmpty(encodedJwtBook);
+//        });
     }
 
     public Mono<Book> parseJwtConfigs(final String encodedJwtBook) {
@@ -37,5 +46,14 @@ public class JwtService {
             }
             return book;
         });
+
+        // OR using Mono.defer()
+//        return Mono.defer(() -> {
+//            Book book = null;
+//            if (StringUtils.isNoneEmpty(encodedJwtBook)) {
+//                book = JwtConfig.parseJwtConfigs(jwtSecretKey, encodedJwtBook, Book.class);
+//            }
+//            return Mono.justOrEmpty(book);
+//        });
     }
 }
