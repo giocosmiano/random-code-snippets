@@ -55,6 +55,10 @@ logging:
     com:
       giocosmiano: DEBUG
 
+# JWT secret key
+jwtSecretKey: Th1s1sAV3ryL0ngSecretKeyIndeed!!$
+
+
 # enable actuator endpoints
 #endpoints.autoconfig.enabled=true
 #endpoints.beans.enabled=true

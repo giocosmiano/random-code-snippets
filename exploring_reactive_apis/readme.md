@@ -35,6 +35,18 @@
    - [Reactive Programming at Netflix](https://netflixtechblog.com/reactive-programming-at-netflix-b944d49874d2)
    - [Optimizing the Netflix API](https://netflixtechblog.com/optimizing-the-netflix-api-5c9ac715cf19)
    - [Spring WebFlux](https://howtodoinjava.com/spring-webflux/spring-webflux-tutorial/)
+
+ - **Extra stuff - [JWT](https://jwt.io/) exploration using [JJWT](https://github.com/jwtk/jjwt)**
+   - [JJWT – JSON Web Token for Java and Android](https://stormpath.com/blog/jjwt-how-it-works-why)
+   - [A Beginner’s Guide to JWTs in Java](https://stormpath.com/blog/beginners-guide-jwts-in-java)
+   - [Supercharge Java Authentication with JSON Web Tokens (JWTs)](https://www.baeldung.com/java-json-web-tokens-jjwt)
+   - [Create and Verify JWTs in Java](https://developer.okta.com/blog/2018/10/31/jwts-with-java)
+
+ - [Spring Externalized Configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config) 
+   - [Spring Externalized Configuration v.1.5.22](https://docs.spring.io/spring-boot/docs/1.5.22.RELEASE/reference/html/boot-features-external-config.html) 
+ - [Spring Profile-specific Properties](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-profile-specific-properties)
+   - Overriding spring profile/property at runtime, such as overriding property `jwtSecretKey` e.g.
+     - java -jar -Dspring.profiles.active=dev ./exploring_reactive_apis-1.0-SNAPSHOT.jar --jwtSecretKey="Th1s1sAV3ryL0ngSecretKeyIndeed!!$"
  
 
 

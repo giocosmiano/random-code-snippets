@@ -19,7 +19,7 @@ import java.time.Duration;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class H2BookController {
 
-    private H2BookService bookService;
+    private final H2BookService bookService;
 
     public H2BookController(H2BookService bookService) {
         this.bookService = bookService;

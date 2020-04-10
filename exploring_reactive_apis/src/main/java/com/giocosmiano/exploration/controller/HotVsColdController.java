@@ -29,7 +29,7 @@ public class HotVsColdController {
 
     private static final Logger log = LoggerFactory.getLogger(HotVsColdController.class);
 
-    private HotVsColdReactiveService hotVsColdReactiveService;
+    private final HotVsColdReactiveService hotVsColdReactiveService;
 
     public HotVsColdController(
             HotVsColdReactiveService hotVsColdReactiveService
