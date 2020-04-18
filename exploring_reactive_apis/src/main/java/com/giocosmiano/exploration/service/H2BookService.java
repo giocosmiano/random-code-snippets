@@ -18,9 +18,9 @@ public class H2BookService {
 
     protected static final Logger log = LoggerFactory.getLogger(H2BookService.class);
 
-    private Scheduler jdbcScheduler;
-    private TransactionTemplate transactionTemplate;
-    private H2BookRepository bookRepository;
+    private final Scheduler jdbcScheduler;
+    private final TransactionTemplate transactionTemplate;
+    private final H2BookRepository bookRepository;
 
     public H2BookService(
             @Qualifier("jdbcScheduler") Scheduler jdbcScheduler

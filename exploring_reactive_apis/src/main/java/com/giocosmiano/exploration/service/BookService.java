@@ -17,7 +17,7 @@ public class BookService {
 
     protected static final Logger log = LoggerFactory.getLogger(BookService.class);
 
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
 
     public BookService(BookRepository bookRepository) {
         this.bookRepository = bookRepository;

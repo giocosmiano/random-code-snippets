@@ -27,8 +27,8 @@ public class HotVsColdReactiveService {
 
     protected static final Logger log = LoggerFactory.getLogger(HotVsColdReactiveService.class);
 
-    private HotVsColdObservables hotVsColdObservables;
-    private HotVsColdReactorFlux hotVsColdReactorFlux;
+    private final HotVsColdObservables hotVsColdObservables;
+    private final HotVsColdReactorFlux hotVsColdReactorFlux;
 
     public HotVsColdReactiveService(
             HotVsColdObservables hotVsColdObservables

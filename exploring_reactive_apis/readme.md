@@ -47,7 +47,11 @@
  - [Spring Profile-specific Properties](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-profile-specific-properties)
    - Overriding spring profile/property at runtime, such as overriding property `jwtSecretKey` e.g.
      - java -jar -Dspring.profiles.active=dev ./exploring_reactive_apis-1.0-SNAPSHOT.jar --jwtSecretKey="Th1s1sAV3ryL0ngSecretKeyIndeed!!$"
- 
+
+ - **Extra stuff - Simulation to demonstrate eagerness of `Mono.just()` vs laziness of `Mono.fromCallable()` and `Mono.defer()` using UUIDGenerator**
+   -  [Mono.just()](https://projectreactor.io/docs/core/release/api/reactor/core/publisher/Mono.html#just-T-)
+   -  [Mono.fromCallable()](https://projectreactor.io/docs/core/release/api/reactor/core/publisher/Mono.html#fromCallable-java.util.concurrent.Callable-)
+   -  [Mono.defer()](https://projectreactor.io/docs/core/release/api/reactor/core/publisher/Mono.html#defer-java.util.function.Supplier-)
 
 
 
