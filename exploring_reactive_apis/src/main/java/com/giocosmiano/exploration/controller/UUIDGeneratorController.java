@@ -32,7 +32,7 @@ public class UUIDGeneratorController {
                 ;
     }
 
-    @GetMapping(value = "callable", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "lazyCallable", produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<ResponseEntity<String>> generateLazyCallableRandomUUIDs(@RequestParam(name = "numberOfUUIDs", required = false) Integer numberOfUUIDs) {
         return uuidGeneratorService
                 .generateLazyCallableRandomUUIDs(numberOfUUIDs)
@@ -41,7 +41,7 @@ public class UUIDGeneratorController {
                 ;
     }
 
-    @GetMapping(value = "defer", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "lazyDefer", produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<ResponseEntity<String>> generateLazyDeferRandomUUIDs(@RequestParam(name = "numberOfUUIDs", required = false) Integer numberOfUUIDs) {
         return uuidGeneratorService
                 .generateLazyDeferRandomUUIDs(numberOfUUIDs)
