@@ -20,60 +20,60 @@ public class UUIDGeneratorService {
     public static final Integer DEFAULT_NUMBER_OF_RANDOM_UUIDS = 5;
     protected static final Logger log = LoggerFactory.getLogger(UUIDGeneratorService.class);
 
-    private final Function<Integer, Flux<String>> getRandomUUIDs =
+    private final Function<Integer, Flux<String>> getEagerRandomUUIDs =
             numberOfUUIDs -> {
                 AtomicReference<List<String>> atomicReference = new AtomicReference<>();
                 atomicReference.set(new ArrayList<>());
-                Mono<String> mono = Mono.just(UUID.randomUUID().toString());
+                Mono<String> mono = Mono.just(UUID.randomUUID().toString()); // using eager Mono.just()
                 IntStream.range(0, numberOfUUIDs)
                         .forEach(i -> mono.subscribe(uuid -> atomicReference.get().add(uuid)));
                 return Flux.fromIterable(atomicReference.get());
             };
 
-    private final Function<Integer, Flux<String>> getCallableRandomUUIDs =
+    private final Function<Integer, Flux<String>> getLazyCallableRandomUUIDs =
             numberOfUUIDs -> {
                 AtomicReference<List<String>> atomicReference = new AtomicReference<>();
                 atomicReference.set(new ArrayList<>());
-                Mono<String> mono = Mono.fromCallable(() -> UUID.randomUUID().toString());
+                Mono<String> mono = Mono.fromCallable(() -> UUID.randomUUID().toString()); // using lazy Mono.fromCallable()
                 IntStream.range(0, numberOfUUIDs)
                         .forEach(i -> mono.subscribe(uuid -> atomicReference.get().add(uuid)));
                 return Flux.fromIterable(atomicReference.get());
             };
 
-    private final Function<Integer, Flux<String>> getDeferRandomUUIDs =
+    private final Function<Integer, Flux<String>> getLazyDeferRandomUUIDs =
             numberOfUUIDs -> {
                 AtomicReference<List<String>> atomicReference = new AtomicReference<>();
                 atomicReference.set(new ArrayList<>());
-                Mono<String> mono = Mono.defer(() -> Mono.just(UUID.randomUUID().toString()));
+                Mono<String> mono = Mono.defer(() -> Mono.just(UUID.randomUUID().toString())); // using lazy Mono.defer()
                 IntStream.range(0, numberOfUUIDs)
                         .forEach(i -> mono.subscribe(uuid -> atomicReference.get().add(uuid)));
                 return Flux.fromIterable(atomicReference.get());
             };
 
-    public Flux<String> generateRandomUUIDs() {
-        return generateRandomUUIDs(DEFAULT_NUMBER_OF_RANDOM_UUIDS);
+    public Flux<String> generateEagerRandomUUIDs() {
+        return generateEagerRandomUUIDs(DEFAULT_NUMBER_OF_RANDOM_UUIDS);
     }
 
-    public Flux<String> generateRandomUUIDs(final Integer numberOfUUIDs) {
+    public Flux<String> generateEagerRandomUUIDs(final Integer numberOfUUIDs) {
         Integer nbrOfUUIDs = Optional.ofNullable(numberOfUUIDs).orElseGet(() -> DEFAULT_NUMBER_OF_RANDOM_UUIDS);
-        return getRandomUUIDs.apply(nbrOfUUIDs);
+        return getEagerRandomUUIDs.apply(nbrOfUUIDs);
     }
 
-    public Flux<String> generateCallableRandomUUIDs() {
-        return generateCallableRandomUUIDs(DEFAULT_NUMBER_OF_RANDOM_UUIDS);
+    public Flux<String> generateLazyCallableRandomUUIDs() {
+        return generateLazyCallableRandomUUIDs(DEFAULT_NUMBER_OF_RANDOM_UUIDS);
     }
 
-    public Flux<String> generateCallableRandomUUIDs(final Integer numberOfUUIDs) {
+    public Flux<String> generateLazyCallableRandomUUIDs(final Integer numberOfUUIDs) {
         Integer nbrOfUUIDs = Optional.ofNullable(numberOfUUIDs).orElseGet(() -> DEFAULT_NUMBER_OF_RANDOM_UUIDS);
-        return getCallableRandomUUIDs.apply(nbrOfUUIDs);
+        return getLazyCallableRandomUUIDs.apply(nbrOfUUIDs);
     }
 
-    public Flux<String> generateDeferRandomUUIDs() {
-        return generateDeferRandomUUIDs(DEFAULT_NUMBER_OF_RANDOM_UUIDS);
+    public Flux<String> generateLazyDeferRandomUUIDs() {
+        return generateLazyDeferRandomUUIDs(DEFAULT_NUMBER_OF_RANDOM_UUIDS);
     }
 
-    public Flux<String> generateDeferRandomUUIDs(final Integer numberOfUUIDs) {
+    public Flux<String> generateLazyDeferRandomUUIDs(final Integer numberOfUUIDs) {
         Integer nbrOfUUIDs = Optional.ofNullable(numberOfUUIDs).orElseGet(() -> DEFAULT_NUMBER_OF_RANDOM_UUIDS);
-        return getDeferRandomUUIDs.apply(nbrOfUUIDs);
+        return getLazyDeferRandomUUIDs.apply(nbrOfUUIDs);
     }
 }

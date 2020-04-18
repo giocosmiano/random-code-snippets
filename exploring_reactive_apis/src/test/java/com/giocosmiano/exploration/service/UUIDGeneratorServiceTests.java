@@ -22,8 +22,8 @@ public class UUIDGeneratorServiceTests {
     @Autowired private UUIDGeneratorService uuidGeneratorService;
 
     @Test
-    public void generateRandomUUIDsShouldHaveSameUUIDs() {
-        Flux<String> uuids = uuidGeneratorService.generateRandomUUIDs();
+    public void generateEagerRandomUUIDsShouldHaveSameUUIDs() {
+        Flux<String> uuids = uuidGeneratorService.generateEagerRandomUUIDs();
         StepVerifier.create(uuids)
                 .recordWith(ArrayList::new)
                 .expectNextCount(DEFAULT_NUMBER_OF_RANDOM_UUIDS)
@@ -37,8 +37,8 @@ public class UUIDGeneratorServiceTests {
     }
 
     @Test
-    public void generateCallableRandomUUIDsShouldBeRandom() {
-        Flux<String> uuids = uuidGeneratorService.generateCallableRandomUUIDs();
+    public void generateLazyCallableRandomUUIDsShouldBeRandom() {
+        Flux<String> uuids = uuidGeneratorService.generateLazyCallableRandomUUIDs();
         StepVerifier.create(uuids)
                 .recordWith(ArrayList::new)
                 .expectNextCount(DEFAULT_NUMBER_OF_RANDOM_UUIDS)
@@ -53,8 +53,8 @@ public class UUIDGeneratorServiceTests {
     }
 
     @Test
-    public void generateDeferRandomUUIDsShouldBeRandom() {
-        Flux<String> uuids = uuidGeneratorService.generateDeferRandomUUIDs();
+    public void generateLazyDeferRandomUUIDsShouldBeRandom() {
+        Flux<String> uuids = uuidGeneratorService.generateLazyDeferRandomUUIDs();
         StepVerifier.create(uuids)
                 .recordWith(ArrayList::new)
                 .expectNextCount(5)

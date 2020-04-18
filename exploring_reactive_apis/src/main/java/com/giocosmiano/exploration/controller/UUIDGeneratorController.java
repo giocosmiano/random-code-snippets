@@ -24,27 +24,27 @@ public class UUIDGeneratorController {
     private static final Logger log = LoggerFactory.getLogger(UUIDGeneratorController.class);
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<ResponseEntity<String>> generateRandomUUID(@RequestParam(name = "numberOfUUIDs", required = false) Integer numberOfUUIDs) {
+    public Flux<ResponseEntity<String>> generateEagerRandomUUIDs(@RequestParam(name = "numberOfUUIDs", required = false) Integer numberOfUUIDs) {
         return uuidGeneratorService
-                .generateRandomUUIDs(numberOfUUIDs)
+                .generateEagerRandomUUIDs(numberOfUUIDs)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
                 ;
     }
 
     @GetMapping(value = "callable", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<ResponseEntity<String>> generateCallableRandomUUIDs(@RequestParam(name = "numberOfUUIDs", required = false) Integer numberOfUUIDs) {
+    public Flux<ResponseEntity<String>> generateLazyCallableRandomUUIDs(@RequestParam(name = "numberOfUUIDs", required = false) Integer numberOfUUIDs) {
         return uuidGeneratorService
-                .generateCallableRandomUUIDs(numberOfUUIDs)
+                .generateLazyCallableRandomUUIDs(numberOfUUIDs)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
                 ;
     }
 
     @GetMapping(value = "defer", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<ResponseEntity<String>> generateDeferRandomUUID(@RequestParam(name = "numberOfUUIDs", required = false) Integer numberOfUUIDs) {
+    public Flux<ResponseEntity<String>> generateLazyDeferRandomUUIDs(@RequestParam(name = "numberOfUUIDs", required = false) Integer numberOfUUIDs) {
         return uuidGeneratorService
-                .generateDeferRandomUUIDs(numberOfUUIDs)
+                .generateLazyDeferRandomUUIDs(numberOfUUIDs)
                 .map(ResponseEntity::ok)
                 .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
                 ;
