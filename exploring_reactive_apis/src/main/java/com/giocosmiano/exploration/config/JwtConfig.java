@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultClaims;
+import org.jasypt.util.text.AES256TextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,9 @@ import java.util.UUID;
 public class JwtConfig {
 
     public static final String JWS_BODY = "jwsBody";
+    public static final String SAMPLE_SUBJECT = "sampleSubject";
+    public static final String SAMPLE_ISSUER = "sampleIssuer";
+    public static final String SAMPLE_AUDIENCE = "sampleAudience";
     protected static final Logger log = LoggerFactory.getLogger(JwtConfig.class);
 
     /**
@@ -40,17 +44,21 @@ public class JwtConfig {
             ObjectMapper objectMapper = new ObjectMapper();
             String jwsBody = objectMapper.writeValueAsString(jwtConfigs);
 
+            AES256TextEncryptor aes256TextEncryptor = new AES256TextEncryptor();
+            aes256TextEncryptor.setPassword(secretKey);
+            String encryptedJwsBody = aes256TextEncryptor.encrypt(jwsBody);
+
             Calendar date = Calendar.getInstance();
             date.add(Calendar.DATE, 1);
 
             DefaultClaims defaultClaims = new DefaultClaims();
             defaultClaims.setId(UUID.randomUUID().toString());
-            defaultClaims.setSubject("userId_123"); // sample userId
-            defaultClaims.setAudience("audience");
-            defaultClaims.setIssuer("sampleIssuer");
+            defaultClaims.setSubject(SAMPLE_SUBJECT);
+            defaultClaims.setAudience(SAMPLE_AUDIENCE);
+            defaultClaims.setIssuer(SAMPLE_ISSUER);
             defaultClaims.setIssuedAt(Calendar.getInstance().getTime());
             defaultClaims.setExpiration(date.getTime()); // valid for 1-day
-            defaultClaims.put(JWS_BODY, jwsBody);
+            defaultClaims.put(JWS_BODY, encryptedJwsBody);
             encryptedConfigSettings =
                     Jwts.builder()
                             .setClaims(defaultClaims)
@@ -95,7 +103,12 @@ public class JwtConfig {
             log.info("jwsHeader: {}", jwsHeader.toString());
             log.info("jwsPayload: {}", jwsPayloadStr);
 
-            String jwsBody = (String)defaultClaims.get(JWS_BODY);
+            String encryptedJwsBody = (String)defaultClaims.get(JWS_BODY);
+
+            AES256TextEncryptor aes256TextEncryptor = new AES256TextEncryptor();
+            aes256TextEncryptor.setPassword(secretKey);
+            String jwsBody = aes256TextEncryptor.decrypt(encryptedJwsBody);
+
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             decryptedConfigSettings = objectMapper.readValue(jwsBody, clazz);

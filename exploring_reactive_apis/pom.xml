@@ -35,6 +35,8 @@
         <h2DBVersion>1.4.200</h2DBVersion>
         <swaggerVersion>2.9.2</swaggerVersion>
         <jsonwebtokenVersion>0.11.1</jsonwebtokenVersion>
+        <jose4jVersion>0.7.0</jose4jVersion>
+        <jasyptVersion>1.9.3</jasyptVersion>
         <apacheCommonsLangVersion>3.9</apacheCommonsLangVersion>
     </properties>
 
@@ -221,6 +223,22 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
             <version>${swaggerVersion}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.jasypt/jasypt -->
+        <dependency>
+            <groupId>org.jasypt</groupId>
+            <artifactId>jasypt</artifactId>
+            <version>${jasyptVersion}</version>
+        </dependency>
+
+        <!-- JWT -->
+        <!-- https://jwt.io/ -->
+        <!-- https://bitbucket.org/b_c/jose4j/wiki/Home -->
+        <dependency>
+            <groupId>org.bitbucket.b_c</groupId>
+            <artifactId>jose4j</artifactId>
+            <version>${jose4jVersion}</version>
         </dependency>
 
         <!-- JWT -->

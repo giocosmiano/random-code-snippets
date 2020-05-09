@@ -56,7 +56,7 @@ logging:
       giocosmiano: DEBUG
 
 # JWT secret key
-jwtSecretKey: Th1s1sAV3ryL0ngSecretKeyIndeed!!$
+jwtSecretKey: ThisIsAVeryLongSecretKey1234$!!!
 
 
 # enable actuator endpoints
