@@ -133,7 +133,7 @@ public class InitDatabase {
                 h2Book.setCategories(categories);
                 h2BookRepository.save(h2Book);
 
-                log.debug(String.format("Inserted Book %s", newBook));
+//                log.debug(String.format("Inserted Book %s", newBook));
             });
 
             reader.close();

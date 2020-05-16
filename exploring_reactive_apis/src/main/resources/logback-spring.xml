@@ -6,9 +6,20 @@
     <appender name="Console"
               class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
+            <!--
+            see aspect.LoggingAspect for logging with `requestID`
+            https://www.youtube.com/watch?v=5tlZddM5Jo0
+            https://simonbasle.github.io/2018/02/contextual-logging-with-reactor-context-and-mdc/
+            -->
+            <Pattern>
+                %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %cyan([%X{requestID}]) %msg%n%throwable
+            </Pattern>
+<!--
+  Original
             <Pattern>
                 %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable
             </Pattern>
+-->
         </layout>
     </appender>
 
