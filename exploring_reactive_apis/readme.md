@@ -66,6 +66,8 @@
    - [Passing Context with Spring WebFlux Part 1](https://ndportmann.com/passing-context-with-spring-webflux/)
    - [Logging with Context in Spring WebFlux Part 2](https://ndportmann.com/logging-with-context-in-spring-webflux/)
    - [Logging in a multithreaded environment and with CompletableFuture construct using MDC](https://medium.com/asyncparadigm/logging-in-a-multithreaded-environment-and-with-completablefuture-construct-using-mdc-1c34c691cef0)
+   - [Project Reactor + MDC logging](https://medium.com/@grigorryev/project-reactor-mdc-logging-1047d235ff6e)
+   - [Getting Mono context when using Mono.fromCallable](https://stackoverflow.com/questions/51275642/getting-mono-context-when-using-mono-fromcallable)
 
 
 

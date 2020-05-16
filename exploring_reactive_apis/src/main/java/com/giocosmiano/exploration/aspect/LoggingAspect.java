@@ -28,6 +28,8 @@ import java.util.stream.Stream;
 @Component
 public class LoggingAspect {
 
+  // see logback-spring.xml for logging.pattern.console settings with added `requestID`
+  // %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %cyan([%X{requestID}]) %msg%n%throwable
   public static final String REQUEST_ID = "requestID";
 
   // https://www.youtube.com/watch?v=5tlZddM5Jo0 (Reactor Context)
@@ -61,25 +63,28 @@ public class LoggingAspect {
             );
   }
 
-  @Around("execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.controller.*.*(..))")
+//  @Around("execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.controller.*.*(..))")
+  @Around("monoControllerPointcut()")
   public Mono<?> loggingMonoWithAddedContext(final ProceedingJoinPoint joinPoint) {
     try {
       return loggingEntry(joinPoint)
               .doOnEach(logOnNext(log::info))
               .then((Mono<?>) joinPoint.proceed())
               .doOnEach(logOnNext(log::debug))
-              .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString()))
+              .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
+              .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
               ;
     } catch (Throwable throwable) {
       return Mono.error(throwable);
     }
   }
 
-  @Around(
-          "execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.service.*.*(..)) "
-                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
-                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.repository.*.*(..)) "
-  )
+//  @Around(
+//          "execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.service.*.*(..)) "
+//                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
+//                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.repository.*.*(..)) "
+//  )
+  @Around("monoApplicationPointcut()")
   public Mono<?> loggingMono(final ProceedingJoinPoint joinPoint) {
     try {
       return loggingEntry(joinPoint)
@@ -92,25 +97,28 @@ public class LoggingAspect {
     }
   }
 
-  @Around("execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.controller.*.*(..))")
+//  @Around("execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.controller.*.*(..))")
+  @Around("fluxControllerPointcut()")
   public Flux<?> loggingFluxWithAddedContext(final ProceedingJoinPoint joinPoint) {
     try {
       return loggingEntry(joinPoint)
               .doOnEach(logOnNext(log::info))
               .thenMany((Flux<?>) joinPoint.proceed())
               .doOnEach(logOnNext(log::debug))
-              .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString()))
+              .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
+              .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
               ;
     } catch (Throwable throwable) {
       return Flux.error(throwable);
     }
   }
 
-  @Around(
-          "execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.service.*.*(..)) "
-                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
-                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.repository.*.*(..)) "
-  )
+//  @Around(
+//          "execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.service.*.*(..)) "
+//                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
+//                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.repository.*.*(..)) "
+//  )
+  @Around("fluxApplicationPointcut()")
   public Flux<?> loggingFlux(final ProceedingJoinPoint joinPoint) {
     try {
       return loggingEntry(joinPoint)
@@ -123,19 +131,31 @@ public class LoggingAspect {
     }
   }
 
+//  @Pointcut(
+//          "within(com.giocosmiano.exploration.service..*) "
+//                  + " || within(com.giocosmiano.exploration.reactiveApis..*) "
+//                  + " || within(com.giocosmiano.exploration.repository..*) "
+//  )
   @Pointcut(
-          "within(com.giocosmiano.exploration.service..*) "
-                  + " || within(com.giocosmiano.exploration.reactiveApis..*) "
-                  + " || within(com.giocosmiano.exploration.repository..*) "
+          "execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.service.*.*(..)) "
+                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.repository.*.*(..)) "
+                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
   )
-  public void applicationPointcut() {
-    // empty body as it is a pointcut
-  }
+  public void monoApplicationPointcut() { } // empty body as it is a pointcut
 
   @Pointcut(
-          "within(com.giocosmiano.exploration.controller..*) "
+          "execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.service.*.*(..)) "
+                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
+                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.repository.*.*(..)) "
   )
-  public void controllerPointcut() {
-    // empty body as it is a pointcut
-  }
+  public void fluxApplicationPointcut() { } // empty body as it is a pointcut
+
+//  @Pointcut(
+//          "within(com.giocosmiano.exploration.controller..*) "
+//  )
+  @Pointcut("execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.controller.*.*(..))")
+  public void monoControllerPointcut() { } // empty body as it is a pointcut
+
+  @Pointcut("execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.controller.*.*(..))")
+  public void fluxControllerPointcut() { } // empty body as it is a pointcut
 }

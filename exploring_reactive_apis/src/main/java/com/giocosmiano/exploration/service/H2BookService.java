@@ -31,15 +31,15 @@ public class H2BookService {
         this.bookRepository = bookRepository;
     }
 
-    public Mono<H2Book> getById(Long id) {
+    public Mono<H2Book> getById(final Long id) {
         return Mono
                 .defer(() -> Mono.justOrEmpty(bookRepository.findById(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
-                .doOnSuccess(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
+                .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
                 .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
                 ;
     }
 
-    public Flux<H2Book> getByIsbn(String id) {
+    public Flux<H2Book> getByIsbn(final String id) {
         return Flux
                 .defer(() -> Flux.fromIterable(bookRepository.findByIsbn(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
                 .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
@@ -55,14 +55,13 @@ public class H2BookService {
                 ;
     }
 
-
     public Mono<H2Book> create(final H2Book book) {
         if (Objects.nonNull(book)) {
             book.setId(null);
             return Mono
                     .fromCallable(() -> transactionTemplate.execute(status -> bookRepository.save(book)))
                     .log("bookService.create() on log()" + book)
-                    .doOnSuccess(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
+                    .doOnNext(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
                     .subscribeOn(jdbcScheduler) // running the request on different thread-pool
             ;
 
@@ -82,7 +81,7 @@ public class H2BookService {
                         return bookRepository.save(book);
                     }))
                     .log("bookService.update() on log()" + book)
-                    .doOnSuccess(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
+                    .doOnNext(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
                     .subscribeOn(jdbcScheduler) // running the request on different thread-pool
                     ;
 
@@ -108,7 +107,7 @@ public class H2BookService {
                     return oldBook;
                 }))
                 .log("bookService.delete() on log()" + id)
-                .doOnSuccess(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
+                .doOnNext(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
                 .subscribeOn(jdbcScheduler) // running the request on different thread-pool
                 ;
     }

@@ -23,11 +23,11 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
-    public Mono<Book> getById(Long id) {
+    public Mono<Book> getById(final Long id) {
         return bookRepository.findById(id);
     }
 
-    public Flux<Book> getByIsbn(String id) {
+    public Flux<Book> getByIsbn(final String id) {
         return bookRepository.findBookByIsbn(id);
     }
 
@@ -45,7 +45,7 @@ public class BookService {
             return bookRepository
                     .save(book)
                     .log("bookService.create() on log()" + book)
-                    .doOnSuccess(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
+                    .doOnNext(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
                     ;
 
         } else {
@@ -60,7 +60,7 @@ public class BookService {
                     .map(oldBook -> book)
                     .flatMap(bookRepository::save)
                     .log("bookService.update() on log()" + book)
-                    .doOnSuccess(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
+                    .doOnNext(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
                     ;
 
         } else {
@@ -84,7 +84,7 @@ public class BookService {
                                 .then(Mono.just(either.get())) // returning the deleted entity by playing another Mono<Book> after the Mono<Void> completes
                 )
                 .log("bookService.delete() on log()" + id)
-                .doOnSuccess(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
+                .doOnNext(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
                 ;
     }
 }
