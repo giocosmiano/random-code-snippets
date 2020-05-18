@@ -1,10 +1,14 @@
 package com.giocosmiano.exploration.aspect;
 
 import lombok.extern.log4j.Log4j2;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -63,99 +67,114 @@ public class LoggingAspect {
             );
   }
 
-//  @Around("execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.controller.*.*(..))")
-  @Around("monoControllerPointcut()")
-  public Mono<?> loggingMonoWithAddedContext(final ProceedingJoinPoint joinPoint) {
+//  @Pointcut(
+//          "execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.controller.*.*(..)) "
+//                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.controller.*.*(..)) "
+//  )
+  @Pointcut("within(com.giocosmiano.exploration.controller..*)")
+  public void controllerPointcut() { } // empty body as it is a pointcut
+
+  @Around("controllerPointcut()")
+  public Object loggingReactorWithAddedContext(final ProceedingJoinPoint joinPoint) throws Throwable {
+    Signature signature = joinPoint.getSignature();
+    Class<?> returnType = ((MethodSignature) signature).getReturnType();
+
     try {
-      return loggingEntry(joinPoint)
-              .doOnEach(logOnNext(log::info))
-              .then((Mono<?>) joinPoint.proceed())
-              .doOnEach(logOnNext(log::debug))
-              .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
-              .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
-              ;
+      if (returnType.equals(Mono.class)) {
+        return loggingEntry(joinPoint)
+                .doOnEach(logOnNext(log::info))
+                .then((Mono<?>) joinPoint.proceed())
+                .doOnEach(logOnNext(log::debug))
+                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
+                .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
+                ;
+
+      } else if (returnType.equals(Flux.class)) {
+        return loggingEntry(joinPoint)
+                .doOnEach(logOnNext(log::info))
+                .thenMany((Flux<?>) joinPoint.proceed())
+                .doOnEach(logOnNext(log::debug))
+                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
+                .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
+                ;
+      }
+
+      return joinPoint.proceed();
+
     } catch (Throwable throwable) {
-      return Mono.error(throwable);
+      if (returnType.equals(Mono.class)) {
+        return Mono.error(throwable);
+
+      } else if (returnType.equals(Flux.class)) {
+        return Flux.error(throwable);
+      }
+
+      throw throwable;
     }
   }
 
-//  @Around(
+//  @Pointcut(
 //          "execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.service.*.*(..)) "
 //                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
 //                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.repository.*.*(..)) "
-//  )
-  @Around("monoApplicationPointcut()")
-  public Mono<?> loggingMono(final ProceedingJoinPoint joinPoint) {
-    try {
-      return loggingEntry(joinPoint)
-              .doOnEach(logOnNext(log::info))
-              .then((Mono<?>) joinPoint.proceed())
-              .doOnEach(logOnNext(log::debug))
-              ;
-    } catch (Throwable throwable) {
-      return Mono.error(throwable);
-    }
-  }
-
-//  @Around("execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.controller.*.*(..))")
-  @Around("fluxControllerPointcut()")
-  public Flux<?> loggingFluxWithAddedContext(final ProceedingJoinPoint joinPoint) {
-    try {
-      return loggingEntry(joinPoint)
-              .doOnEach(logOnNext(log::info))
-              .thenMany((Flux<?>) joinPoint.proceed())
-              .doOnEach(logOnNext(log::debug))
-              .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
-              .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
-              ;
-    } catch (Throwable throwable) {
-      return Flux.error(throwable);
-    }
-  }
-
-//  @Around(
-//          "execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.service.*.*(..)) "
+//                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.service.*.*(..)) "
 //                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
 //                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.repository.*.*(..)) "
 //  )
-  @Around("fluxApplicationPointcut()")
-  public Flux<?> loggingFlux(final ProceedingJoinPoint joinPoint) {
+  @Pointcut(
+          "within(com.giocosmiano.exploration.service..*) "
+                  + " || within(com.giocosmiano.exploration.reactiveApis..*) "
+                  + " || within(com.giocosmiano.exploration.repository..*) "
+  )
+  public void applicationPointcut() { } // empty body as it is a pointcut
+
+  @Around("applicationPointcut()")
+  public Object loggingReactor(final ProceedingJoinPoint joinPoint) throws Throwable {
+    Signature signature = joinPoint.getSignature();
+    Class<?> returnType = ((MethodSignature) signature).getReturnType();
+
     try {
-      return loggingEntry(joinPoint)
-              .doOnEach(logOnNext(log::info))
-              .thenMany((Flux<?>) joinPoint.proceed())
-              .doOnEach(logOnNext(log::debug))
-              ;
+      if (returnType.equals(Mono.class)) {
+        return loggingEntry(joinPoint)
+                .doOnEach(logOnNext(log::info))
+                .then((Mono<?>) joinPoint.proceed())
+                .doOnEach(logOnNext(log::debug))
+                ;
+
+      } else if (returnType.equals(Flux.class)) {
+        return loggingEntry(joinPoint)
+                .doOnEach(logOnNext(log::info))
+                .thenMany((Flux<?>) joinPoint.proceed())
+                .doOnEach(logOnNext(log::debug))
+                ;
+      }
+
+      return joinPoint.proceed();
+
     } catch (Throwable throwable) {
-      return Flux.error(throwable);
+      if (returnType.equals(Mono.class)) {
+        return Mono.error(throwable);
+
+      } else if (returnType.equals(Flux.class)) {
+        return Flux.error(throwable);
+      }
+
+      throw throwable;
     }
   }
 
-//  @Pointcut(
-//          "within(com.giocosmiano.exploration.service..*) "
-//                  + " || within(com.giocosmiano.exploration.reactiveApis..*) "
-//                  + " || within(com.giocosmiano.exploration.repository..*) "
-//  )
-  @Pointcut(
-          "execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.service.*.*(..)) "
-                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.repository.*.*(..)) "
-                  + " || execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
-  )
-  public void monoApplicationPointcut() { } // empty body as it is a pointcut
-
-  @Pointcut(
-          "execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.service.*.*(..)) "
-                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.reactiveApis.*.*(..)) "
-                  + " || execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.repository.*.*(..)) "
-  )
-  public void fluxApplicationPointcut() { } // empty body as it is a pointcut
-
-//  @Pointcut(
-//          "within(com.giocosmiano.exploration.controller..*) "
-//  )
-  @Pointcut("execution(reactor.core.publisher.Mono+ com.giocosmiano.exploration.controller.*.*(..))")
-  public void monoControllerPointcut() { } // empty body as it is a pointcut
-
-  @Pointcut("execution(reactor.core.publisher.Flux+ com.giocosmiano.exploration.controller.*.*(..))")
-  public void fluxControllerPointcut() { } // empty body as it is a pointcut
+  @AfterThrowing(pointcut = "controllerPointcut() && applicationPointcut()", throwing = "ex")
+  public void loggingException(final JoinPoint joinPoint, final Throwable ex) {
+    log.error(
+            String.format("Exception error in %s.%s with args %s, with cause %s"
+                    , joinPoint.getSignature().getDeclaringType()
+                    , joinPoint.getSignature().getName()
+                    , Stream.of(joinPoint.getArgs())
+                            .filter(Objects::nonNull)
+                            .map(Object::toString)
+                            .collect(Collectors.joining(",", "[", "]"))
+                    , Objects.isNull(ex.getCause()) ? "NULL" : ex.getCause()
+            )
+    );
+  }
 }
