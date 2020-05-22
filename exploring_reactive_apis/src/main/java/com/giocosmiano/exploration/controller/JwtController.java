@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 
 @Controller
 @RequestMapping(value = "/jwt")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class JwtController {
 
     private final JwtService jwtService;

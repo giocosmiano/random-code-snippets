@@ -12,7 +12,6 @@ import reactor.core.publisher.Mono;
 
 @Controller
 @RequestMapping(value = "/uuid")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UUIDGeneratorController {
 
     private final UUIDGeneratorService uuidGeneratorService;

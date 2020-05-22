@@ -16,7 +16,6 @@ import java.time.Duration;
 
 @Controller
 @RequestMapping(value = "/h2Books")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class H2BookController {
 
     private final H2BookService bookService;
