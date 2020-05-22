@@ -1,7 +1,6 @@
 package com.giocosmiano.exploration.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,11 +13,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+@Log4j2
 @Service
 public class UUIDGeneratorService {
 
     public static final Integer DEFAULT_NUMBER_OF_RANDOM_UUIDS = 5;
-    protected static final Logger log = LoggerFactory.getLogger(UUIDGeneratorService.class);
 
     private final Function<Integer, Flux<String>> getEagerRandomUUIDs =
             numberOfUUIDs -> {

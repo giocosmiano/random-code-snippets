@@ -7,9 +7,8 @@ import com.giocosmiano.exploration.service.HotVsColdReactiveService;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,11 +22,10 @@ import java.util.Optional;
 
 import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.*;
 
+@Log4j2
 @Controller
 @RequestMapping(value = "/hotVsColdObservables")
 public class HotVsColdController {
-
-    private static final Logger log = LoggerFactory.getLogger(HotVsColdController.class);
 
     private final HotVsColdReactiveService hotVsColdReactiveService;
 

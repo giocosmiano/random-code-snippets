@@ -6,8 +6,7 @@ import com.giocosmiano.exploration.reactiveApis.HotVsColdReactorFlux;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,10 +21,9 @@ import java.util.concurrent.atomic.AtomicReference;
 // https://stackoverflow.com/questions/56461260/java-spring-webflux-vs-rxjava
 // https://medium.com/wolox/reactor-java-meets-reactive-programming-16105c026fc3
 // https://www.javacodegeeks.com/2018/08/frameworks-toolkits-make-java-reactive-rxjava-spring-reactor-akka-vert-x-overview.html
+@Log4j2
 @Service
 public class HotVsColdReactiveService {
-
-    protected static final Logger log = LoggerFactory.getLogger(HotVsColdReactiveService.class);
 
     private final HotVsColdObservables hotVsColdObservables;
     private final HotVsColdReactorFlux hotVsColdReactorFlux;

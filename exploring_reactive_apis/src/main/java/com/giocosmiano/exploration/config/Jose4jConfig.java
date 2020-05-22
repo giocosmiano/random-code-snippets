@@ -2,6 +2,7 @@ package com.giocosmiano.exploration.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.compress.utils.ByteUtils;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
@@ -19,8 +20,6 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.AesKey;
 import org.jose4j.keys.RsaKeyUtil;
 import org.jose4j.lang.ByteUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -32,13 +31,13 @@ import java.util.UUID;
 // https://stormpath.com/blog/beginners-guide-jwts-in-java
 // https://www.baeldung.com/java-json-web-tokens-jjwt
 // https://developer.okta.com/blog/2018/10/31/jwts-with-java
+@Log4j2
 public class Jose4jConfig {
 
     public static final String JWS_BODY = "jwsBody";
     public static final String SAMPLE_SUBJECT = "sampleSubject";
     public static final String SAMPLE_ISSUER = "sampleIssuer";
     public static final String SAMPLE_AUDIENCE = "sampleAudience";
-    protected static final Logger log = LoggerFactory.getLogger(Jose4jConfig.class);
 
     private static JsonWebEncryption createJsonWebEncryption(final String secretKey) {
         // Create a new Json Web Encryption object, using 128bit key size (16 bytes)

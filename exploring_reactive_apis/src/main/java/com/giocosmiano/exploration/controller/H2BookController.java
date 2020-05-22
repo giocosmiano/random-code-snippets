@@ -2,8 +2,7 @@ package com.giocosmiano.exploration.controller;
 
 import com.giocosmiano.exploration.domain.H2Book;
 import com.giocosmiano.exploration.service.H2BookService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
+@Log4j2
 @Controller
 @RequestMapping(value = "/h2Books")
 public class H2BookController {
@@ -23,8 +23,6 @@ public class H2BookController {
     public H2BookController(H2BookService bookService) {
         this.bookService = bookService;
     }
-
-    private static final Logger log = LoggerFactory.getLogger(H2BookController.class);
 
     // see these Thymeleaf references when accessing data and javascript variables
     // https://www.thymeleaf.org/doc/tutorials/2.1/usingthymeleaf.html#script-inlining-javascript-and-dart

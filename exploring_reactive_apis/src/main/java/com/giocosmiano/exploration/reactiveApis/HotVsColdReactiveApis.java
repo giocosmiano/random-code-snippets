@@ -2,8 +2,7 @@ package com.giocosmiano.exploration.reactiveApis;
 
 import io.reactivex.disposables.Disposable;
 import io.vavr.control.Either;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +18,7 @@ import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.setTim
 // https://stackoverflow.com/questions/56461260/java-spring-webflux-vs-rxjava
 // https://medium.com/wolox/reactor-java-meets-reactive-programming-16105c026fc3
 // https://www.javacodegeeks.com/2018/08/frameworks-toolkits-make-java-reactive-rxjava-spring-reactor-akka-vert-x-overview.html
+@Log4j2
 public abstract class HotVsColdReactiveApis {
 
     protected final AtomicInteger subscriber1 = new AtomicInteger();
@@ -29,8 +29,6 @@ public abstract class HotVsColdReactiveApis {
     protected Map<Integer, reactor.core.Disposable> mapOfDisposableFlux = new HashMap<>();
 
     protected static boolean isHotObservable = false;
-
-    protected static final Logger log = LoggerFactory.getLogger(HotVsColdReactiveApis.class);
 
     // Simulating a non-blocking IO e.g. Reactive Mongo, but for now just a Consumer applying a timeout and doubling the value
     protected Function<CompletableFuture<Either<String,Integer>>, CompletableFuture<Either<String,Integer>>> doubleThePrime =

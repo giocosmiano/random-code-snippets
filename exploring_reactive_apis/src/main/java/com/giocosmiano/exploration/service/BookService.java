@@ -3,19 +3,17 @@ package com.giocosmiano.exploration.service;
 import com.giocosmiano.exploration.domain.Book;
 import com.giocosmiano.exploration.repository.BookRepository;
 import io.vavr.control.Either;
+import lombok.extern.log4j.Log4j2;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
+@Log4j2
 @Service
 public class BookService {
-
-    protected static final Logger log = LoggerFactory.getLogger(BookService.class);
 
     private final BookRepository bookRepository;
 

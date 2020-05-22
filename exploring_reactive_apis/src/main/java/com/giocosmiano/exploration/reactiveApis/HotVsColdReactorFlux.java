@@ -1,8 +1,7 @@
 package com.giocosmiano.exploration.reactiveApis;
 
 import io.vavr.control.Either;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -20,10 +19,9 @@ import static com.giocosmiano.exploration.reactiveApis.HotVsColdUtilities.*;
 // https://stackoverflow.com/questions/56461260/java-spring-webflux-vs-rxjava
 // https://medium.com/wolox/reactor-java-meets-reactive-programming-16105c026fc3
 // https://www.javacodegeeks.com/2018/08/frameworks-toolkits-make-java-reactive-rxjava-spring-reactor-akka-vert-x-overview.html
+@Log4j2
 @Component
 public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
-
-    private static final Logger log = LoggerFactory.getLogger(HotVsColdReactorFlux.class);
 
     // NOTE: This is a simulation of a 3-Subscribers from 1-Reactor Flux
     public static void main(String[] args) {

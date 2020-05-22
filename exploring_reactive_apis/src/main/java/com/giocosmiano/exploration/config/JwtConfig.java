@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultClaims;
+import lombok.extern.log4j.Log4j2;
 import org.jasypt.util.text.AES256TextEncryptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -18,13 +17,13 @@ import java.util.UUID;
 // https://stormpath.com/blog/beginners-guide-jwts-in-java
 // https://www.baeldung.com/java-json-web-tokens-jjwt
 // https://developer.okta.com/blog/2018/10/31/jwts-with-java
+@Log4j2
 public class JwtConfig {
 
     public static final String JWS_BODY = "jwsBody";
     public static final String SAMPLE_SUBJECT = "sampleSubject";
     public static final String SAMPLE_ISSUER = "sampleIssuer";
     public static final String SAMPLE_AUDIENCE = "sampleAudience";
-    protected static final Logger log = LoggerFactory.getLogger(JwtConfig.class);
 
     /**
      *

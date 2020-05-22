@@ -47,9 +47,13 @@ public class LoggingAspect {
       Optional<String> requestID = signal.getContext().getOrEmpty(REQUEST_ID);
 
       if (requestID.isPresent()) {
-        MDC.MDCCloseable closeable = MDC.putCloseable(REQUEST_ID, requestID.get());
+        try (MDC.MDCCloseable closeable = MDC.putCloseable(REQUEST_ID, requestID.get())) {
+          logStatement.accept(signal.get());
+        }
+
+      } else {
+        logStatement.accept(signal.get());
       }
-      logStatement.accept(signal.get());
     };
   }
 

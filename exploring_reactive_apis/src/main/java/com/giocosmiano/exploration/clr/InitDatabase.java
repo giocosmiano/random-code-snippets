@@ -3,14 +3,13 @@ package com.giocosmiano.exploration.clr;
 import com.giocosmiano.exploration.domain.Book;
 import com.giocosmiano.exploration.domain.H2Book;
 import com.giocosmiano.exploration.repository.H2BookRepository;
+import lombok.extern.log4j.Log4j2;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -26,10 +25,9 @@ import java.util.*;
 // 1) Using embedded MongoDB with flapdoodle for Reactive Mongo simulation
 // 2) Using H2 DB to simulate DB access with Reactor Flux/Mono for non-blocking IO
 // See `readme.md` about the 2 ways of simulating Reactive Mongo using installed MongoDB vs embedded MongoDB with flapdoodle
+@Log4j2
 @Component
 public class InitDatabase {
-
-    private static final Logger log = LoggerFactory.getLogger(InitDatabase.class);
 
     /*
      Pre-loading our MongoDB data store. For such operations, it's recommended to actually use the blocking API.

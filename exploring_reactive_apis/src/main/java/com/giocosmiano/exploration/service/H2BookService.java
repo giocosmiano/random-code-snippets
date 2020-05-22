@@ -1,9 +1,9 @@
 package com.giocosmiano.exploration.service;
 
+import com.giocosmiano.exploration.aspect.LoggingAspect;
 import com.giocosmiano.exploration.domain.H2Book;
 import com.giocosmiano.exploration.repository.H2BookRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -13,10 +13,9 @@ import reactor.core.scheduler.Scheduler;
 
 import java.util.Objects;
 
+@Log4j2
 @Service
-public class H2BookService {
-
-    protected static final Logger log = LoggerFactory.getLogger(H2BookService.class);
+public class H2BookService extends LoggingWithContextService {
 
     private final Scheduler jdbcScheduler;
     private final TransactionTemplate transactionTemplate;
@@ -33,7 +32,15 @@ public class H2BookService {
 
     public Mono<H2Book> getById(final Long id) {
         return Mono
-                .defer(() -> Mono.justOrEmpty(bookRepository.findById(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
+                .defer(() ->
+                        // Exploring: Thread-local state availability in reactive services
+                        // https://kamilszymanski.github.io/thread-local-state-availability-in-reactive-services/
+                        // https://dzone.com/articles/thread-local-state-availability-in-reactive-servic
+                        Mono
+                        .justOrEmpty(bookRepository.findById(id))
+                        .zipWith(Mono.subscriberContext()) // capture the context created from controller thru LoggingAspect.loggingReactorWithAddedContext()
+                        .flatMap(flatMapMonoToLogWithContext(this::loggingMonoOnNextWithContext))
+                ) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
                 .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
                 .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
                 ;
