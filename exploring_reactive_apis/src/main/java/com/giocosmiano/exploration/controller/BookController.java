@@ -30,7 +30,7 @@ public class BookController {
     // see these Thymeleaf references when accessing data and javascript variables
     // https://www.thymeleaf.org/doc/tutorials/2.1/usingthymeleaf.html#script-inlining-javascript-and-dart
     // https://www.thymeleaf.org/doc/articles/springmvcaccessdata.html
-    @GetMapping(value = "/view")
+    @GetMapping
     public Mono<String> index(Model model) {
 //        model.addAttribute("restEndpoint", "http://localhost:9080/books/streaming");
         model.addAttribute("restEndpoint", "/books/streaming");
@@ -60,7 +60,7 @@ public class BookController {
     }
 
     @ResponseBody
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<Book> getAllBooks() {
         return bookService
                 .getAllBooks()
