@@ -32,6 +32,11 @@ public class H2BookService extends LoggingWithContextService {
 
     public Mono<H2Book> getById(final Long id) {
         return Mono
+                .defer(() -> Mono.justOrEmpty(bookRepository.findById(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
+                .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
+                ;
+/*
+        return Mono
                 .defer(() ->
                         // Exploring: Thread-local state availability in reactive services
                         // https://kamilszymanski.github.io/thread-local-state-availability-in-reactive-services/
@@ -41,15 +46,15 @@ public class H2BookService extends LoggingWithContextService {
                         .zipWith(Mono.subscriberContext()) // capture the context created from controller thru LoggingAspect.loggingReactorWithAddedContext()
                         .flatMap(flatMapMonoToLogWithContext(this::loggingMonoOnNextWithContext))
                 ) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
-                .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
+//                .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
                 .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
                 ;
+*/
     }
 
     public Flux<H2Book> getByIsbn(final String id) {
         return Flux
                 .defer(() -> Flux.fromIterable(bookRepository.findByIsbn(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
-                .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
                 .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
                 ;
     }
@@ -57,7 +62,6 @@ public class H2BookService extends LoggingWithContextService {
     public Flux<H2Book> getAllBooks() {
         return Flux
                 .defer(() -> Flux.fromIterable(bookRepository.findAll())) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
-                .doOnNext(entity -> log.info(" Thread " + Thread.currentThread().getName() + " get book ==> " + entity))
                 .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
                 ;
     }
@@ -68,7 +72,7 @@ public class H2BookService extends LoggingWithContextService {
             return Mono
                     .fromCallable(() -> transactionTemplate.execute(status -> bookRepository.save(book)))
                     .log("bookService.create() on log()" + book)
-                    .doOnNext(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
+//                    .doOnNext(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
                     .subscribeOn(jdbcScheduler) // running the request on different thread-pool
             ;
 
@@ -88,7 +92,7 @@ public class H2BookService extends LoggingWithContextService {
                         return bookRepository.save(book);
                     }))
                     .log("bookService.update() on log()" + book)
-                    .doOnNext(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
+//                    .doOnNext(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
                     .subscribeOn(jdbcScheduler) // running the request on different thread-pool
                     ;
 
@@ -114,7 +118,7 @@ public class H2BookService extends LoggingWithContextService {
                     return oldBook;
                 }))
                 .log("bookService.delete() on log()" + id)
-                .doOnNext(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
+//                .doOnNext(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
                 .subscribeOn(jdbcScheduler) // running the request on different thread-pool
                 ;
     }

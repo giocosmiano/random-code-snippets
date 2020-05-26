@@ -43,7 +43,7 @@ public class BookService {
             return bookRepository
                     .save(book)
                     .log("bookService.create() on log()" + book)
-                    .doOnNext(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
+//                    .doOnNext(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
                     ;
 
         } else {
@@ -58,7 +58,7 @@ public class BookService {
                     .map(oldBook -> book)
                     .flatMap(bookRepository::save)
                     .log("bookService.update() on log()" + book)
-                    .doOnNext(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
+//                    .doOnNext(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
                     ;
 
         } else {
@@ -82,7 +82,7 @@ public class BookService {
                                 .then(Mono.just(either.get())) // returning the deleted entity by playing another Mono<Book> after the Mono<Void> completes
                 )
                 .log("bookService.delete() on log()" + id)
-                .doOnNext(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
+//                .doOnNext(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
                 ;
     }
 }

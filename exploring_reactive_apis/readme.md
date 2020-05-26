@@ -69,6 +69,12 @@
    - [Project Reactor + MDC logging](https://medium.com/@grigorryev/project-reactor-mdc-logging-1047d235ff6e)
    - [Getting Mono context when using Mono.fromCallable](https://stackoverflow.com/questions/51275642/getting-mono-context-when-using-mono-fromcallable)
 
+ - Spring – Logging Incoming Requests
+   - [How to log your requests with Spring Boot Microservices](https://rubenjgarcia.es/log-requests-spring-boot-microservices/)
+   - [Log Incoming Requests In Spring](https://www.javadevjournal.com/spring/log-incoming-requests-spring/)
+   - [Log Incoming Requests](https://www.baeldung.com/spring-http-logging)
+   - [Logging Requests and Responses in Spring (including body)](https://frandorado.github.io/spring/2018/11/15/log-request-response-with-body-spring.html)
+
 
 
 

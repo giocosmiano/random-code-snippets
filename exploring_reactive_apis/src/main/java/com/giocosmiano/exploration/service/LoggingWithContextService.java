@@ -24,10 +24,10 @@ public abstract class LoggingWithContextService {
 
             // see logback-spring.xml for logging.pattern.console settings with added `requestID`
             // %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %cyan([%X{requestID}]) %msg%n%throwable
-            Optional<String> requestID = signal.getContext().getOrEmpty(REQUEST_ID);
+            Optional<String> requestID = signal.getContext().getOrEmpty(X_REQUEST_UUID);
 
             if (requestID.isPresent()) {
-                try (MDC.MDCCloseable closeable = MDC.putCloseable(REQUEST_ID, requestID.get())) {
+                try (MDC.MDCCloseable closeable = MDC.putCloseable(X_REQUEST_UUID, requestID.get())) {
                     logStatement.accept(signal.get());
                 }
 
@@ -44,7 +44,7 @@ public abstract class LoggingWithContextService {
         return Mono.fromCallable(() -> {
             T  data = tuple.getT1();
             T2 ctx  = tuple.getT2();
-            try (MDC.MDCCloseable closeable = MDC.putCloseable(REQUEST_ID, ((Context)ctx).get(REQUEST_ID))) {
+            try (MDC.MDCCloseable closeable = MDC.putCloseable(X_REQUEST_UUID, ((Context)ctx).get(X_REQUEST_UUID))) {
                 log.info("Thread '{}', class '{}', data '{}'", Thread.currentThread().getName(), this.getClass().getName(), data);
             }
             return data;

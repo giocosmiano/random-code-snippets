@@ -12,7 +12,7 @@
             https://simonbasle.github.io/2018/02/contextual-logging-with-reactor-context-and-mdc/
             -->
             <Pattern>
-                %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %cyan([%X{requestID}]) %msg%n%throwable
+                %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %cyan([%X{X_REQUEST_UUID}]) %msg%n%throwable
             </Pattern>
 <!--
   Original
@@ -52,6 +52,15 @@
     <logger name="com.giocosmiano" level="trace" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
+    </logger>
+
+    <!-- Spring – Log Incoming Requests -->
+    <!-- https://www.baeldung.com/spring-http-logging -->
+    <!-- https://www.javadevjournal.com/spring/log-incoming-requests-spring/ -->
+    <!-- https://rubenjgarcia.es/log-requests-spring-boot-microservices/ -->
+    <!-- https://frandorado.github.io/spring/2018/11/15/log-request-response-with-body-spring.html -->
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter">
+        <level value="DEBUG" />
     </logger>
 
 </configuration>

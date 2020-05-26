@@ -64,8 +64,8 @@ public class HotVsColdController {
 
         return hotVsColdReactiveService
                 .getObservablePrimes(isHotObservable, threshold)
-                .subscribeOn(Schedulers.computation()) // running on different thread
                 .map(ResponseEntity::ok)
+//                .subscribeOn(Schedulers.computation()) // testing a use case of running on different thread
                 ;
     }
 
@@ -91,7 +91,7 @@ public class HotVsColdController {
 
         return hotVsColdReactiveService
                 .getObservablePrimesOLD(isHotObservable, threshold)
-                .subscribeOn(Schedulers.computation()) // running on different thread
+//                .subscribeOn(Schedulers.computation()) // testing a use case of running on different thread
                 ;
     }
 
@@ -112,8 +112,8 @@ public class HotVsColdController {
 
         return hotVsColdReactiveService
                 .getStreamObservablePrimes(isHotObservable, threshold)
-                .subscribeOn(Schedulers.computation()) // running on different thread
                 .map(ResponseEntity::ok)
+//                .subscribeOn(Schedulers.computation()) // testing a use case of running on different thread
                 ;
     }
 
@@ -134,8 +134,8 @@ public class HotVsColdController {
 
         return hotVsColdReactiveService
                 .getFluxPrimes(isHotObservable, threshold)
-                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
                 .map(ResponseEntity::ok)
+//                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // testing a use case of running on different thread
                 ;
     }
 
@@ -156,8 +156,8 @@ public class HotVsColdController {
 
         return hotVsColdReactiveService
                 .getStreamFluxPrimes(isHotObservable, threshold)
-                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
                 .map(ResponseEntity::ok)
+//                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // testing a use case of running on different thread
                 ;
     }
 
@@ -178,8 +178,8 @@ public class HotVsColdController {
 
         return new HotVsColdObservablesGroovy()
                 .runObservable(isHotObservable, threshold)
-                .subscribeOn(Schedulers.computation()) // running on different thread
                 .map(ResponseEntity::ok)
+                .subscribeOn(Schedulers.computation()) // testing a use case of running on different thread
                 ;
     }
 
@@ -200,7 +200,7 @@ public class HotVsColdController {
 
         return new HotVsColdObservablesGroovy()
                 .runStreamObservable(isHotObservable, threshold)
-                .subscribeOn(Schedulers.computation()) // running on different thread
+//                .subscribeOn(Schedulers.computation()) // testing a use case of running on different thread
                 ;
     }
 

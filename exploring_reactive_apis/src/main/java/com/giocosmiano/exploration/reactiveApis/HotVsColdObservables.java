@@ -137,8 +137,8 @@ public class HotVsColdObservables extends HotVsColdReactiveApis {
     public Observable<CompletableFuture<Either<String,Integer>>> runObservable(boolean isHotObservable, final Integer threshold) {
 
         return createObservable(isHotObservable, threshold)
-                .map(promise -> doubleThePrime.apply(promise))
-                .map(promise -> resetThePrime.apply(promise))
+                .map(doubleThePrime::apply)
+                .map(resetThePrime::apply)
                 .doOnNext(promise -> {
                     promise.thenAccept(either -> {
                         log.info(

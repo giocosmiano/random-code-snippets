@@ -135,8 +135,8 @@ public class HotVsColdReactorFlux extends HotVsColdReactiveApis {
     public Flux<CompletableFuture<Either<String,Integer>>> runReactorFux(boolean isHotObservable, final Integer threshold) {
 
         return createFlux(isHotObservable, threshold)
-                .map(promise -> doubleThePrime.apply(promise))
-                .map(promise -> resetThePrime.apply(promise))
+                .map(doubleThePrime)
+                .map(resetThePrime)
                 .doOnNext(promise -> {
                     promise.thenAccept(either -> {
                         log.info(

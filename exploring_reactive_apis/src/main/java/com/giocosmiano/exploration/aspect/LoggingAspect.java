@@ -34,7 +34,7 @@ public class LoggingAspect {
 
   // see logback-spring.xml for logging.pattern.console settings with added `requestID`
   // %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %cyan([%X{requestID}]) %msg%n%throwable
-  public static final String REQUEST_ID = "requestID";
+  public static final String X_REQUEST_UUID = "X_REQUEST_UUID";
 
   // https://www.youtube.com/watch?v=5tlZddM5Jo0 (Reactor Context)
   // https://simonbasle.github.io/2018/02/contextual-logging-with-reactor-context-and-mdc/ (Contextual Logging with Reactor Context and MDC)
@@ -44,10 +44,10 @@ public class LoggingAspect {
 
       // see logback-spring.xml for logging.pattern.console settings with added `requestID`
       // %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %cyan([%X{requestID}]) %msg%n%throwable
-      Optional<String> requestID = signal.getContext().getOrEmpty(REQUEST_ID);
+      Optional<String> requestID = signal.getContext().getOrEmpty(X_REQUEST_UUID);
 
       if (requestID.isPresent()) {
-        try (MDC.MDCCloseable closeable = MDC.putCloseable(REQUEST_ID, requestID.get())) {
+        try (MDC.MDCCloseable closeable = MDC.putCloseable(X_REQUEST_UUID, requestID.get())) {
           logStatement.accept(signal.get());
         }
 
@@ -89,8 +89,8 @@ public class LoggingAspect {
                 .doOnEach(logOnNext(log::info))
                 .then((Mono<?>) joinPoint.proceed())
                 .doOnEach(logOnNext(log::debug))
-                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
-                .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
+                .subscriberContext(Context.of(X_REQUEST_UUID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
+//                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // testing a use case of running on different thread
                 ;
 
       } else if (returnType.equals(Flux.class)) {
@@ -98,8 +98,8 @@ public class LoggingAspect {
                 .doOnEach(logOnNext(log::info))
                 .thenMany((Flux<?>) joinPoint.proceed())
                 .doOnEach(logOnNext(log::debug))
-                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // running on different thread
-                .subscriberContext(Context.of(REQUEST_ID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
+                .subscriberContext(Context.of(X_REQUEST_UUID, UUID.randomUUID().toString())) // adding context from ReST entry point (normally coming from http header)
+//                .subscribeOn(reactor.core.scheduler.Schedulers.elastic()) // testing a use case of running on different thread
                 ;
       }
 
