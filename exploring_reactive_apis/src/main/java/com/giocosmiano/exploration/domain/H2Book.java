@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Table(name = "h2Books")
 public class H2Book implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -6579998264023733197L;
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)

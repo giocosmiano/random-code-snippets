@@ -75,7 +75,18 @@
    - [Log Incoming Requests](https://www.baeldung.com/spring-http-logging)
    - [Logging Requests and Responses in Spring (including body)](https://frandorado.github.io/spring/2018/11/15/log-request-response-with-body-spring.html)
 
-
+ - Encryption/Decryption
+   - [Handling of IV and salt in Java encryption and decryption](https://stackoverflow.com/questions/44878997/handling-of-iv-and-salt-in-java-encryption-and-decryption)
+   - [Password Encoding with Spring Security](https://stackabuse.com/password-encoding-with-spring-security/)
+   - [Spring Security 4 for Spring MVC Using Spring Data JPA and Spring Boot](https://dzone.com/articles/spring-security-4-for-spring-mvc-using-spring-data)
+   - [Encryption and Decryption in Java Cryptography](https://www.veracode.com/blog/research/encryption-and-decryption-java-cryptography)
+   - [How to Securely Store a Password in Java](https://dev.to/awwsmm/how-to-encrypt-a-password-in-java-42dh)
+   - [Salted Password Hashing - Doing it Right](https://crackstation.net/hashing-security.htm)
+   - [Everything You Wanted to Know About Hashing and Encrypting Passwords](https://medium.com/@jerrywu12/everything-you-wanted-to-know-about-hashing-and-encrypting-passwords-but-were-afraid-to-ask-27e3f7610709)
+   - [Secure Password Storage – Don’ts, dos and a Java example](https://www.javacodegeeks.com/2012/05/secure-password-storage-donts-dos-and.html)
+   - [Secure Password Storage - Lots of Don'ts, a Few Dos, and a Concrete Java SE Example](https://dzone.com/articles/secure-password-storage-lots)
+   - [Security Best Practices: Symmetric Encryption with AES in Java and Android](https://proandroiddev.com/security-best-practices-symmetric-encryption-with-aes-in-java-7616beaaade9)
+   - [Security Best Practices: Symmetric Encryption with AES in Java and Android: Part 2: AES-CBC + HMAC](https://proandroiddev.com/security-best-practices-symmetric-encryption-with-aes-in-java-and-android-part-2-b3b80e99ad36)
 
 
 

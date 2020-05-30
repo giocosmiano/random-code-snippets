@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -15,7 +16,9 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Document(collection = "books")
-public class Book {
+public class Book implements Serializable {
+
+    private static final long serialVersionUID = 6614729067517057698L;
 
     @Id
     private Long id;

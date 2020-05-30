@@ -36,10 +36,40 @@ spring:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
         implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
-#    show_sql: true
+      ddl-auto: update
+  #    show_sql: true
+  #
+  # http://localhost:9080/h2-console
   h2:
     console:
       enabled: true
+  #
+  # spring.cloud.stream.bindings.input.destination. Normally, when using RabbitMQ, each instance of comments
+  # will register its own queue, and hence, receive its own copy of newly posted comments. This would
+  # result in double posting in this scenario. This will declare that only one such queue should receive each individual
+  # message. This ensures that only one of the micro services actually processes a given event
+  #
+  # spring.cloud.stream.bindings.output.destination points to a different exchange to avoid colliding with
+  # the one feeding messages into this service
+  #
+  # spring.cloud.stream.bindings.output.group provides a logical grouping to ensure proper handling if we
+  # ever scale up to more than one instance of comments service
+  #
+  # spring.cloud.stream.bindings.output.content-type is marked application/json , indicating we don't expect
+  # the consumer to use the same domain class, but will probably deserialize into their own POJO instead
+  cloud:
+    stream:
+      bindings:
+        input:
+          destination: exploring-spring-cloud-stream-chat
+          group: comments-chat
+          content-type: application/json
+        clientToBroker:
+          destination: exploring-spring-cloud-stream-chat-user-message
+          group: app-chatMessages
+        brokerToClient:
+          destination: exploring-spring-cloud-stream-chat-user-message
+          group: topic-chatMessages
 
 # Customize log levels
 logging:
@@ -54,6 +84,14 @@ logging:
       reactor: DEBUG
     com:
       giocosmiano: DEBUG
+
+# https://stackabuse.com/password-encoding-with-spring-security/
+# https://www.veracode.com/blog/research/encryption-and-decryption-java-cryptography
+pwd-encoder:
+  secret-key: ThisIsAVeryLongSecretKey1234$!!!
+  iteration: 65536
+  hash-width: 256
+  salt-length: 16
 
 # JWT secret key
 jwtSecretKey: ThisIsAVeryLongSecretKey1234$!!!

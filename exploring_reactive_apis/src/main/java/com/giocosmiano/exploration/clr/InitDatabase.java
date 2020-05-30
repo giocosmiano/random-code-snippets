@@ -1,8 +1,11 @@
 package com.giocosmiano.exploration.clr;
 
+import com.giocosmiano.exploration.config.Pbkdf2PasswordEncoderConfig;
 import com.giocosmiano.exploration.domain.Book;
 import com.giocosmiano.exploration.domain.H2Book;
+import com.giocosmiano.exploration.domain.User;
 import com.giocosmiano.exploration.repository.H2BookRepository;
+import com.giocosmiano.exploration.repository.UserRepository;
 import lombok.extern.log4j.Log4j2;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -12,8 +15,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.stereotype.Component;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
@@ -26,7 +30,7 @@ import java.util.*;
 // 2) Using H2 DB to simulate DB access with Reactor Flux/Mono for non-blocking IO
 // See `readme.md` about the 2 ways of simulating Reactive Mongo using installed MongoDB vs embedded MongoDB with flapdoodle
 @Log4j2
-@Component
+@Configuration
 public class InitDatabase {
 
     /*
@@ -37,12 +41,71 @@ public class InitDatabase {
      */
 
     @Bean
-    CommandLineRunner init(
+    CommandLineRunner initializeEntities(
             MongoOperations mongoOperations
-            , H2BookRepository h2BookRepository) {
+            , H2BookRepository h2BookRepository
+            , UserRepository userRepository
+            , Pbkdf2PasswordEncoderConfig pbkdf2PasswordEncoderConfig
+    ) {
         return args -> {
+            initUsers(userRepository, pbkdf2PasswordEncoderConfig);
             initBooks(mongoOperations, h2BookRepository);
         };
+    }
+
+    private void initUsers(
+            final UserRepository userRepository
+            , final Pbkdf2PasswordEncoderConfig pbkdf2PasswordEncoderConfig
+    ) {
+        try {
+            // https://howtodoinjava.com/java/io/read-file-from-resources-folder/
+            File file = ResourceUtils.getFile("classpath:sampleJsonData/users.json");
+            Reader reader = new FileReader(file);
+
+            // https://stackoverflow.com/questions/10926353/how-to-read-json-file-into-java-with-simple-json-library
+            // https://howtodoinjava.com/library/json-simple-read-write-json-examples/
+            userRepository.deleteAll();
+
+            Pbkdf2PasswordEncoder pwdEncoder = pbkdf2PasswordEncoderConfig.getPbkdf2PasswordEncoder();
+
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(reader);
+
+            JSONArray listOfUsers = (JSONArray) obj;
+            listOfUsers.forEach(bookObj -> {
+                JSONObject user = (JSONObject) bookObj;
+
+                String username = (String) user.get("username");
+                String password = (String) user.get("password");
+                String firstName = (String) user.get("firstName");
+                String lastName = (String) user.get("lastName");
+                String email = (String) user.get("email");
+
+                List<String> roles = new ArrayList<>();
+                JSONArray rolesObj = (JSONArray) user.get("roles");
+                rolesObj.forEach(role -> roles.add((String)role));
+
+                User newUser = new User(
+                        null
+                        , username
+                        , pwdEncoder.encode(password)
+                        , firstName
+                        , lastName
+                        , email
+                        , true
+                        , roles.toArray(new String[0])
+                );
+                userRepository.save(newUser);
+
+//                log.debug(String.format("Inserted User %s", newUser));
+            });
+
+            reader.close();
+            log.info(String.format("Finished loading %s users", listOfUsers.size()));
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
     private void initBooks(

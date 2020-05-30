@@ -26,6 +26,7 @@
         <groovyVersion>2.5.8</groovyVersion>
         <springBootVersion>2.2.5.RELEASE</springBootVersion>
         <springReactorVersion>3.2.15.RELEASE</springReactorVersion>
+        <springCloudVersion>2.2.1.RELEASE</springCloudVersion>
         <googleGuavaVersion>28.2-jre</googleGuavaVersion>
         <googleJsonVersion>1.1.1</googleJsonVersion>
         <vavrVersion>0.10.2</vavrVersion>
@@ -37,6 +38,7 @@
         <jsonwebtokenVersion>0.11.1</jsonwebtokenVersion>
         <jose4jVersion>0.7.0</jose4jVersion>
         <jasyptVersion>1.9.3</jasyptVersion>
+        <jaxbApiVersion>2.3.0</jaxbApiVersion>
         <apacheCommonsLangVersion>3.9</apacheCommonsLangVersion>
     </properties>
 
@@ -125,6 +127,11 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
         </dependency>
 
@@ -153,6 +160,33 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
         </dependency>
+
+<!--
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter</artifactId>
+            <version>${springCloudVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-reactive</artifactId>
+            <version>${springCloudVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+            <version>${springCloudVersion}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-test-support</artifactId>
+            <version>${springCloudVersion}</version>
+            <scope>test</scope>
+        </dependency>
+-->
 
         <!-- Using H2 blocking DB to simulate access with Reactor Flux/Mono to be non-blocking IO -->
         <dependency>
@@ -265,6 +299,16 @@
             <artifactId>jjwt-gson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
             <version>${jsonwebtokenVersion}</version>
 <!--            <scope>runtime</scope>-->
+        </dependency>
+
+        <!-- Not automatically added anymore from JDK9+ due to JDK module architecture -->
+        <!-- https://www.jesperdj.com/2018/09/30/jaxb-on-java-9-10-11-and-beyond/ -->
+        <!-- https://stackoverflow.com/questions/43574426/how-to-resolve-java-lang-noclassdeffounderror-javax-xml-bind-jaxbexception-in-j -->
+        <!-- https://stackoverflow.com/questions/48986999/classnotfoundexception-for-javax-xml-bind-jaxbexception-with-spring-boot-when-sw -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>${jaxbApiVersion}</version>
         </dependency>
 
     </dependencies>

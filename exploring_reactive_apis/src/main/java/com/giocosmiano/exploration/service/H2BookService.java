@@ -84,13 +84,15 @@ public class H2BookService extends LoggingWithContextService {
     public Mono<H2Book> update(final H2Book book) {
         if (Objects.nonNull(book) && Objects.nonNull(book.getId())) {
             return Mono
-                    .fromCallable(() -> transactionTemplate.execute(status -> {
-                        H2Book oldBook = bookRepository.findById(book.getId()).orElse(null);
-                        if (Objects.isNull(oldBook)) {
-                            return oldBook;
-                        }
-                        return bookRepository.save(book);
-                    }))
+                    .fromCallable(() ->
+                            transactionTemplate.execute(status -> {
+                                H2Book oldBook = bookRepository.findById(book.getId()).orElse(null);
+                                if (Objects.isNull(oldBook)) {
+                                    return oldBook;
+                                }
+                                return bookRepository.save(book);
+                            })
+                    )
                     .log("bookService.update() on log()" + book)
 //                    .doOnNext(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
                     .subscribeOn(jdbcScheduler) // running the request on different thread-pool
@@ -109,14 +111,16 @@ public class H2BookService extends LoggingWithContextService {
     // https://www.roytuts.com/spring-boot-mongodb-functional-reactive-crud-example/
     public Mono<H2Book> delete(final Long id) {
         return Mono
-                .fromCallable(() -> transactionTemplate.execute(status -> {
-                    H2Book oldBook = bookRepository.findById(id).orElse(null);
-                    if (Objects.isNull(oldBook)) {
-                        return oldBook;
-                    }
-                    bookRepository.delete(oldBook);
-                    return oldBook;
-                }))
+                .fromCallable(() ->
+                        transactionTemplate.execute(status -> {
+                            H2Book oldBook = bookRepository.findById(id).orElse(null);
+                            if (Objects.isNull(oldBook)) {
+                                return oldBook;
+                            }
+                            bookRepository.delete(oldBook);
+                            return oldBook;
+                        })
+                )
                 .log("bookService.delete() on log()" + id)
 //                .doOnNext(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
                 .subscribeOn(jdbcScheduler) // running the request on different thread-pool
