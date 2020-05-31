@@ -5,6 +5,7 @@ import com.mongodb.reactivestreams.client.MongoClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractReactiveMongoConfiguration;
+import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
@@ -15,10 +16,17 @@ import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRep
 //public class MongoConfig extends AbstractReactiveMongoConfiguration {
 public class MongoConfig {
 
-    private MongoYamlConfig mongoYamlConfig;
+    private final MongoYamlConfig mongoYamlConfig;
+    private final MongoClient mongoClient;
 
-    MongoConfig(MongoYamlConfig mongoYamlConfig) {
+    public MongoConfig(MongoYamlConfig mongoYamlConfig, MongoClient mongoClient) {
         this.mongoYamlConfig = mongoYamlConfig;
+        this.mongoClient = mongoClient;
+    }
+
+    @Bean
+    public ReactiveMongoTemplate reactiveMongoTemplate() {
+        return new ReactiveMongoTemplate(mongoClient, "test");
     }
 
 /*

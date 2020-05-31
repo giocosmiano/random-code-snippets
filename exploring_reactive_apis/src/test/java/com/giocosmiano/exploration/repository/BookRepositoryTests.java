@@ -10,7 +10,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
@@ -44,11 +43,10 @@ public class BookRepositoryTests {
 
     // see https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/html/boot-features-testing.html
     @Autowired BookRepository bookRepository;
-    @Autowired MongoOperations mongoOperations;
 
     @Before
     public void setUp() {
-        mongoOperations.dropCollection(Book.class);
+        bookRepository.deleteAll().subscribe();
         Flux.range(1, 4)
                 .doOnNext(i ->
                         bookRepository.save(
