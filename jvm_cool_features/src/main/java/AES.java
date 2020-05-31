@@ -15,6 +15,13 @@ import java.util.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
+// https://gist.github.com/dweymouth/11089238
+// https://stackoverflow.com/questions/44878997/handling-of-iv-and-salt-in-java-encryption-and-decryption
+// https://stackoverflow.com/questions/992019/java-256-bit-aes-password-based-encryption/992413#992413
+// https://www.cryptoexamples.com/java_string_encryption_password_based_symmetric.html
+// https://www.thesslstore.com/blog/difference-encryption-hashing-salting/
+// https://travistran.me/aes-encryption-in-java-and-javascript-for-both-side-transmission-555/
+
 /**
  * A class to perform password-based AES encryption and decryption in CBC mode.
  * 128, 192, and 256-bit encryption are supported, provided that the latter two
