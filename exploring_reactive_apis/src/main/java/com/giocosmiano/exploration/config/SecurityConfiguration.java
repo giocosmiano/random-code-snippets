@@ -34,6 +34,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        // TODO: for debugging service/component purposes, ignoring all security checks for all requests
+        http.csrf().disable().headers().frameOptions().sameOrigin()
+                .and().authorizeRequests()
+                .anyRequest().permitAll()
+                .and().httpBasic().disable()
+        ;
+/*
         http
                 .authorizeRequests()
                 .antMatchers("/static/**").permitAll()
@@ -45,7 +53,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and().formLogin().permitAll()
 //                .and().formLogin().loginPage("/login").permitAll()
-                .and().logout().permitAll();
+                .and().logout().permitAll()
+        ;
+*/
 
         // to enable /h2-console from spring security
 //        http.csrf().disable();

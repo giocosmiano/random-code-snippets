@@ -101,7 +101,7 @@ public class InitDatabase {
             });
 
             reader.close();
-            log.info(String.format("Finished loading %s users", listOfUsers.size()));
+            log.info(String.format("Finished loading %s users", userRepository.count()));
 
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -198,7 +198,7 @@ public class InitDatabase {
             });
 
             reader.close();
-            log.info(String.format("Finished loading %s books", listOfBooks.size()));
+            log.info(String.format("Finished loading %s books, %s h2Books", listOfBooks.size(), h2BookRepository.count()));
 
         } catch (Exception e) {
             log.error(e.getMessage());

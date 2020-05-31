@@ -3,9 +3,9 @@ package com.giocosmiano.exploration.domain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Data // combines @Getter, @Setter, @ToString, @EqualsAndHashCode, @RequiredArgsConstructor
@@ -21,16 +21,16 @@ public class User implements Serializable {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
 
-    @NotNull
+    @NonNull
     private String username;
 
-    @NotNull
+    @NonNull
     private String password;
 
-    @NotNull
+    @NonNull
     private String firstName;
 
-    @NotNull
+    @NonNull
     private String lastName;
 
     private String email;

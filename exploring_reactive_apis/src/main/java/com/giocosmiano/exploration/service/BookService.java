@@ -39,7 +39,7 @@ public class BookService {
 
     public Mono<Book> create(final Book book) {
         if (Objects.nonNull(book)) {
-            book.setId(new ObjectId().getTime());
+            book.setId((long) new ObjectId().getTimestamp());
             return bookRepository
                     .save(book)
                     .log("bookService.create() on log()" + book)
