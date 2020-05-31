@@ -3,11 +3,13 @@ package com.giocosmiano.exploration.controller;
 import com.giocosmiano.exploration.domain.H2Book;
 import com.giocosmiano.exploration.service.H2BookService;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -38,21 +40,19 @@ public class H2BookController {
 
     @ResponseBody
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<H2Book>> getById(@PathVariable("id") final Long id) {
+    public Mono<H2Book> getById(@PathVariable("id") final Long id) {
         return bookService
                 .getById(id)
-                .map(ResponseEntity::ok)
-                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
                 ;
     }
 
     @ResponseBody
     @GetMapping(value = "/isbn/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<ResponseEntity<H2Book>> getByIsbn(@PathVariable("id") final String id) {
+    public Flux<H2Book> getByIsbn(@PathVariable("id") final String id) {
         return bookService
                 .getByIsbn(id)
-                .map(ResponseEntity::ok)
-                .switchIfEmpty(Flux.just(ResponseEntity.notFound().build()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
                 ;
     }
 
@@ -79,31 +79,28 @@ public class H2BookController {
 
     @ResponseBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<H2Book>> create(@RequestBody final H2Book book) {
+    public Mono<H2Book> create(@RequestBody final H2Book book) {
         return bookService
                 .create(book)
-                .map(ResponseEntity::ok)
-                .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST)))
                 ;
     }
 
     @ResponseBody
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<H2Book>> update(@RequestBody final H2Book book) {
+    public Mono<H2Book> update(@RequestBody final H2Book book) {
         return bookService
                 .update(book)
-                .map(ResponseEntity::ok)
-                .switchIfEmpty(Mono.just(ResponseEntity.badRequest().build()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST)))
                 ;
     }
 
     @ResponseBody
     @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<H2Book>> delete(@PathVariable("id") final Long id) {
+    public Mono<H2Book> delete(@PathVariable("id") final Long id) {
         return bookService
                 .delete(id)
-                .map(ResponseEntity::ok)
-                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
                 ;
     }
 }
