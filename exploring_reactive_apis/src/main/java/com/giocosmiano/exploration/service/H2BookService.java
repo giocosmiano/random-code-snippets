@@ -32,8 +32,8 @@ public class H2BookService extends LoggingWithContextService {
 
     public Mono<H2Book> getById(final Long id) {
         return Mono
-                .defer(() -> Mono.justOrEmpty(bookRepository.findById(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
-                .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
+                .defer(() -> Mono.justOrEmpty(bookRepository.findById(id)))
+                .subscribeOn(jdbcScheduler)
                 ;
 /*
         return Mono
@@ -54,15 +54,22 @@ public class H2BookService extends LoggingWithContextService {
 
     public Flux<H2Book> getByIsbn(final String id) {
         return Flux
-                .defer(() -> Flux.fromIterable(bookRepository.findByIsbn(id))) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
-                .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
+                .defer(() -> Flux.fromIterable(bookRepository.findByIsbn(id)))
+                .subscribeOn(jdbcScheduler)
+                ;
+    }
+
+    public Mono<Long> getCounts() {
+        return Mono
+                .defer(() -> Mono.just(bookRepository.count()))
+                .subscribeOn(jdbcScheduler)
                 ;
     }
 
     public Flux<H2Book> getAllBooks() {
         return Flux
-                .defer(() -> Flux.fromIterable(bookRepository.findAll())) // using `defer` to re-evaluate the lambda for each request thus making lazy IO call
-                .subscribeOn(jdbcScheduler) // while running the request on different thread-pool
+                .defer(() -> Flux.fromIterable(bookRepository.findAll()))
+                .subscribeOn(jdbcScheduler)
                 ;
     }
 
@@ -73,7 +80,7 @@ public class H2BookService extends LoggingWithContextService {
                     .fromCallable(() -> transactionTemplate.execute(status -> bookRepository.save(book)))
                     .log("bookService.create() on log()" + book)
 //                    .doOnNext(createdEntity -> log.info(" Thread " + Thread.currentThread().getName() + " created book ==> " + createdEntity))
-                    .subscribeOn(jdbcScheduler) // running the request on different thread-pool
+                    .subscribeOn(jdbcScheduler)
             ;
 
         } else {
@@ -95,7 +102,7 @@ public class H2BookService extends LoggingWithContextService {
                     )
                     .log("bookService.update() on log()" + book)
 //                    .doOnNext(updatedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " updated book ==> " + updatedEntity))
-                    .subscribeOn(jdbcScheduler) // running the request on different thread-pool
+                    .subscribeOn(jdbcScheduler)
                     ;
 
         } else {
@@ -123,7 +130,7 @@ public class H2BookService extends LoggingWithContextService {
                 )
                 .log("bookService.delete() on log()" + id)
 //                .doOnNext(deletedEntity -> log.info(" Thread " + Thread.currentThread().getName() + " deleted book ==> " + deletedEntity))
-                .subscribeOn(jdbcScheduler) // running the request on different thread-pool
+                .subscribeOn(jdbcScheduler)
                 ;
     }
 }

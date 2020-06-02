@@ -1,6 +1,6 @@
 package com.giocosmiano.exploration.config;
 
-import com.giocosmiano.exploration.service.CustomUserDetailsService;
+import com.giocosmiano.exploration.service.H2UserDetailsService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,20 +15,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private final CustomUserDetailsService customUserDetailsService;
+    private final H2UserDetailsService h2UserDetailsService;
     private final Pbkdf2PasswordEncoderConfig pbkdf2PasswordEncoderConfig;
 
     public SecurityConfiguration(
-            CustomUserDetailsService customUserDetailsService
+            H2UserDetailsService h2UserDetailsService
             , Pbkdf2PasswordEncoderConfig pbkdf2PasswordEncoderConfig
     ) {
-        this.customUserDetailsService = customUserDetailsService;
+        this.h2UserDetailsService = h2UserDetailsService;
         this.pbkdf2PasswordEncoderConfig = pbkdf2PasswordEncoderConfig;
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(customUserDetailsService)
+        auth.userDetailsService(h2UserDetailsService)
             .passwordEncoder(getPasswordEncoder());
     }
 

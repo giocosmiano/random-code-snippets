@@ -12,8 +12,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "users")
-public class User implements Serializable {
+@Table(name = "h2Users")
+public class H2User implements Serializable {
 
     private static final long serialVersionUID = 7931443586388097949L;
 

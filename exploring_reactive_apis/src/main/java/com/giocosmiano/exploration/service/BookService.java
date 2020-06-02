@@ -29,6 +29,10 @@ public class BookService {
         return bookRepository.findBookByIsbn(id);
     }
 
+    public Mono<Long> getCounts() {
+        return Mono.defer(bookRepository::count);
+    }
+
     public Flux<Book> getAllBooks() {
         return bookRepository.findAll();
     }

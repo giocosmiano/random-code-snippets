@@ -3,10 +3,10 @@ package com.giocosmiano.exploration.clr;
 import com.giocosmiano.exploration.config.Pbkdf2PasswordEncoderConfig;
 import com.giocosmiano.exploration.domain.Book;
 import com.giocosmiano.exploration.domain.H2Book;
-import com.giocosmiano.exploration.domain.User;
+import com.giocosmiano.exploration.domain.H2User;
 import com.giocosmiano.exploration.repository.BookRepository;
 import com.giocosmiano.exploration.repository.H2BookRepository;
-import com.giocosmiano.exploration.repository.UserRepository;
+import com.giocosmiano.exploration.repository.H2UserRepository;
 import lombok.extern.log4j.Log4j2;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -45,17 +45,17 @@ public class InitDatabase {
     CommandLineRunner initializeEntities(
             BookRepository bookRepository
             , H2BookRepository h2BookRepository
-            , UserRepository userRepository
+            , H2UserRepository h2UserRepository
             , Pbkdf2PasswordEncoderConfig pbkdf2PasswordEncoderConfig
     ) {
         return args -> {
-            initUsers(userRepository, pbkdf2PasswordEncoderConfig);
+            initUsers(h2UserRepository, pbkdf2PasswordEncoderConfig);
             initBooks(bookRepository, h2BookRepository);
         };
     }
 
     private void initUsers(
-            final UserRepository userRepository
+            final H2UserRepository h2UserRepository
             , final Pbkdf2PasswordEncoderConfig pbkdf2PasswordEncoderConfig
     ) {
         try {
@@ -65,7 +65,7 @@ public class InitDatabase {
 
             // https://stackoverflow.com/questions/10926353/how-to-read-json-file-into-java-with-simple-json-library
             // https://howtodoinjava.com/library/json-simple-read-write-json-examples/
-            userRepository.deleteAll();
+            h2UserRepository.deleteAll();
 
             Pbkdf2PasswordEncoder pwdEncoder = pbkdf2PasswordEncoderConfig.getPbkdf2PasswordEncoder();
 
@@ -73,7 +73,7 @@ public class InitDatabase {
             Object obj = parser.parse(reader);
 
             JSONArray listOfUsers = (JSONArray) obj;
-            List<User> newUsers = new ArrayList<>();
+            List<H2User> newH2Users = new ArrayList<>();
 
             listOfUsers.forEach(userObj -> {
                 JSONObject user = (JSONObject) userObj;
@@ -88,7 +88,7 @@ public class InitDatabase {
                 JSONArray rolesObj = (JSONArray) user.get("roles");
                 rolesObj.forEach(role -> roles.add((String)role));
 
-                User newUser = new User(
+                H2User newH2User = new H2User(
                         null
                         , username
                         , pwdEncoder.encode(password)
@@ -98,15 +98,19 @@ public class InitDatabase {
                         , true
                         , roles.toArray(new String[0])
                 );
-                newUsers.add(newUser);
+                newH2Users.add(newH2User);
 
 //                log.debug(String.format("Inserted User %s", newUser));
             });
 
-            userRepository.saveAll(newUsers.stream().sorted(Comparator.comparing(User::getId)).collect(Collectors.toList()));
+            h2UserRepository.saveAll(
+                    newH2Users.stream()
+                              .sorted(Comparator.comparing(H2User::getUsername))
+                              .collect(Collectors.toList())
+            );
 
             reader.close();
-            log.info(String.format("Finished loading %s users", userRepository.count()));
+            log.info(String.format("Finished loading %s users", h2UserRepository.count()));
 
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -189,7 +193,7 @@ public class InitDatabase {
                 newBooks.add(newBook);
 
                 H2Book h2Book = new H2Book();
-                h2Book.setId(id);
+                h2Book.setId(null);
                 h2Book.setTitle(title);
                 h2Book.setIsbn(isbn);
                 h2Book.setPageCount(pageCount);
@@ -205,8 +209,8 @@ public class InitDatabase {
 //                log.debug(String.format("Inserted Book %s", newBook));
             });
 
-            bookRepository.saveAll(newBooks.stream().sorted(Comparator.comparing(Book::getId)).collect(Collectors.toList())).subscribe();
-            h2BookRepository.saveAll(newH2Books.stream().sorted(Comparator.comparing(H2Book::getId)).collect(Collectors.toList()));
+            bookRepository.saveAll(newBooks).subscribe();
+            h2BookRepository.saveAll(newH2Books);
 
             reader.close();
             log.info(String.format("Finished loading %s books, %s h2Books", listOfBooks.size(), h2BookRepository.count()));

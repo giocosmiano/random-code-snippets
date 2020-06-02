@@ -57,6 +57,14 @@ public class BookController {
     }
 
     @ResponseBody
+    @GetMapping(value = "/counts", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<Long> getCounts() {
+        return bookService
+                .getCounts()
+                ;
+    }
+
+    @ResponseBody
     @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<Book> getAllBooks() {
         return bookService

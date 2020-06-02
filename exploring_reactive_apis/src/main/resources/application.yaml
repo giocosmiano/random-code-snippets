@@ -36,7 +36,7 @@ spring:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
         implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
-      ddl-auto: update
+  #    ddl-auto: update
   #    show_sql: true
   #
   # http://localhost:9080/h2-console

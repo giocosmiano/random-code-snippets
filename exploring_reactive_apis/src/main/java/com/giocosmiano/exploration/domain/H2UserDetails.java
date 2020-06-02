@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class CustomUserDetails implements UserDetails {
+public class H2UserDetails implements UserDetails {
 
     private static final long serialVersionUID = -4617834194137726757L;
 
@@ -20,11 +20,11 @@ public class CustomUserDetails implements UserDetails {
     private final boolean active;
     private final List<GrantedAuthority> authorities;
 
-    public CustomUserDetails(final User user) {
-        this.username = user.getUsername();
-        this.password = user.getPassword();
-        this.active = user.isActive();
-        this.authorities = Arrays.stream(user.getRoles())
+    public H2UserDetails(final H2User h2User) {
+        this.username = h2User.getUsername();
+        this.password = h2User.getPassword();
+        this.active = h2User.isActive();
+        this.authorities = Arrays.stream(h2User.getRoles())
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
     }
