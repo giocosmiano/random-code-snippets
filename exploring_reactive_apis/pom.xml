@@ -25,7 +25,7 @@
         <scalaJdk8CompatVersion>0.8.0</scalaJdk8CompatVersion>
         <groovyVersion>2.5.8</groovyVersion>
         <springBootVersion>2.3.0.RELEASE</springBootVersion>
-        <springReactorVersion>3.2.15.RELEASE</springReactorVersion>
+        <springReactorVersion>3.3.5.RELEASE</springReactorVersion>
         <springCloudVersion>2.2.1.RELEASE</springCloudVersion>
         <googleGuavaVersion>28.2-jre</googleGuavaVersion>
         <googleJsonVersion>1.1.1</googleJsonVersion>
