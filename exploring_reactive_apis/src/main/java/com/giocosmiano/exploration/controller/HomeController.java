@@ -16,7 +16,7 @@ public class HomeController {
     public Mono<String> index(Model model) {
         model.addAttribute("restEndpoint", "/books/streaming");
         model.addAttribute("repository", "mongo");
-        model.addAttribute("pageTitle", "Streaming Simulation on RxJS Observables and Oboe.js in the UI while Reactive Mongo and Reactor Flux from ReST");
+        model.addAttribute("pageTitle", "Streaming Simulation using RxJS and Oboe.js in the UI while Reactor Flux, with Reactive Mongo DB-driver, on the back-end");
         return Mono.just("booksReactorFlux");
     }
 }
