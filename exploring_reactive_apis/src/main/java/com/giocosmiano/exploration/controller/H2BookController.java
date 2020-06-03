@@ -34,7 +34,7 @@ public class H2BookController {
 //        model.addAttribute("restEndpoint", "http://localhost:9080/h2Books/streaming");
         model.addAttribute("restEndpoint", "/h2Books/streaming");
         model.addAttribute("repository", "h2Books");
-        model.addAttribute("pageTitle", "Streaming Simulation on RxJS Observables and Oboe.js in the UI while H2 (non-reactive DB) and Reactor Flux from ReST");
+        model.addAttribute("pageTitle", "Streaming Simulation using RxJS and Oboe.js in the UI while Reactor Flux, with Non-Reactive H2 DB-driver, on the back-end");
         return Mono.just("booksReactorFlux");
     }
 

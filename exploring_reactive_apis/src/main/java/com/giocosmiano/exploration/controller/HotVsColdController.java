@@ -37,7 +37,15 @@ public class HotVsColdController {
 
     @GetMapping
     public Mono<String> index(Model model) {
+        model.addAttribute("restEndpoint", "/hotVsColdObservables/primeStreamReactorFlux");
+        model.addAttribute("pageTitle", "Streaming Simulations using RxJS and Oboe.js in the UI while Reactor Flux on the back-end");
+        return Mono.just("hotVsColdObservables");
+    }
+
+    @GetMapping(value = "/streamingObservables")
+    public Mono<String> streamingObservables(Model model) {
         model.addAttribute("restEndpoint", "/hotVsColdObservables/primeStreamObservables");
+        model.addAttribute("pageTitle", "Streaming Simulations using RxJS and Oboe.js in the UI while RxJava on the back-end");
         return Mono.just("hotVsColdObservables");
     }
 

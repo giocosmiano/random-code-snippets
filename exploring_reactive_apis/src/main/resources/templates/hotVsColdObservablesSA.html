@@ -48,7 +48,7 @@
 						number++;
 						while (! isPrime(number)) number++;
 
-						if (number >= 1200) {
+						if (number >= 700) {
 							observer.complete();
 						}
 
@@ -198,15 +198,19 @@
 	</script>
 
 	<body style="margin: 10px; padding: 10px;">
+		<div class="alert alert-success" role="alert">
+			<span id="pageTitle" style="font-weight: bold; padding: 10px;">Simulations using RxJS</span>
+		</div>
+
 		<div class="alert alert-warning" role="alert">
-			<span style="font-weight: bold;">Simulation on RxJS Cold Observables</span>
+			<span style="font-weight: bold;">RxJS Cold Observables</span>
 			<button id="btnColdElem1" type="button" class="btn btn-primary btn-sm" data-elem-nbr="1" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem1.id)">Start Subscriber 1</button><span id="spanColdElem1" class="badge btn-sm btn-info">&nbsp;</span>
 			<button id="btnColdElem2" type="button" class="btn btn-primary btn-sm" data-elem-nbr="2" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem2.id)">Start Subscriber 2</button><span id="spanColdElem2" class="badge btn-sm btn-info">&nbsp;</span>
 			<button id="btnColdElem3" type="button" class="btn btn-primary btn-sm" data-elem-nbr="3" data-is-subscriber-on="" data-is-hot-observable="false" onclick="onSubscribe(this.id, spanColdElem3.id)">Start Subscriber 3</button><span id="spanColdElem3" class="badge btn-sm btn-info">&nbsp;</span>
 			<button id="btnColdStopAll" type="button" class="btn btn-primary btn-sm" data-is-hot-observable="false" onclick="onStopAll(this.id)" disabled="disabled">Stop All Subscribers</button>
 		</div>
 		<div class="alert alert-danger" role="alert">
-			<span style="font-weight: bold;">Simulation on RxJS Hot Observables</span>
+			<span style="font-weight: bold;">RxJS Hot Observables</span>
 			<button id="btnHotElem1" type="button" class="btn btn-primary btn-sm" data-elem-nbr="1" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem1.id)">Start Subscriber 1</button><span id="spanHotElem1" class="badge btn-sm btn-info">&nbsp;</span>
 			<button id="btnHotElem2" type="button" class="btn btn-primary btn-sm" data-elem-nbr="2" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem2.id)">Start Subscriber 2</button><span id="spanHotElem2" class="badge btn-sm btn-info">&nbsp;</span>
 			<button id="btnHotElem3" type="button" class="btn btn-primary btn-sm" data-elem-nbr="3" data-is-subscriber-on="" data-is-hot-observable="true" onclick="onSubscribe(this.id, spanHotElem3.id)">Start Subscriber 3</button><span id="spanHotElem3" class="badge btn-sm btn-info">&nbsp;</span>
