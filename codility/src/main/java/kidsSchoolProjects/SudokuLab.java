@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+/**
+ *
+ * @author gabriellecosmiano
+ */
 public class SudokuLab {
 
     Scanner keyboard = new Scanner(System.in);

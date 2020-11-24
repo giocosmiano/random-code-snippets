@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 /**
  *
- * @author lisa
+ * @author gabriellecosmiano
  */
 public class TileGame {
     
