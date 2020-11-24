@@ -25,3 +25,26 @@ nvm use v8.16.0
 node ./sample.js
 ```
 
+### Sample word count in [Haskell](https://www.haskell.org/)
+```haskell
+import Data.Char
+import Data.List
+
+--
+-- countWords :: String -> [(String,Int)]
+-- countWords = map (\w -> (head w, length w)) . group . sort . words . filter (\x -> isAlphaNum x || isSpace x) . map toLower
+--
+
+Haskell λ > countWords "hello world, Hello There!!!"
+[("hello",2),("there",1),("world",1)]
+```
+
+### Sample word count in Javascript using [RamdaJS](https://ramdajs.com/docs/#)
+```javascript
+import * as R from "ramda";
+
+const wordCount = R.compose(R.map(w => w.length), R.groupBy(R.identity), R.sortBy(R.identity), R.map(R.replace(/\W/gi, "")), R.split(" "), R.toLower);
+
+console.log(wordCount("hello world, Hello There!!!"));
+// output ==> { hello : 2, there : 1, world : 1 }
+```
