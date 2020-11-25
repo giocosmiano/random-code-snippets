@@ -48,3 +48,61 @@ const wordCount = R.compose(R.map(w => w.length), R.groupBy(R.identity), R.sortB
 console.log(wordCount("hello world, Hello There!!!"));
 // output ==> { hello : 2, there : 1, world : 1 }
 ```
+
+### Sample word count in Java
+```java
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public class WordCount {
+    public static void main(String[] args) {
+
+        String sample = "hello world, Hello There!!!";
+        TreeMap<String, Integer> sortedMap =
+                Arrays.stream(
+                        Optional.ofNullable(sample)
+                                .orElse("")
+                                .toLowerCase()
+                                .split(" "))
+                        .map(e -> e.replaceAll("\\W", ""))
+                        .collect(Collectors.groupingBy(Function.identity()))
+                        .entrySet()
+                        .stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().size(),
+                                (oldValue, newValue) -> oldValue, TreeMap::new))
+                ;
+        sortedMap.entrySet().forEach(System.out::println);
+    }
+}
+
+// output ==> 
+// hello=2
+// there=1
+// world=1
+```
+
+### Sample word count in [Scala](https://www.scala-lang.org/)
+```scala worksheet
+
+def wordCount(sentence: String): Unit = {
+  Option(sentence)
+    .map(e => e.toLowerCase)
+    .map(e => e.split(" "))
+    .toList
+    .flatten
+    .map(e => e.replaceAll("\\W", ""))
+    .groupBy(identity)
+    .map(e => e._1 -> e._2.size)
+    .toSeq
+    .sortBy(_._1)
+    .foreach(e => println(e))
+}
+
+wordCount("hello world, Hello There!!!")
+// output ==>
+// (hello,2)
+// (there,1)
+// (world,1)
+```
