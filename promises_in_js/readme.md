@@ -43,7 +43,16 @@ Haskell λ > countWords "hello world,\n\t Hello There!!!"
 ```javascript
 import * as R from "ramda";
 
-const wordCount = R.compose(R.map(w => w.length), R.groupBy(R.identity), R.sortBy(R.identity), R.map(R.replace(/\W/gi, "")), R.filter(e => ! R.isEmpty(e)), R.split(/\s/), R.toLower);
+const wordCount =
+    R.compose(
+        R.map(w => w.length)
+        , R.groupBy(R.identity)
+        , R.sortBy(R.identity)
+        , R.map(R.replace(/\W/gi, ""))
+        , R.filter(e => ! R.isEmpty(e))
+        , R.split(/\s/)
+        , R.toLower
+    );
 
 wordCount("hello world,\n\t Hello There!!!");
 // output ==> {"hello" : 2, "there" : 1, "world" : 1}
