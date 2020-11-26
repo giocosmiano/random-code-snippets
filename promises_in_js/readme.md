@@ -35,7 +35,7 @@ import Data.List
 -- countWords = map (\w -> (head w, length w)) . group . sort . words . filter (\x -> isAlphaNum x || isSpace x) . map toLower
 --
 
-Haskell λ > countWords "hello world, Hello There!!!"
+Haskell λ > countWords "hello world,\n\t Hello There!!!"
 [("hello",2),("there",1),("world",1)]
 ```
 
@@ -43,10 +43,10 @@ Haskell λ > countWords "hello world, Hello There!!!"
 ```javascript
 import * as R from "ramda";
 
-const wordCount = R.compose(R.map(w => w.length), R.groupBy(R.identity), R.sortBy(R.identity), R.map(R.replace(/\W/gi, "")), R.split(" "), R.toLower);
+const wordCount = R.compose(R.map(w => w.length), R.groupBy(R.identity), R.sortBy(R.identity), R.map(R.replace(/\W/gi, "")), R.filter(e => ! R.isEmpty(e)), R.split(/\s/), R.toLower);
 
-console.log(wordCount("hello world, Hello There!!!"));
-// output ==> { hello : 2, there : 1, world : 1 }
+wordCount("hello world,\n\t Hello There!!!");
+// output ==> {"hello" : 2, "there" : 1, "world" : 1}
 ```
 
 ### Sample word count in Java
@@ -58,13 +58,14 @@ import java.util.stream.Collectors;
 public class WordCount {
     public static void main(String[] args) {
 
-        String sample = "hello world, Hello There!!!";
+        String sample = "hello world,\n\t Hello There!!!";
         TreeMap<String, Integer> sortedMap =
                 Arrays.stream(
                         Optional.ofNullable(sample)
                                 .orElse("")
                                 .toLowerCase()
-                                .split(" "))
+                                .split("\\s"))
+                        .filter(e -> Objects.nonNull(e) && e.length() > 0 && ! e.chars().allMatch(Character::isWhitespace))
                         .map(e -> e.replaceAll("\\W", ""))
                         .collect(Collectors.groupingBy(Function.identity()))
                         .entrySet()
@@ -89,9 +90,10 @@ public class WordCount {
 def wordCount(sentence: String): Unit = {
   Option(sentence)
     .map(e => e.toLowerCase)
-    .map(e => e.split(" "))
+    .map(e => e.split("\\s"))
     .toList
     .flatten
+    .filter(_.trim.nonEmpty)
     .map(e => e.replaceAll("\\W", ""))
     .groupBy(identity)
     .map(e => e._1 -> e._2.size)
@@ -100,7 +102,7 @@ def wordCount(sentence: String): Unit = {
     .foreach(e => println(e))
 }
 
-wordCount("hello world, Hello There!!!")
+wordCount("hello world,\n\t Hello There!!!")
 // output ==>
 // (hello,2)
 // (there,1)

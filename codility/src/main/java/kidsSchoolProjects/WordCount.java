@@ -20,13 +20,14 @@ public class WordCount {
      */
     public static void main(String[] args) {
 
-        String sample = "hello world, Hello There!!!";
+        String sample = "hello world,\n\t Hello There!!!";
         TreeMap<String, Integer> sortedMap =
                 Arrays.stream(
                         Optional.ofNullable(sample)
                                 .orElse("")
                                 .toLowerCase()
-                                .split(" "))
+                                .split("\\s"))
+                        .filter(e -> Objects.nonNull(e) && e.length() > 0 && ! e.chars().allMatch(Character::isWhitespace))
                         .map(e -> e.replaceAll("\\W", ""))
                         .collect(Collectors.groupingBy(Function.identity()))
                         .entrySet()
