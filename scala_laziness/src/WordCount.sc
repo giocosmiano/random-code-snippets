@@ -14,7 +14,8 @@ def wordCount(sentence: String): TreeMap[String, Int] = {
     .map(e => e.replaceAll("\\W", ""))
     .groupBy(identity)
     .map(e => e._1 -> e._2.size)(breakOut)
-//    .toSeq.sortBy(_._1) // no need as it returns a TreeMap sorted by keys
+//    .toSeq  // no need as it returns a TreeMap sorted by keys
+//    .sortBy(_._1)
 //    .toMap
 }
 
