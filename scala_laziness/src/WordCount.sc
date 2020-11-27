@@ -1,6 +1,8 @@
 import scala.collection.breakOut
 import scala.collection.immutable.TreeMap
 
+// using `breakout` to transform `map` to `treeMap`
+// https://docs.scala-lang.org/tutorials/FAQ/breakout.html
 def wordCount(sentence: String): TreeMap[String, Int] = {
   Option(sentence)
     .orElse(Some(""))
@@ -11,9 +13,9 @@ def wordCount(sentence: String): TreeMap[String, Int] = {
     .filter(_.trim.nonEmpty)
     .map(e => e.replaceAll("\\W", ""))
     .groupBy(identity)
-    .map(e => e._1 -> e._2.size)
+    .map(e => e._1 -> e._2.size)(breakOut)
 //    .toSeq.sortBy(_._1) // no need as it returns a TreeMap sorted by keys
-    .map(identity)(breakOut)  // https://docs.scala-lang.org/tutorials/FAQ/breakout.html
+//    .toMap
 }
 
 val useDefault = Math.random() > 0.50
