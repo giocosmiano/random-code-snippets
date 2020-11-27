@@ -52,10 +52,16 @@ const wordCount =
         , R.filter(e => ! R.isEmpty(e))
         , R.split(/\s/)
         , R.toLower
+        , R.defaultTo("") // set to empty string if null/undefined
     );
 
-wordCount("hello world,\n\t Hello There!!!");
-// output ==> {"hello" : 2, "there" : 1, "world" : 1}
+const useDefault = Math.random() > 0.50
+, message = useDefault ? "hello world,\n\t Hello There!!!" : null;
+
+wordCount(message);
+
+// output ==> { "hello" : 2, "there" : 1, "world" : 1 }
+// output ==> { }  // if message is null
 ```
 
 ### Sample word count in Java
@@ -67,10 +73,11 @@ import java.util.stream.Collectors;
 public class WordCount {
     public static void main(String[] args) {
 
-        String sample = "hello world,\n\t Hello There!!!";
+        boolean useDefault = Math.random() > 0.50;
+        String message = useDefault ? "hello world,\n\t Hello There!!!" : null;
         TreeMap<String, Integer> sortedMap =
                 Arrays.stream(
-                        Optional.ofNullable(sample)
+                        Optional.ofNullable(message)
                                 .orElse("")
                                 .toLowerCase()
                                 .split("\\s"))
@@ -83,21 +90,20 @@ public class WordCount {
                         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().size(),
                                 (oldValue, newValue) -> oldValue, TreeMap::new))
                 ;
-        sortedMap.entrySet().forEach(System.out::println);
+        System.out.println(sortedMap);
     }
 }
 
-// output ==> 
-// hello=2
-// there=1
-// world=1
+// output ==> { hello=2, there=1, world=1 }
+// output ==> { }  // if message is null
 ```
 
 ### Sample word count in [Scala](https://www.scala-lang.org/)
-```scala worksheet
+```scala
 
-def wordCount(sentence: String): Unit = {
+def wordCount(sentence: String): Map[String, Int] = {
   Option(sentence)
+    .orElse(Some(""))
     .map(e => e.toLowerCase)
     .map(e => e.split("\\s"))
     .toList
@@ -108,12 +114,13 @@ def wordCount(sentence: String): Unit = {
     .map(e => e._1 -> e._2.size)
     .toSeq
     .sortBy(_._1)
-    .foreach(e => println(e))
+    .toMap
 }
 
-wordCount("hello world,\n\t Hello There!!!")
-// output ==>
-// (hello,2)
-// (there,1)
-// (world,1)
+val useDefault = Math.random() > 0.50
+val message = if (useDefault) "hello world,\n\t Hello There!!!" else null
+println(wordCount(message))
+
+// output ==> Map( hello -> 2, there -> 1, world -> 1 )
+// output ==> Map()  // if message is null
 ```

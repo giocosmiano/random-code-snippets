@@ -20,10 +20,11 @@ public class WordCount {
      */
     public static void main(String[] args) {
 
-        String sample = "hello world,\n\t Hello There!!!";
+        boolean useDefault = Math.random() > 0.50;
+        String message = useDefault ? "hello world,\n\t Hello There!!!" : null;
         TreeMap<String, Integer> sortedMap =
                 Arrays.stream(
-                        Optional.ofNullable(sample)
+                        Optional.ofNullable(message)
                                 .orElse("")
                                 .toLowerCase()
                                 .split("\\s"))
@@ -36,6 +37,6 @@ public class WordCount {
                         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().size(),
                                 (oldValue, newValue) -> oldValue, TreeMap::new))
                 ;
-        sortedMap.entrySet().forEach(System.out::println);
+        System.out.println(sortedMap);
     }
 }
