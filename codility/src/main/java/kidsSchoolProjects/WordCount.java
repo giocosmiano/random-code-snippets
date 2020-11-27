@@ -33,7 +33,7 @@ public class WordCount {
                         .collect(Collectors.groupingBy(Function.identity()))
                         .entrySet()
                         .stream()
-                        .sorted(Map.Entry.comparingByKey())
+//                        .sorted(Map.Entry.comparingByKey())  // no need as it returns a TreeMap sorted by keys
                         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().size(),
                                 (oldValue, newValue) -> oldValue, TreeMap::new))
                 ;
