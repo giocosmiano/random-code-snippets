@@ -46,10 +46,10 @@ public class ZipWithList {
     }
 
     public static void main(String[] args) {
-        testZipWithList();
+        runSampleZipWithList();
     }
 
-    public static void testZipWithList() {
+    public static void runSampleZipWithList() {
         List<Integer> ints1 = Arrays.asList(1,   2, null,  3,  4,  5, 6);
         List<Integer> ints2 = Arrays.asList(11, 12, 13, null, 14, 15);
         List<String> chars = Arrays.asList("a", "b", "c", "d", null);
@@ -65,52 +65,52 @@ public class ZipWithList {
 
         List<Integer> results1;
         results1 = zipWithList(sum, empty, ints1);
-        printResults("sum", empty, ints1, results1, false);
+        printSampleZipWithList("sum", empty, ints1, results1, false);
 
         results1 = zipWithList(sum, empty, ints1, true);
-        printResults("sum", empty, ints1, results1, true);
+        printSampleZipWithList("sum", empty, ints1, results1, true);
 
         results1 = zipWithList(sum, ints1, ints2);
-        printResults("sum", ints1, ints2, results1, false);
+        printSampleZipWithList("sum", ints1, ints2, results1, false);
 
         results1 = zipWithList(sum, ints1, ints2, true);
-        printResults("sum", ints1, ints2, results1, true);
+        printSampleZipWithList("sum", ints1, ints2, results1, true);
 
         results1 = zipWithList(product, ints1, ints2);
-        printResults("product", ints1, ints2, results1, false);
+        printSampleZipWithList("product", ints1, ints2, results1, false);
 
         results1 = zipWithList(product, ints1, ints2, true);
-        printResults("product", ints1, ints2, results1, true);
+        printSampleZipWithList("product", ints1, ints2, results1, true);
 
         results1 = zipWithList(multiplyBy2ThenAdd, ints1, ints2);
-        printResults("multiplyBy2ThenAdd", ints1, ints2, results1, false);
+        printSampleZipWithList("multiplyBy2ThenAdd", ints1, ints2, results1, false);
 
         results1 = zipWithList(multiplyBy2ThenAdd, ints1, ints2, true);
-        printResults("multiplyBy2ThenAdd", ints1, ints2, results1, true);
+        printSampleZipWithList("multiplyBy2ThenAdd", ints1, ints2, results1, true);
 
         List<ImmutablePair<Integer, String>> results2;
         results2 = zipWithList(pair1, ints1, chars);
-        printResults("pair1", ints1, chars, results2, false);
+        printSampleZipWithList("pair1", ints1, chars, results2, false);
 
         results2 = zipWithList(pair1, ints1, chars, true);
-        printResults("pair1", ints1, chars, results2, true);
+        printSampleZipWithList("pair1", ints1, chars, results2, true);
 
         List<ImmutablePair<Boolean, String>> results3;
         results3 = zipWithList(pair2, bools, chars);
-        printResults("pair2", bools, chars, results3, false);
+        printSampleZipWithList("pair2", bools, chars, results3, false);
 
         results3 = zipWithList(pair2, bools, chars, true);
-        printResults("pair2", bools, chars, results3, true);
+        printSampleZipWithList("pair2", bools, chars, results3, true);
 
         List<ImmutablePair<Integer, Boolean>> results4;
         results4 = zipWithList(pair3, ints1, bools);
-        printResults("pair3", ints1, bools, results4, false);
+        printSampleZipWithList("pair3", ints1, bools, results4, false);
 
         results4 = zipWithList(pair3, ints1, bools, true);
-        printResults("pair3", ints1, bools, results4, true);
+        printSampleZipWithList("pair3", ints1, bools, results4, true);
     }
 
-    public static <L, R, T> void printResults(final String funcName, final List<L> leftList, final List<R> rightList, final List<T> results, final Boolean isToAllowNull) {
+    public static <L, R, T> void printSampleZipWithList(final String funcName, final List<L> leftList, final List<R> rightList, final List<T> results, final Boolean isToAllowNull) {
         System.out.println();
         System.out.println("Allow Null  : " + isToAllowNull);
         System.out.println("Function    : " + funcName);

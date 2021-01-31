@@ -47,10 +47,10 @@ public class ZipList {
     }
 
     public static void main(String[] args) {
-        testZipList();
+        runSampleZipList();
     }
 
-    public static void testZipList() {
+    public static void runSampleZipList() {
         List<Integer> ints = Arrays.asList(11, 12, 13, null, 14, 15);
         List<String> chars = Arrays.asList("a", "b", "c", "d", null);
         List<Boolean> bools = Arrays.asList(true, false, null, true);
@@ -58,34 +58,34 @@ public class ZipList {
 
         List<ImmutablePair<String, Integer>> results1;
         results1 = zipList(empty, ints);
-        printResults(empty, ints, results1, false);
+        printSampleZipList(empty, ints, results1, false);
 
         results1 = zipList(empty, ints, true);
-        printResults(empty, ints, results1, true);
+        printSampleZipList(empty, ints, results1, true);
 
         List<ImmutablePair<Integer, String>> results2;
         results2 = zipList(ints, chars);
-        printResults(ints, chars, results2, false);
+        printSampleZipList(ints, chars, results2, false);
 
         results2 = zipList(ints, chars, true);
-        printResults(ints, chars, results2, true);
+        printSampleZipList(ints, chars, results2, true);
 
         List<ImmutablePair<Boolean, String>> results3;
         results3 = zipList(bools, chars);
-        printResults(bools, chars, results3, false);
+        printSampleZipList(bools, chars, results3, false);
 
         results3 = zipList(bools, chars, true);
-        printResults(bools, chars, results3, true);
+        printSampleZipList(bools, chars, results3, true);
 
         List<ImmutablePair<Integer, Boolean>> results4;
         results4 = zipList(ints, bools);
-        printResults(ints, bools, results4, false);
+        printSampleZipList(ints, bools, results4, false);
 
         results4 = zipList(ints, bools, true);
-        printResults(ints, bools, results4, true);
+        printSampleZipList(ints, bools, results4, true);
     }
 
-    public static <L, R> void printResults(final List<L> leftList, final List<R> rightList, final List<ImmutablePair<L, R>> results, final Boolean isToAllowNull) {
+    public static <L, R> void printSampleZipList(final List<L> leftList, final List<R> rightList, final List<ImmutablePair<L, R>> results, final Boolean isToAllowNull) {
         System.out.println();
         System.out.println("Allow Null : " + isToAllowNull);
         System.out.println("Left       : " + leftList);

@@ -19,20 +19,25 @@ public class CollectionUtils {
     }
 
     public static <K, V> Stream<Map.Entry<K, V>> transformToStreamOfObjects(final Map<K, V> map) {
+        return transformToStreamOfObjects(map, false);
+    }
+
+    public static <K, V> Stream<Map.Entry<K, V>> transformToStreamOfObjects(final Map<K, V> map, final Boolean isToAllowNull) {
+        Predicate<Map.Entry<K, V>> checkForNullKey = e -> isToAllowNull || Objects.nonNull(e.getKey());
         return Optional.ofNullable(map)
                        .orElse(Collections.emptyMap())
                        .entrySet()
                        .stream()
-                       .filter(Objects::nonNull);
+                       .filter(Objects::nonNull)
+                       .filter(checkForNullKey);
     }
 
     public static <T> List<T> zipListToList(final List<List<T>> listOfList) {
         final Integer maxSize =
-                listOfList.stream()
-                          .filter(Objects::nonNull) // ignore un-initialized list
-                          .map(List::size)
-                          .max(Integer::compare)
-                          .orElse(0);
+                transformToStreamOfObjects(listOfList)
+                        .map(List::size)
+                        .max(Integer::compare)
+                        .orElse(0);
 
         return IntStream.range(0, maxSize)
                         .mapToObj(i ->
