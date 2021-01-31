@@ -49,6 +49,9 @@ public class ZipWithList {
         runSampleZipWithList();
     }
 
+    /**
+     * @see ZipWithListTest
+     */
     public static void runSampleZipWithList() {
         List<Integer> ints1 = Arrays.asList(1,   2, null,  3,  4,  5, 6);
         List<Integer> ints2 = Arrays.asList(11, 12, 13, null, 14, 15);

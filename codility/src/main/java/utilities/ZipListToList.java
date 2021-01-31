@@ -37,6 +37,9 @@ public class ZipListToList {
         runSampleZipListToList();
     }
 
+    /**
+     * @see ZipListToListTest
+     */
     public static void runSampleZipListToList() {
         List<Integer> ints0 = null;
         List<Integer> ints1 = Arrays.asList(11, 12, 13, 14, null, 15);

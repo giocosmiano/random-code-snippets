@@ -50,6 +50,9 @@ public class ZipList {
         runSampleZipList();
     }
 
+    /**
+     * @see ZipListTest
+     */
     public static void runSampleZipList() {
         List<Integer> ints = Arrays.asList(11, 12, 13, null, 14, 15);
         List<String> chars = Arrays.asList("a", "b", "c", "d", null);

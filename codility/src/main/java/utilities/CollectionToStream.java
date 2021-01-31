@@ -33,6 +33,9 @@ public class CollectionToStream {
         runSampleStream();
     }
 
+    /**
+     * @see CollectionToStreamTest
+     */
     public static void runSampleStream() {
         List<String> listOfStrings = null;
         printSampleStream(listOfStrings,
