@@ -19,13 +19,8 @@ public class ZipListToList {
                         .mapToObj(i ->
                                 listOfList.stream()
                                           .filter(Objects::nonNull) // ignore un-initialized list
-                                          .map(list -> {
-                                              T elem = null;
-                                              if (i < list.size()) {
-                                                  elem = list.get(i);
-                                              }
-                                              return elem;
-                                          })
+                                          .filter(e -> i < e.size())
+                                          .map(e -> e.get(i))
                                           .filter(Objects::nonNull) // ignore un-initialized element
                                           .collect(Collectors.toList())
                         )

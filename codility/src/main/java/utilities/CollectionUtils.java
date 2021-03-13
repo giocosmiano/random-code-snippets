@@ -10,12 +10,9 @@ public class CollectionUtils {
     private CollectionUtils() { }
 
     public static <T> Stream<T> transformToStreamOfObjects(final Collection<T> collection) {
-        if (Objects.isNull(collection)) {
-            return Stream.empty();
-        }
-        return collection
-                .stream()
-                .filter(Objects::nonNull);
+        return Optional.ofNullable(collection)
+                       .map(e -> e.stream().filter(Objects::nonNull))
+                       .orElse(Stream.empty());
     }
 
     public static <K, V> Stream<Map.Entry<K, V>> transformToStreamOfObjects(final Map<K, V> map) {
@@ -43,13 +40,8 @@ public class CollectionUtils {
                         .mapToObj(i ->
                                 listOfList.stream()
                                           .filter(Objects::nonNull) // ignore un-initialized list
-                                          .map(list -> {
-                                              T elem = null;
-                                              if (i < list.size()) {
-                                                  elem = list.get(i);
-                                              }
-                                              return elem;
-                                          })
+                                          .filter(e -> i < e.size())
+                                          .map(e -> e.get(i))
                                           .filter(Objects::nonNull) // ignore un-initialized element
                                           .collect(Collectors.toList())
                         )

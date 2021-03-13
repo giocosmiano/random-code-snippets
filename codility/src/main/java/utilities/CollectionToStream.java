@@ -7,12 +7,9 @@ import java.util.stream.*;
 public class CollectionToStream {
 
     public static <T> Stream<T> transformToStreamOfObjects(final Collection<T> collection) {
-        if (Objects.isNull(collection)) {
-            return Stream.empty();
-        }
-        return collection
-                .stream()
-                .filter(Objects::nonNull);
+        return Optional.ofNullable(collection)
+                       .map(e -> e.stream().filter(Objects::nonNull))
+                       .orElse(Stream.empty());
     }
 
     public static <K, V> Stream<Map.Entry<K, V>> transformToStreamOfObjects(final Map<K, V> map) {
