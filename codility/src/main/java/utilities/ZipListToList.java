@@ -1,28 +1,30 @@
 package utilities;
 
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 public class ZipListToList {
 
     public static <T> List<T> zipListToList(final List<List<T>> listOfList) {
+        final Function<List<List<T>>, Stream<List<T>>> safeListToStream =
+                list -> Optional.ofNullable(list)
+                                .map(e -> e.stream().filter(Objects::nonNull))
+                                .orElse(Stream.empty());
+
         final Integer maxSize =
-                Optional.ofNullable(listOfList)
-                        .orElse(Collections.emptyList())
-                        .stream()
-                        .filter(Objects::nonNull) // ignore un-initialized list
-                        .map(List::size)
-                        .max(Integer::compare)
-                        .orElse(0);
+                safeListToStream.apply(listOfList)
+                                .map(List::size)
+                                .max(Integer::compare)
+                                .orElse(0);
 
         return IntStream.range(0, maxSize)
                         .mapToObj(i ->
-                                listOfList.stream()
-                                          .filter(Objects::nonNull) // ignore un-initialized list
-                                          .filter(e -> i < e.size())
-                                          .map(e -> e.get(i))
-                                          .filter(Objects::nonNull) // ignore un-initialized element
-                                          .collect(Collectors.toList())
+                                safeListToStream.apply(listOfList)
+                                                .filter(e -> i < e.size())
+                                                .map(e -> e.get(i))
+                                                .filter(Objects::nonNull) // ignore un-initialized element
+                                                .collect(Collectors.toList())
                         )
                         .flatMap(Collection::stream)
                         .collect(Collectors.toList());

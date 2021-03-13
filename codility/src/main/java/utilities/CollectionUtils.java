@@ -38,12 +38,11 @@ public class CollectionUtils {
 
         return IntStream.range(0, maxSize)
                         .mapToObj(i ->
-                                listOfList.stream()
-                                          .filter(Objects::nonNull) // ignore un-initialized list
-                                          .filter(e -> i < e.size())
-                                          .map(e -> e.get(i))
-                                          .filter(Objects::nonNull) // ignore un-initialized element
-                                          .collect(Collectors.toList())
+                                transformToStreamOfObjects(listOfList)
+                                        .filter(e -> i < e.size())
+                                        .map(e -> e.get(i))
+                                        .filter(Objects::nonNull) // ignore un-initialized element
+                                        .collect(Collectors.toList())
                         )
                         .flatMap(Collection::stream)
                         .collect(Collectors.toList());
