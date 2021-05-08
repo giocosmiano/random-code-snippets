@@ -191,10 +191,11 @@ M = f => f (f)
 
 - Additional References
   - [Lambda Calculus](https://en.wikipedia.org/wiki/Lambda_calculus)
+  - [B, C, K, W system](https://en.wikipedia.org/wiki/B,_C,_K,_W_system)  
   - [Combinatory Logic](https://en.wikipedia.org/wiki/Combinatory_logic)
   - [SKI Combinator Calculus](https://en.wikipedia.org/wiki/SKI_combinator_calculus)
+  - [Combinator Birds](https://blog.lahteenmaki.net/combinator-birds.html)  
   - [To Dissect a Mockingbird](https://dkeenan.com/Lambda/index.htm)
   - [Lambda Calculus and Combinatory Logic](https://softoption.us/node/654)  
-  - [Combinatory Logic I](https://softoption.us/node/45)
   - [SKI Combinator Calculus](https://people.cs.uchicago.edu/~odonnell/Teacher/Lectures/Formal_Organization_of_Knowledge/Examples/combinator_calculus/)  
   - [Reader monad and SKI combinators](https://kseo.github.io/posts/2016-12-24-reader-monad-and-ski-combinators.html)
