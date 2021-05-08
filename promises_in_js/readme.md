@@ -128,3 +128,73 @@ println(wordCount(message))
 // output ==> Map( hello -> 2, there -> 1, world -> 1 )
 // output ==> Map()  // if message is null
 ```
+
+### [Combinator Birds](https://www.angelfire.com/tx4/cus/combinator/birds.html) in [Haskell](https://hackage.haskell.org/package/data-aviary-0.4.0/docs/Data-Aviary-Birds.html)
+  - [Haskell Data.Aviary.Birds Docs](https://hackage.haskell.org/package/data-aviary-0.4.0/docs/src/Data-Aviary-BirdsInter.html)  
+  - [Haskell Data.Aviary.Birds Src](https://hackage.haskell.org/package/data-aviary-0.4.0/src/src/Data/Aviary/Birds.hs)
+```javascript
+// Identity Bird (aka Idiot)
+// Haskell λ > :t id
+I = a => a
+
+// Kestrel (Corresponds to the encoding of true in the lambda calculus)
+// Haskell λ > :t const
+// e.g. K(5)(3) === 5
+K = a => b => a
+
+// Bluebird
+// Haskell λ > :t (.)
+// (.) :: (b -> c) -> (a -> b) -> a -> c
+// e.g. B(a => a % 2 === 0)(a => a * 3)(2) === true
+// e.g. B(a => a % 2 === 0)(a => a * 3)(3) === false
+B = f => g => x => f (g (x))
+
+// Cardinal
+// Haskell λ > :t flip
+// e.g. C(a => b => a ** b)(5)(3) === 243
+// e.g. C(a => b => a ** b)(3)(5) === 125
+C = f => a => b => f (b) (a)
+
+// I* -> Apply/Application
+// Haskell λ > :t ($)
+// e.g ISTAR(a => a * 3)(7) === 21
+ISTAR = f => a => f (a)
+
+// Kite (Corresponds to the encoding of false in the lambda calculus)
+// Haskell λ > :t flip const
+// e.g. KI(5)(3) === 3
+KI = K(I)
+
+// Starling -> Haskell Applicative's (<*>) on functions
+// Haskell λ > :t (<*>)
+// (<*>) :: Applicative f => f (a -> b) -> f a -> f b
+// OR
+// Haskell λ > s :: (a -> b -> c) -> (a -> b) -> a -> c
+// Haskell λ > s f g x = (f x) (g x)
+S = f => g => x => (f (x)) (g (x))
+
+// Thrush -> Reverse application
+// Haskell λ > :t flip id
+// e.g. T(5)(x => x ** 3) === 125
+// e.g. T(5)(x => x % 2 === 0) === false
+T = a => f => f (a)
+
+// Vireo -> Pair of arguments
+// Haskell λ > :t flip . flip id
+// e.g. V(3)(5)(a => b => a ** b) === 243
+// e.g. V(5)(3)(a => b => a ** b) === 125 
+V = a => b => f => f (a) (b)
+
+// Mockingbird -> Self application 
+M = f => f (f)
+```
+
+- Additional References
+  - [Lambda Calculus](https://en.wikipedia.org/wiki/Lambda_calculus)
+  - [Combinatory Logic](https://en.wikipedia.org/wiki/Combinatory_logic)
+  - [SKI Combinator Calculus](https://en.wikipedia.org/wiki/SKI_combinator_calculus)
+  - [To Dissect a Mockingbird](https://dkeenan.com/Lambda/index.htm)
+  - [Lambda Calculus and Combinatory Logic](https://softoption.us/node/654)  
+  - [Combinatory Logic I](https://softoption.us/node/45)
+  - [SKI Combinator Calculus](https://people.cs.uchicago.edu/~odonnell/Teacher/Lectures/Formal_Organization_of_Knowledge/Examples/combinator_calculus/)  
+  - [Reader monad and SKI combinators](https://kseo.github.io/posts/2016-12-24-reader-monad-and-ski-combinators.html)
