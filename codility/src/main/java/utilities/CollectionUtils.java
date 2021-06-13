@@ -6,6 +6,8 @@ import java.util.stream.*;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import static java.util.Optional.*;
+
 public class CollectionUtils {
     private CollectionUtils() { }
 
@@ -27,6 +29,33 @@ public class CollectionUtils {
                        .stream()
                        .filter(Objects::nonNull)
                        .filter(checkForNullKey);
+    }
+
+    public static <T> Optional<T> getMaybeHead(final Collection<T> list) {
+        return transformToStreamOfObjects(list)
+                .findFirst();
+    }
+
+    public static <T> T getHead(final Collection<T> list) {
+        return getMaybeHead(list)
+                .orElse(null);
+    }
+
+    public static <T> List<T> getTail(final List<T> list) {
+        return ofNullable(list)
+                .map(e -> transformToStreamOfObjects(e).skip(1).collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
+    }
+
+    public static <T> ImmutablePair<T, List<T>> getHeadAndTail(final Collection<T> list) {
+        return of( transformToStreamOfObjects(list).collect(Collectors.toList()) )
+                .filter(e -> ! e.isEmpty())
+                .map(e -> {
+                    T head = getHead(e);
+                    List<T> tail = getTail(e);
+                    return ImmutablePair.of(head, tail);
+                })
+                .orElse(null);
     }
 
     public static <T> List<T> zipListToList(final List<List<T>> listOfList) {
