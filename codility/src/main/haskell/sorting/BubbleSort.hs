@@ -38,3 +38,7 @@ main = do
   print $ "input       --> " ++ (show arr)
   print $ "bubbleSort  --> " ++ (show $ bubbleSort  arr)
   print $ "bubbleSort' --> " ++ (show $ bubbleSort' arr)
+
+  let arr2 = ['z','y'..'a']
+  print $ "input       --> " ++ (show arr2)
+  print $ "bubbleSort  --> " ++ (show $ bubbleSort  arr2)

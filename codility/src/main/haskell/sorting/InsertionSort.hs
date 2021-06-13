@@ -14,13 +14,17 @@ insert x (y:ys)
 
 -----------------------------------------------------------------------------------
 
-insertSort :: Ord a => [a] -> [a]
-insertSort [] = []
-insertSort (x:xs) = insert x (insertSort xs)
+insertionSort :: Ord a => [a] -> [a]
+insertionSort [] = []
+insertionSort (x:xs) = insert x (insertionSort xs)
 
 -----------------------------------------------------------------------------------
 
 main = do
   let arr = [25,24..1]
-  print $ "input      --> " ++ (show arr)
-  print $ "insertSort --> " ++ (show $ insertSort  arr)
+  print $ "input         --> " ++ (show arr)
+  print $ "insertionSort --> " ++ (show $ insertionSort  arr)
+
+  let arr2 = ['z','y'..'a']
+  print $ "input         --> " ++ (show arr2)
+  print $ "insertionSort --> " ++ (show $ insertionSort  arr2)

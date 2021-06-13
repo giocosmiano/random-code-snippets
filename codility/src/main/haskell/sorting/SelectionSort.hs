@@ -14,9 +14,9 @@ deleteFromOri x (y:ys)
 
 -----------------------------------------------------------------------------------
 
-selectSort :: Ord a => [a] -> [a]
-selectSort [] = []
-selectSort xs = mini : selectSort xs'
+selectionSort :: Ord a => [a] -> [a]
+selectionSort [] = []
+selectionSort xs = mini : selectionSort xs'
   where
     mini = minimum xs
     xs' = deleteFromOri mini xs
@@ -25,5 +25,9 @@ selectSort xs = mini : selectSort xs'
 
 main = do
   let arr = [25,24..1]
-  print $ "input      --> " ++ (show arr)
-  print $ "selectSort --> " ++ (show $ selectSort  arr)
+  print $ "input         --> " ++ (show arr)
+  print $ "selectionSort --> " ++ (show $ selectionSort  arr)
+
+  let arr2 = ['z','y'..'a']
+  print $ "input         --> " ++ (show arr2)
+  print $ "selectionSort --> " ++ (show $ selectionSort  arr2)

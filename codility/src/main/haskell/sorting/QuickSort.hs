@@ -11,8 +11,8 @@ import Data.List (partition)
 quickSort :: Ord a => [a] -> [a]
 quickSort [] = []
 quickSort (x:xs) =
-    let smallerOrEqual = [a | a <- xs, a <= x]
-        larger = [a | a <- xs, a > x]
+    let smallerOrEqual = filter (<= x) xs
+        larger = filter (> x) xs
     in  quickSort smallerOrEqual ++ [x] ++ quickSort larger
 
 -----------------------------------------------------------------------------------
@@ -20,8 +20,8 @@ quickSort (x:xs) =
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' (x:xs) =
-    let smallerOrEqual = filter (<= x) xs
-        larger = filter (> x) xs
+    let smallerOrEqual = [a | a <- xs, a <= x]
+        larger = [a | a <- xs, a > x]
     in  quickSort' smallerOrEqual ++ [x] ++ quickSort' larger
 
 -----------------------------------------------------------------------------------
@@ -41,3 +41,7 @@ main = do
   print $ "quickSort          --> " ++ (show $ quickSort  arr)
   print $ "quickSort'         --> " ++ (show $ quickSort' arr)
   print $ "qSort w/ partition --> " ++ (show $ qsort arr)
+
+  let arr2 = ['z','y'..'a']
+  print $ "input              --> " ++ (show arr2)
+  print $ "quickSort          --> " ++ (show $ quickSort  arr2)

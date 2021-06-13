@@ -60,3 +60,7 @@ main = do
   print $ "mergeSort   --> " ++ (show $ mergeSort   arr)
   print $ "mergeSort'  --> " ++ (show $ mergeSort'  arr)
   print $ "mergeSort'' --> " ++ (show $ mergeSort'' arr)
+
+  let arr2 = ['z','y'..'a']
+  print $ "input       --> " ++ (show arr2)
+  print $ "mergeSort   --> " ++ (show $ mergeSort  arr2)
