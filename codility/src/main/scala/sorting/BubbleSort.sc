@@ -19,8 +19,14 @@ bubbleSort xs
 
 import scala.annotation.tailrec
 
+// https://docs.scala-lang.org/cheatsheets/index.html
+// https://docs.scala-lang.org/tutorials/FAQ/index.html
+// https://www.baeldung.com/scala/view-context-bounds
+// https://twitter.github.io/scala_school/advanced-types.html
+// https://stackoverflow.com/questions/4465948/what-are-scala-context-and-view-bounds/4467012#4467012
+// def bubbleSort[T <% Ordered[T]](list: List[T]): List[T] = {
 @tailrec
-def bubbleSort[T](list: List[T])(implicit ev$1: T => Ordered[T]): List[T] = {
+def bubbleSort[T](list: List[T])(implicit evidence: T => Ordered[T]): List[T] = {
 
   def swaps(xs: List[T]): List[T] = {
     xs match {
@@ -40,7 +46,7 @@ def bubbleSort[T](list: List[T])(implicit ev$1: T => Ordered[T]): List[T] = {
   }
 }
 
-val arr = (1 to 25).toList.reverse
+val arr = (25 to 1 by -1).toList
 println(s"input      --> $arr")
 println(s"bubbleSort --> ${bubbleSort(arr)}")
 
