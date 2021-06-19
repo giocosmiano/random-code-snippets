@@ -31,8 +31,8 @@ def selectionSort[T](list: => Stream[T])(implicit evidence: T => Ordered[T]): St
 
   def deleteFromOri(tuple: => (T, Stream[T])): Stream[T] = {
     tuple match {
-      case (_, Stream.Empty) => Stream.empty
-      case (x, allYs@ y #:: ys )    =>
+      case (_, Stream.Empty)     => Stream.empty
+      case (x, allYs@ y #:: ys ) =>
         if (x == y) ys
         else        y #:: deleteFromOri( (x, ys) )
     }
@@ -42,7 +42,7 @@ def selectionSort[T](list: => Stream[T])(implicit evidence: T => Ordered[T]): St
     case Stream.Empty => Stream.empty
     case xs =>
       lazy val min = xs.min
-      lazy val ys = deleteFromOri( (min, xs) )
+      lazy val ys  = deleteFromOri( (min, xs) )
       min #:: selectionSort(ys)
   }
 }
