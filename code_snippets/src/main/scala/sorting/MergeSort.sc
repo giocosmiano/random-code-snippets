@@ -65,7 +65,7 @@ def mergeSort[T](list: List[T])(implicit evidence: T => Ordered[T]): List[T] = {
   }
 }
 
-val arr = (5 to 1 by -1).toList
+val arr = (25 to 1 by -1).toList
 println(s"input     --> $arr")
 println(s"mergeSort --> ${mergeSort(arr)}")
 
