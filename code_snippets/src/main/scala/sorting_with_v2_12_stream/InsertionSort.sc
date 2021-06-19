@@ -28,9 +28,9 @@ def insertionSort[T](list: => Stream[T])(implicit evidence: T => Ordered[T]): St
 
   def insert(tuple: => (T, Stream[T])): Stream[T] = {
     tuple match {
-      case (x, Stream.Empty) => x #:: Stream.empty
-      case (x, y #:: ys)     =>
-        if (x < y) x #:: y #:: ys
+      case (x, Stream.Empty)    => x #:: Stream.empty
+      case (x, allYs@ y #:: ys) =>
+        if (x < y) x #:: allYs
         else       y #:: insert( (x, ys) )
     }
   }

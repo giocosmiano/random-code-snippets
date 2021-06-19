@@ -35,11 +35,11 @@ def mergeSort[T](list: => Stream[T])(implicit evidence: T => Ordered[T]): Stream
   def merge(tuple: => (Stream[T], Stream[T])): Stream[T] = {
 
     tuple match {
-      case (xs, Stream.Empty)   => xs
-      case (Stream.Empty, ys)   => ys
-      case (x #:: xs, y #:: ys) =>
-        if (x <= y) x #:: merge( xs, y #:: ys)
-        else        y #:: merge( x #:: xs, ys)
+      case (xs, Stream.Empty) => xs
+      case (Stream.Empty, ys) => ys
+      case (allXs@ x #:: xs, allYs@ y #:: ys) =>
+        if (x <= y) x #:: merge( xs, allYs )
+        else        y #:: merge( allXs, ys )
     }
   }
 

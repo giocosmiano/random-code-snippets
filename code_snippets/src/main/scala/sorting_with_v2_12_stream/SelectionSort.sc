@@ -32,7 +32,7 @@ def selectionSort[T](list: => Stream[T])(implicit evidence: T => Ordered[T]): St
   def deleteFromOri(tuple: => (T, Stream[T])): Stream[T] = {
     tuple match {
       case (_, Stream.Empty) => Stream.empty
-      case (x, y #:: ys )    =>
+      case (x, allYs@ y #:: ys )    =>
         if (x == y) ys
         else        y #:: deleteFromOri( (x, ys) )
     }
