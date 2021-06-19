@@ -49,4 +49,26 @@ public class CollectionUtils {
                 })
                 .orElse(null);
     }
+
+    public static <T> Optional<T> getHead(final Stream<T> list) {
+        return ofNullable(list)
+                .map(e -> e.filter(Objects::nonNull))
+                .flatMap(Stream::findFirst);
+    }
+
+    public static <T> Stream<T> getTail(final Stream<T> list) {
+        return ofNullable(list)
+                .map(e -> e.filter(Objects::nonNull))
+                .map(e -> e.skip(1))
+                .orElse(Stream.empty());
+    }
+
+    public static <T> Optional<ImmutablePair<Optional<T>, Stream<T>>> getHeadAndTail(final Stream<T> list) {
+        return ofNullable( list )
+                .map(e -> e.filter(Objects::nonNull))
+                .flatMap(e ->
+                        ofNullable(getHead(e))
+                                .map(e1 -> ImmutablePair.of(e1, getTail(e)))
+                );
+    }
 }
