@@ -33,11 +33,11 @@ def bubbleSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): Laz
 
   def swaps(xs: => LazyList[T]): LazyList[T] = {
     xs match {
-      case LazyList()       => LazyList.empty
-      case x #:: LazyList() => LazyList.cons(x, LazyList.empty)
-      case x1 #:: x2 #:: xs =>
-        if (x1 >= x2) LazyList.cons(x2, swaps( LazyList.cons(x1, xs)) )
-        else          LazyList.cons(x1, swaps( LazyList.cons(x2, xs)) )
+      case LazyList()        => LazyList.empty
+      case x  #:: LazyList() => x #:: LazyList.empty
+      case x1 #:: x2 #:: xs  =>
+        if (x1 >= x2) x2 #:: swaps( x1 #:: xs)
+        else          x1 #:: swaps( x2 #:: xs)
     }
   }
 

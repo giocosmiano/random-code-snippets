@@ -38,14 +38,14 @@ def mergeSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): Lazy
       case (xs, LazyList()) => xs
       case (LazyList(), ys) => ys
       case (x #:: xs, y #:: ys) =>
-        if (x <= y) LazyList.cons(x, merge( xs, LazyList.cons(y, ys) ))
-        else        LazyList.cons(y, merge( LazyList.cons(x, xs), ys) )
+        if (x <= y) x #:: merge( xs, y #:: ys)
+        else        y #:: merge( x #:: xs, ys)
     }
   }
 
   list match {
     case LazyList()       => LazyList.empty
-    case x #:: LazyList() => LazyList.cons(x, LazyList.empty)
+    case x #:: LazyList() => x #:: LazyList.empty
     case xs =>
       lazy val half = xs.length / 2
       lazy val firstHalf  = mergeSort( xs.take(half) )

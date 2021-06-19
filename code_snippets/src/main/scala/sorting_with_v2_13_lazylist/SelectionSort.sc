@@ -34,7 +34,7 @@ def selectionSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): 
       case (_, LazyList()) => LazyList.empty
       case (x, y #:: ys )  =>
         if (x == y) ys
-        else        LazyList.cons(y, deleteFromOri( (x, ys) ))
+        else        y #:: deleteFromOri( (x, ys) )
     }
   }
 
@@ -43,7 +43,7 @@ def selectionSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): 
     case xs =>
       lazy val min = xs.min
       lazy val ys = deleteFromOri( (min, xs) )
-      LazyList.cons(min, selectionSort(ys))
+      min #:: selectionSort(ys)
   }
 }
 

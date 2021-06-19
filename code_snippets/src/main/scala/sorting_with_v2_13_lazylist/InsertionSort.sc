@@ -28,10 +28,10 @@ def insertionSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): 
 
   def insert(tuple: => (T, LazyList[T])): LazyList[T] = {
     tuple match {
-      case (x, LazyList()) => LazyList.cons(x, LazyList.empty)
+      case (x, LazyList()) => x #:: LazyList.empty
       case (x, y #:: ys)   =>
-        if (x < y) LazyList.cons(x, LazyList.cons(y, ys))
-        else       LazyList.cons(y, insert( (x, ys) ))
+        if (x < y) x #:: y #:: ys
+        else       y #:: insert( (x, ys) )
     }
   }
 
