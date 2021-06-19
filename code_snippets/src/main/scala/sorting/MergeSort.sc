@@ -25,10 +25,12 @@ mergeSort xs = merge firstHalf secondHalf
 // https://www.baeldung.com/scala/view-context-bounds
 // https://twitter.github.io/scala_school/advanced-types.html
 // https://stackoverflow.com/questions/4465948/what-are-scala-context-and-view-bounds/4467012#4467012
-// def mergeSort[T <% Ordered[T]](list: List[T]): List[T] = {
-def mergeSort[T](list: List[T])(implicit evidence: T => Ordered[T]): List[T] = {
+// def mergeSort[T <% Ordered[T]](list: => List[T]): List[T] = {
 
-  def merge(tuple: (List[T], List[T])): List[T] = {
+// using Scala v2.12
+def mergeSort[T](list: => List[T])(implicit evidence: T => Ordered[T]): List[T] = {
+
+  def merge(tuple: => (List[T], List[T])): List[T] = {
 
     tuple match {
       case (xs, Nil) => xs
@@ -40,20 +42,20 @@ def mergeSort[T](list: List[T])(implicit evidence: T => Ordered[T]): List[T] = {
   }
 
   list match {
-    case Nil => Nil
+    case Nil    => Nil
     case x::Nil => x::Nil
     case xs =>
-      val half = xs.length / 2
-      val firstHalf  = mergeSort( xs.take(half) )
-      val secondHalf = mergeSort( xs.drop(half) )
+      lazy val half = xs.length / 2
+      lazy val firstHalf  = mergeSort( xs.take(half) )
+      lazy val secondHalf = mergeSort( xs.drop(half) )
       merge( (firstHalf, secondHalf) )
   }
 }
 
-val arr = (25 to 1 by -1).toList
+lazy val arr = (25 to 1 by -1).toList
 println(s"input     --> $arr")
 println(s"mergeSort --> ${mergeSort(arr)}")
 
-val arr2 = ('a' to 'z').toList.reverse
+lazy val arr2 = ('a' to 'z').toList.reverse
 println(s"input     --> $arr2")
 println(s"mergeSort --> ${mergeSort(arr2)}")

@@ -23,30 +23,32 @@ selectionSort xs = mini : selectionSort xs'
 // https://twitter.github.io/scala_school/advanced-types.html
 // https://stackoverflow.com/questions/4465948/what-are-scala-context-and-view-bounds/4467012#4467012
 // def selectionSort[T <% Ordered[T]](list: List[T]): List[T] = {
-def selectionSort[T](list: List[T])(implicit evidence: T => Ordered[T]): List[T] = {
 
-  def deleteFromOri(tuple: (T, List[T])): List[T] = {
+// using Scala v2.12
+def selectionSort[T](list: => List[T])(implicit evidence: T => Ordered[T]): List[T] = {
+
+  def deleteFromOri(tuple: => (T, List[T])): List[T] = {
     tuple match {
-      case (_, Nil) => Nil
+      case (_, Nil)   => Nil
       case (x, y::ys) =>
         if (x == y) ys
-        else y :: deleteFromOri( (x, ys) )
+        else        y :: deleteFromOri( (x, ys) )
     }
   }
 
   list match {
     case Nil => Nil
-    case xs =>
-      val min = xs.min
-      val ys = deleteFromOri( (min, xs) )
+    case xs  =>
+      lazy val min = xs.min
+      lazy val ys  = deleteFromOri( (min, xs) )
       min :: selectionSort(ys)
   }
 }
 
-val arr = (25 to 1 by -1).toList
+lazy val arr = (25 to 1 by -1).toList
 println(s"input         --> $arr")
 println(s"selectionSort --> ${selectionSort(arr)}")
 
-val arr2 = ('a' to 'z').toList.reverse
+lazy val arr2 = ('a' to 'z').toList.reverse
 println(s"input         --> $arr2")
 println(s"selectionSort --> ${selectionSort(arr2)}")
