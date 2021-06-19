@@ -34,8 +34,8 @@ def mergeSort[T](list: List[T])(implicit evidence: T => Ordered[T]): List[T] = {
       case (xs, Nil) => xs
       case (Nil, ys) => ys
       case (x::xs, y::ys) =>
-        if (x <= y) x :: merge((xs, y :: ys))
-        else y :: merge( (x::xs, ys) )
+        if (x <= y) x :: merge( (xs, y::ys) )
+        else        y :: merge( (x::xs, ys) )
     }
   }
 
