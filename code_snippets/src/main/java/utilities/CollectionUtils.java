@@ -58,6 +58,28 @@ public class CollectionUtils {
                 .orElse(null);
     }
 
+    public static <T> Optional<T> getHead(final Stream<T> stream) {
+        return ofNullable(stream)
+                .map(e -> e.filter(Objects::nonNull))
+                .flatMap(Stream::findFirst);
+    }
+
+    public static <T> Stream<T> getTail(final Stream<T> stream) {
+        return ofNullable(stream)
+                .map(e -> e.filter(Objects::nonNull))
+                .map(e -> e.skip(1))
+                .orElse(Stream.empty());
+    }
+
+    public static <T> Optional<ImmutablePair<Optional<T>, Stream<T>>> getHeadAndTail(final Stream<T> stream) {
+        return ofNullable(stream)
+                .map(e -> e.filter(Objects::nonNull))
+                .flatMap(e ->
+                        ofNullable(getHead(e))
+                                .map(e1 -> ImmutablePair.of(e1, getTail(e)))
+                );
+    }
+
     public static <T> List<T> zipListToList(final List<List<T>> listOfList) {
         final Integer maxSize =
                 transformToStreamOfObjects(listOfList)
