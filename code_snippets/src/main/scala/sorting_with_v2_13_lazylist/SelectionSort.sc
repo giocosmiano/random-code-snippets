@@ -31,8 +31,8 @@ def selectionSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): 
 
   def deleteFromOri(tuple: => (T, LazyList[T])): LazyList[T] = {
     tuple match {
-      case (_, LazyList()) => LazyList.empty
-      case (x, y #:: ys )  =>
+      case (_, LazyList())       => LazyList.empty
+      case (x, allYs@ y #:: ys ) =>
         if (x == y) ys
         else        y #:: deleteFromOri( (x, ys) )
     }
@@ -42,7 +42,7 @@ def selectionSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): 
     case LazyList() => LazyList.empty
     case xs =>
       lazy val min = xs.min
-      lazy val ys = deleteFromOri( (min, xs) )
+      lazy val ys  = deleteFromOri( (min, xs) )
       min #:: selectionSort(ys)
   }
 }

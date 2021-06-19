@@ -37,9 +37,9 @@ def mergeSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): Lazy
     tuple match {
       case (xs, LazyList()) => xs
       case (LazyList(), ys) => ys
-      case (x #:: xs, y #:: ys) =>
-        if (x <= y) x #:: merge( xs, y #:: ys)
-        else        y #:: merge( x #:: xs, ys)
+      case (allXs@ x #:: xs, allYs@ y #:: ys) =>
+        if (x <= y) x #:: merge( xs, allYs )
+        else        y #:: merge( allXs, ys )
     }
   }
 
@@ -54,7 +54,7 @@ def mergeSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): Lazy
   }
 }
 
-lazy val arr = (25 to 1 by -1).to(LazyList)
+lazy val arr = (250000 to 1 by -1).to(LazyList)
 println(s"input     --> ${arr.toList}")
 println(s"mergeSort --> ${mergeSort(arr).toList}")
 

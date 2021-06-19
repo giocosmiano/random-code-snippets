@@ -25,7 +25,7 @@ def quickSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): Lazy
 
   list match {
     case LazyList() => LazyList.empty
-    case x #:: xs   => quickSort( xs.filter (_ <= x) ) #::: LazyList.cons(x, LazyList.empty) #::: quickSort( xs.filter (_ > x) )
+    case x #:: xs   => quickSort( xs.filter (_ <= x) ) #::: x #:: LazyList.empty #::: quickSort( xs.filter (_ > x) )
   }
 }
 

@@ -28,9 +28,9 @@ def insertionSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): 
 
   def insert(tuple: => (T, LazyList[T])): LazyList[T] = {
     tuple match {
-      case (x, LazyList()) => x #:: LazyList.empty
-      case (x, y #:: ys)   =>
-        if (x < y) x #:: y #:: ys
+      case (x, LazyList())      => x #:: LazyList.empty
+      case (x, allYs@ y #:: ys) =>
+        if (x < y) x #:: allYs
         else       y #:: insert( (x, ys) )
     }
   }
