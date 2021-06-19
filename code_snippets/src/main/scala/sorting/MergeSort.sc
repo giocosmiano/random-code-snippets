@@ -26,31 +26,16 @@ mergeSort xs = merge firstHalf secondHalf
 // https://twitter.github.io/scala_school/advanced-types.html
 // https://stackoverflow.com/questions/4465948/what-are-scala-context-and-view-bounds/4467012#4467012
 // def mergeSort[T <% Ordered[T]](list: List[T]): List[T] = {
-var ctr = 0
 def mergeSort[T](list: List[T])(implicit evidence: T => Ordered[T]): List[T] = {
 
-  ctr += 1
-  println( s"mergeSort => $list, $ctr")
-
   def merge(tuple: (List[T], List[T])): List[T] = {
-    println( s"merge => ${tuple._1}, ${tuple._2}")
 
     tuple match {
-      case (xs, Nil) =>
-        println( s"xs, Nil => $xs")
-        xs
-      case (Nil, ys) =>
-        println( s"Nil, ys => $ys")
-        ys
+      case (xs, Nil) => xs
+      case (Nil, ys) => ys
       case (x::xs, y::ys) =>
-        if (x <= y) {
-          println( s"x <= y, $x, $xs, $y, $ys")
-          x :: merge((xs, y :: ys))
-        }
-        else {
-          println( s"x > y, $y, $x, $xs, $ys")
-          y :: merge( (x::xs, ys) )
-        }
+        if (x <= y) x :: merge((xs, y :: ys))
+        else y :: merge( (x::xs, ys) )
     }
   }
 
