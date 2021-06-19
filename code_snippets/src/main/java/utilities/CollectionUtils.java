@@ -58,6 +58,12 @@ public class CollectionUtils {
                 .orElse(null);
     }
 
+    public static <T> Stream<T> streamOfObjects(final Stream<T> stream) {
+        return ofNullable(stream)
+                .map(e -> e.filter(Objects::nonNull))
+                .orElse(Stream.empty());
+    }
+
     public static <T> Optional<T> getHead(final Stream<T> stream) {
         return ofNullable(stream)
                 .map(e -> e.filter(Objects::nonNull))
