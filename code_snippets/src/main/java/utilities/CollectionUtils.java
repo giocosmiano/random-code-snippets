@@ -58,6 +58,8 @@ public class CollectionUtils {
                 .orElse(null);
     }
 
+/**
+ * Running some experiments
     public static <T> Stream<T> streamOfObjects(final Stream<T> stream) {
         return ofNullable(stream)
                 .map(e -> e.filter(Objects::nonNull))
@@ -85,6 +87,7 @@ public class CollectionUtils {
                                 .map(e1 -> ImmutablePair.of(e1, getTail(e)))
                 );
     }
+*/
 
     public static <T> List<T> zipListToList(final List<List<T>> listOfList) {
         final Integer maxSize =
