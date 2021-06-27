@@ -47,6 +47,17 @@ def selectionSort[T](list: => Stream[T])(implicit evidence: T => Ordered[T]): St
   }
 }
 
+// https://biercoff.com/easily-measuring-code-execution-time-in-scala/
+def time[R](block: => R): R = {
+  val t0 = System.nanoTime()
+  val result = block    // call-by-name
+  val t1 = System.nanoTime()
+  val elapsed = t1 - t0
+  val seconds = elapsed / 1_000_000_000.0
+  println("Elapsed time: " + seconds + " secs")
+  result
+}
+
 lazy val arr = (25 to 1 by -1).to(Stream)
 println(s"input         --> ${arr.toList}")
 println(s"selectionSort --> ${selectionSort(arr).toList}")
@@ -54,3 +65,11 @@ println(s"selectionSort --> ${selectionSort(arr).toList}")
 lazy val arr2 = ('a' to 'z').to(Stream).reverse
 println(s"input         --> ${arr2.toList}")
 println(s"selectionSort --> ${selectionSort(arr2).toList}")
+
+// https://biercoff.com/easily-measuring-code-execution-time-in-scala/
+lazy val unSortedBigArray = (50000 to 1 by -1).to(Stream)
+lazy val sortedBigArray   = (1 to 50000).to(Stream)
+lazy val isBigArraySorted = time { selectionSort(unSortedBigArray).toList == sortedBigArray.toList }
+println(s"isBigArraySorted using `selectionSort` with ${unSortedBigArray.length} elements --> $isBigArraySorted")
+
+
