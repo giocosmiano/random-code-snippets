@@ -1,8 +1,13 @@
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE InstanceSigs      #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- https://en.wikipedia.org/wiki/Sorting_algorithm#Comparison_of_algorithms
 -- time complexity --> n log n
 module MergeSort where
+
+import Text.Printf
+import Control.Exception
+import System.CPUTime
 
 -----------------------------------------------------------------------------------
 
@@ -64,3 +69,17 @@ main = do
   let arr2 = ['z','y'..'a']
   print $ "input       --> " ++ (show arr2)
   print $ "mergeSort   --> " ++ (show $ mergeSort  arr2)
+
+  --
+  -- timing measure --> https://chrisdone.com/posts/measuring-duration-in-haskell/
+  -- simple timing --> https://wiki.haskell.org/Timing_computations
+  let sortedBigArray   = [1..1500000]
+  let unSortedBigArray = [1500000,1499999..1]
+
+  start <- getCPUTime
+  let isBigArrSorted = mergeSort unSortedBigArray == sortedBigArray
+  print $ "isBigArraySorted using `mergeSort` with " ++ show (length unSortedBigArray) ++ " elements --> " ++ (show isBigArrSorted)
+  end   <- getCPUTime
+  let diff = (fromIntegral (end - start)) / (10^12)
+  printf "Computation time: %0.3f sec\n" (diff :: Double)
+
