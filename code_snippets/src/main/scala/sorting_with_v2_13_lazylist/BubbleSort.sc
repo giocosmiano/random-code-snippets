@@ -49,6 +49,17 @@ def bubbleSort[T](list: => LazyList[T])(implicit evidence: T => Ordered[T]): Laz
   }
 }
 
+// https://biercoff.com/easily-measuring-code-execution-time-in-scala/
+def time[R](block: => R): R = {
+  val t0 = System.nanoTime()
+  val result = block    // call-by-name
+  val t1 = System.nanoTime()
+  val elapsed = t1 - t0
+  val seconds = elapsed / 1_000_000_000.0
+  println("Elapsed time: " + seconds + " secs")
+  result
+}
+
 lazy val arr = (25 to 1 by -1).to(LazyList)
 println(s"input      --> ${arr.toList}")
 println(s"bubbleSort --> ${bubbleSort(arr).toList}")
@@ -56,3 +67,12 @@ println(s"bubbleSort --> ${bubbleSort(arr).toList}")
 lazy val arr2 = ('a' to 'z').to(LazyList).reverse
 println(s"input      --> ${arr2.toList}")
 println(s"bubbleSort --> ${bubbleSort(arr2).toList}")
+
+// https://biercoff.com/easily-measuring-code-execution-time-in-scala/
+// limiting to 3.5k as JDK will throw java.lang.StackOverflowError
+lazy val unSortedBigArray = (3500 to 1 by -1).to(LazyList)
+lazy val sortedBigArray   = (1 to 3500).to(LazyList)
+lazy val isBigArraySorted = time { bubbleSort(unSortedBigArray).toList == sortedBigArray.toList }
+println(s"isBigArraySorted using `bubbleSort` with ${unSortedBigArray.length} elements --> $isBigArraySorted")
+
+
