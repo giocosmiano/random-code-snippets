@@ -1,5 +1,6 @@
 package sorting;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.ArrayList;
@@ -91,5 +92,21 @@ public class BubbleSort {
                      .collect(Collectors.toList());
     System.out.println("input      --> " + chars);
     System.out.println("bubbleSort --> " + bubbleSort( chars ));
+
+    List<Integer> sorted =
+            IntStream.rangeClosed(1, 1000)
+                     .boxed()
+                     .collect(Collectors.toList());
+    List<Integer> unSorted =
+            sorted.stream()
+                  .sorted(Collections.reverseOrder())
+                  .collect(Collectors.toList());
+
+    StopWatch watch = new StopWatch();
+    watch.start();
+    boolean isBigArraySorted = bubbleSort(unSorted).equals(sorted);
+    watch.stop();
+    System.out.println("Time Elapsed: " + watch.getTime() / 1000.0 + " secs");
+    System.out.printf("isBigArraySorted using `bubbleSort` with %s elements --> %s", unSorted.size(), isBigArraySorted);
   }
 }
