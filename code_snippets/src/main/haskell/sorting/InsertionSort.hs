@@ -26,13 +26,19 @@ insertionSort (x:xs) = insert x (insertionSort xs)
 
 -----------------------------------------------------------------------------------
 
-timingSort :: (Ord a, Show a) => [a] -> [a] -> IO ()
-timingSort xs ys = do
+timingBigSort :: (Ord a, Show a) => [a] -> IO ()
+timingBigSort xs = do
+  putStrLn ""
+  putStrLn "Sorting big list..."
+  let ys = sort xs
+  printf "nbrOfElems == %s\n" (show $ length ys)
+
   start <- getCPUTime
   let zs = insertionSort xs
   printf "nbrOfElems insertionSorted == %s\n" (show $ length zs)
   end <- getCPUTime
   let diff = (fromIntegral (end - start)) / (10^12)
+
   printf "isSorted == %s\n" (show $ ys == zs)
   printf "Computation time: %0.3f sec\n" (diff :: Double)
 
@@ -51,11 +57,6 @@ main = do
   -- timing measure --> https://chrisdone.com/posts/measuring-duration-in-haskell/
   -- simple timing --> https://wiki.haskell.org/Timing_computations
   -- limiting to 15k as 20k will make my PC hang
-  putStrLn ""
-  putStrLn "Sorting big list..."
-  let xs = [15000,14999..1]
-      ys = sort xs
-  printf "nbrOfElems == %s\n" (show $ length ys)
-  timingSort xs ys
+  timingBigSort [15000,14999..1]
 
 
