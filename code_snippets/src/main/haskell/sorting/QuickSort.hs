@@ -5,7 +5,7 @@
 -- time complexity --> n log n
 module QuickSort where
 
-import Data.List (partition)
+import Data.List (partition, sort)
 
 import Text.Printf
 import Control.Exception
@@ -40,6 +40,18 @@ qsort (x:xs) = qsort ys ++ x : qsort zs
 
 -----------------------------------------------------------------------------------
 
+timingSort :: (Ord a, Show a) => [a] -> [a] -> IO ()
+timingSort xs ys = do
+  start <- getCPUTime
+  let zs = quickSort xs
+  printf "nbrOfElems quickSorted == %s\n" (show $ length zs)
+  end <- getCPUTime
+  let diff = (fromIntegral (end - start)) / (10^12)
+  printf "isSorted == %s\n" (show $ ys == zs)
+  printf "Computation time: %0.3f sec\n" (diff :: Double)
+
+-----------------------------------------------------------------------------------
+
 main = do
   let arr = [25,24..1]
   print $ "input              --> " ++ (show arr)
@@ -55,13 +67,10 @@ main = do
   -- timing measure --> https://chrisdone.com/posts/measuring-duration-in-haskell/
   -- simple timing --> https://wiki.haskell.org/Timing_computations
   -- limiting to 15k as 20k will make my PC hang
-  let sortedBigArray   = [1..15000]
-  let unSortedBigArray = [15000,14999..1]
-
-  start <- getCPUTime
-  let isBigArrSorted = quickSort unSortedBigArray == sortedBigArray
-  print $ "isBigArraySorted using `quickSort` with " ++ show (length unSortedBigArray) ++ " elements --> " ++ (show isBigArrSorted)
-  end   <- getCPUTime
-  let diff = (fromIntegral (end - start)) / (10^12)
-  printf "Computation time: %0.3f sec\n" (diff :: Double)
+  putStrLn ""
+  putStrLn "Sorting big list..."
+  let xs = [15000,14999..1]
+      ys = sort xs
+  printf "nbrOfElems == %s\n" (show $ length ys)
+  timingSort xs ys
 

@@ -8,6 +8,7 @@ module MergeSort where
 import Text.Printf
 import Control.Exception
 import System.CPUTime
+import Data.List (sort)
 
 -----------------------------------------------------------------------------------
 
@@ -59,6 +60,18 @@ merge' allX@(x:xs) allY@(y:ys)
 
 -----------------------------------------------------------------------------------
 
+timingSort :: (Ord a, Show a) => [a] -> [a] -> IO ()
+timingSort xs ys = do
+  start <- getCPUTime
+  let zs = mergeSort xs
+  printf "nbrOfElems mergeSorted == %s\n" (show $ length zs)
+  end <- getCPUTime
+  let diff = (fromIntegral (end - start)) / (10^12)
+  printf "isSorted == %s\n" (show $ ys == zs)
+  printf "Computation time: %0.3f sec\n" (diff :: Double)
+
+-----------------------------------------------------------------------------------
+
 main = do
   let arr = [25,24..1]
   print $ "input       --> " ++ (show arr)
@@ -73,13 +86,10 @@ main = do
   --
   -- timing measure --> https://chrisdone.com/posts/measuring-duration-in-haskell/
   -- simple timing --> https://wiki.haskell.org/Timing_computations
-  let sortedBigArray   = [1..1500000]
-  let unSortedBigArray = [1500000,1499999..1]
-
-  start <- getCPUTime
-  let isBigArrSorted = mergeSort unSortedBigArray == sortedBigArray
-  print $ "isBigArraySorted using `mergeSort` with " ++ show (length unSortedBigArray) ++ " elements --> " ++ (show isBigArrSorted)
-  end   <- getCPUTime
-  let diff = (fromIntegral (end - start)) / (10^12)
-  printf "Computation time: %0.3f sec\n" (diff :: Double)
+  putStrLn ""
+  putStrLn "Sorting big list..."
+  let xs = [1500000,1499999..1]
+      ys = sort xs
+  printf "nbrOfElems == %s\n" (show $ length ys)
+  timingSort xs ys
 

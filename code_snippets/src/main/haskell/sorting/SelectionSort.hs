@@ -8,6 +8,7 @@ module SelectionSort where
 import Text.Printf
 import Control.Exception
 import System.CPUTime
+import Data.List (sort)
 
 -----------------------------------------------------------------------------------
 
@@ -28,6 +29,18 @@ selectionSort xs = mini : selectionSort xs'
 
 -----------------------------------------------------------------------------------
 
+timingSort :: (Ord a, Show a) => [a] -> [a] -> IO ()
+timingSort xs ys = do
+  start <- getCPUTime
+  let zs = selectionSort xs
+  printf "nbrOfElems selectionSorted == %s\n" (show $ length zs)
+  end <- getCPUTime
+  let diff = (fromIntegral (end - start)) / (10^12)
+  printf "isSorted == %s\n" (show $ ys == zs)
+  printf "Computation time: %0.3f sec\n" (diff :: Double)
+
+-----------------------------------------------------------------------------------
+
 main = do
   let arr = [25,24..1]
   print $ "input         --> " ++ (show arr)
@@ -41,14 +54,11 @@ main = do
   -- timing measure --> https://chrisdone.com/posts/measuring-duration-in-haskell/
   -- simple timing --> https://wiki.haskell.org/Timing_computations
   -- limiting to 15k as 20k will make my PC hang
-  let sortedBigArray   = [1..15000]
-  let unSortedBigArray = [15000,14999..1]
-
-  start <- getCPUTime
-  let isBigArrSorted = selectionSort unSortedBigArray == sortedBigArray
-  print $ "isBigArraySorted using `selectionSort` with " ++ show (length unSortedBigArray) ++ " elements --> " ++ (show isBigArrSorted)
-  end   <- getCPUTime
-  let diff = (fromIntegral (end - start)) / (10^12)
-  printf "Computation time: %0.3f sec\n" (diff :: Double)
+  putStrLn ""
+  putStrLn "Sorting big list..."
+  let xs = [15000,14999..1]
+      ys = sort xs
+  printf "nbrOfElems == %s\n" (show $ length ys)
+  timingSort xs ys
 
 
