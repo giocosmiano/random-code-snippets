@@ -33,7 +33,7 @@
         <lombokVersion>1.18.12</lombokVersion>
         <jodaVersion>2.10.5</jodaVersion>
         <flapdoodleVersion>2.2.0</flapdoodleVersion>
-        <h2DBVersion>1.4.200</h2DBVersion>
+        <h2DBVersion>2.1.210</h2DBVersion>
         <swaggerVersion>2.9.2</swaggerVersion>
         <jsonwebtokenVersion>0.11.1</jsonwebtokenVersion>
         <jose4jVersion>0.7.0</jose4jVersion>
