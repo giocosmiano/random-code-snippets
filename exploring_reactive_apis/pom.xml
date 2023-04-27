@@ -36,7 +36,7 @@
         <h2DBVersion>1.4.200</h2DBVersion>
         <swaggerVersion>2.9.2</swaggerVersion>
         <jsonwebtokenVersion>0.11.1</jsonwebtokenVersion>
-        <jose4jVersion>0.7.0</jose4jVersion>
+        <jose4jVersion>0.9.3</jose4jVersion>
         <jasyptVersion>1.9.3</jasyptVersion>
         <jaxbApiVersion>2.3.0</jaxbApiVersion>
         <apacheCommonsLangVersion>3.9</apacheCommonsLangVersion>
