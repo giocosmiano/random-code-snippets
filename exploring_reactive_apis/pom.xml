@@ -27,7 +27,7 @@
         <springBootVersion>2.3.0.RELEASE</springBootVersion>
         <springReactorVersion>3.3.5.RELEASE</springReactorVersion>
         <springCloudVersion>2.2.1.RELEASE</springCloudVersion>
-        <googleGuavaVersion>28.2-jre</googleGuavaVersion>
+        <googleGuavaVersion>32.0.0-jre</googleGuavaVersion>
         <googleJsonVersion>1.1.1</googleJsonVersion>
         <vavrVersion>0.10.2</vavrVersion>
         <lombokVersion>1.18.12</lombokVersion>
